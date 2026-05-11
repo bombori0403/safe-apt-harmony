@@ -1,0 +1,190 @@
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import type { RiskLevel } from "@/lib/types";
+import { RISK_ORDER, riskLevelClass } from "@/lib/types";
+import { toast } from "sonner";
+
+export const Route = createFileRoute("/_app/assessment/$id/results")({
+  component: Results,
+});
+
+function Results() {
+  const { id } = Route.useParams();
+  const navigate = useNavigate();
+  const [a, setA] = useState<any>(null);
+  const [hazards, setHazards] = useState<any[]>([]);
+  const [saving, setSaving] = useState(false);
+
+  async function load() {
+    const { data: ass } = await supabase.from("assessments").select("*").eq("id", id).maybeSingle();
+    setA(ass);
+    const { data: h } = await supabase.from("hazards").select("*").eq("assessment_id", id).order("created_at");
+    setHazards(h ?? []);
+  }
+  useEffect(() => { load(); }, [id]);
+
+  function standardize(method: string, level?: RiskLevel | null, likelihood?: number, severity?: number, ops_data?: any): RiskLevel | null {
+    if (method === "빈도강도" && likelihood && severity) {
+      const s = likelihood * severity;
+      if (s <= 4) return "매우낮음";
+      if (s <= 8) return "낮음";
+      if (s <= 12) return "보통";
+      if (s <= 16) return "높음";
+      return "매우높음";
+    }
+    if (method === "OPS") {
+      const n = ops_data?.factors?.length ?? 0;
+      if (n >= 3) return "높음";
+      if (n === 2) return "보통";
+      if (n === 1) return "낮음";
+      return null;
+    }
+    return level ?? null;
+  }
+
+  async function updateHazard(hid: string, patch: any) {
+    const merged = { ...patch };
+    const h = hazards.find(x => x.id === hid);
+    const lvl = standardize(a.method, patch.level ?? h.level, patch.likelihood ?? h.likelihood, patch.severity ?? h.severity, patch.ops_data ?? h.ops_data);
+    if (lvl) { merged.level = merged.level ?? lvl; merged.level_standardized = lvl; }
+    await supabase.from("hazards").update(merged).eq("id", hid);
+    await load();
+  }
+
+  async function next() {
+    setSaving(true);
+    const allow = (a.allowable_level as RiskLevel) ?? "낮음";
+    const exceed = hazards.filter(h => h.level && RISK_ORDER[h.level as RiskLevel] > RISK_ORDER[allow]);
+    if (exceed.length === 0) {
+      await supabase.from("assessments").update({ status: "협의중" }).eq("id", id);
+      toast.success("허용 수준 초과 항목이 없습니다. 협의·공유 단계로 이동합니다.");
+      navigate({ to: "/assessment/$id/share", params: { id } });
+    } else {
+      toast.info(`${exceed.length}건의 항목이 감소대책 수립이 필요합니다.`);
+      navigate({ to: "/assessment/$id/measures", params: { id } });
+    }
+    setSaving(false);
+  }
+
+  if (!a) return <div className="p-8 text-muted-foreground">불러오는 중...</div>;
+
+  return (
+    <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-5">
+      <div>
+        <div className="flex items-center gap-2 text-sm">
+          <Badge variant="secondary">{a.method}</Badge>
+          <span className="text-muted-foreground">{a.work_name}</span>
+        </div>
+        <h1 className="text-2xl font-bold mt-2">위험성 결정</h1>
+        <p className="text-xs text-muted-foreground mt-1">
+          위험성 결정 시 '낮음' 이상에 대해서는 위험성 감소대책을 수립해야 합니다. (고용노동부 지침)
+        </p>
+      </div>
+
+      <div className="space-y-3">
+        {hazards.map(h => (
+          <Card key={h.id}><CardContent className="p-4 space-y-3">
+            <div className="font-medium">{h.description}</div>
+
+            {a.method === "3단계" && (
+              <div className="grid grid-cols-3 gap-2">
+                {(["하","중","상"] as const).map(v => {
+                  const lvl: RiskLevel = v === "상" ? "매우높음" : v === "중" ? "보통" : "낮음";
+                  const sel = h.level === lvl;
+                  return <button key={v} onClick={() => updateHazard(h.id, { level: lvl })}
+                    className={`py-2.5 rounded-md border-2 text-sm font-semibold ${sel ? (v==="상"?"border-danger bg-danger/10 text-danger":v==="중"?"border-warning bg-warning/10 text-warning":"border-success bg-success/10 text-success") : "border-border"}`}>{v}</button>;
+                })}
+              </div>
+            )}
+
+            {a.method === "5단계" && (
+              <div className="grid grid-cols-5 gap-1.5">
+                {(["매우낮음","낮음","보통","높음","매우높음"] as RiskLevel[]).map(lvl => (
+                  <button key={lvl} onClick={() => updateHazard(h.id, { level: lvl })}
+                    className={`py-2 rounded-md border text-xs font-medium ${h.level===lvl?"border-primary bg-primary/10":"border-border"}`}>{lvl}</button>
+                ))}
+              </div>
+            )}
+
+            {a.method === "빈도강도" && (
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <span className="w-16 text-muted-foreground">가능성</span>
+                  {[1,2,3,4,5].map(n => (
+                    <button key={n} onClick={() => updateHazard(h.id, { likelihood: n })}
+                      className={`w-9 h-9 rounded border ${h.likelihood===n?"bg-primary text-primary-foreground border-primary":""}`}>{n}</button>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-16 text-muted-foreground">중대성</span>
+                  {[1,2,3,4,5].map(n => (
+                    <button key={n} onClick={() => updateHazard(h.id, { severity: n })}
+                      className={`w-9 h-9 rounded border ${h.severity===n?"bg-primary text-primary-foreground border-primary":""}`}>{n}</button>
+                  ))}
+                </div>
+                {h.likelihood && h.severity && (
+                  <div className="text-sm">
+                    점수: <strong>{h.likelihood * h.severity}</strong>점 → <span className={`px-2 py-0.5 rounded text-xs ${riskLevelClass(h.level)}`}>{h.level}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {a.method === "체크리스트" && (
+              <div className="flex gap-2">
+                <button onClick={() => updateHazard(h.id, { checklist_result: "적정", level: "낮음" })}
+                  className={`flex-1 py-2.5 rounded-md border-2 ${h.checklist_result==="적정"?"border-success bg-success/10 text-success":"border-border"}`}>○ 적정</button>
+                <button onClick={() => updateHazard(h.id, { checklist_result: "보완", level: "높음" })}
+                  className={`flex-1 py-2.5 rounded-md border-2 ${h.checklist_result==="보완"?"border-danger bg-danger/10 text-danger":"border-border"}`}>× 보완</button>
+              </div>
+            )}
+
+            {a.method === "OPS" && (
+              <OPSEditor h={h} onChange={(ops_data) => updateHazard(h.id, { ops_data })} />
+            )}
+
+            {h.level && (
+              <div className="flex items-center justify-between text-sm">
+                <span className={`px-2 py-1 rounded font-medium ${riskLevelClass(h.level)}`}>{h.level}</span>
+                {RISK_ORDER[h.level as RiskLevel] > RISK_ORDER[(a.allowable_level ?? "낮음") as RiskLevel] && (
+                  <Badge className="bg-danger text-danger-foreground">감소대책 수립 필요</Badge>
+                )}
+              </div>
+            )}
+          </CardContent></Card>
+        ))}
+      </div>
+
+      <div className="flex justify-end">
+        <Button onClick={next} disabled={saving}>{saving?"...":"다음 단계로"}</Button>
+      </div>
+    </div>
+  );
+}
+
+function OPSEditor({ h, onChange }: { h: any; onChange: (d: any) => void }) {
+  const factors: string[] = h.ops_data?.factors ?? [];
+  const [val, setVal] = useState("");
+  return (
+    <div className="space-y-2 text-sm">
+      <div className="text-xs text-muted-foreground">핵심 위험요인 (최대 3개)</div>
+      {factors.map((f, i) => (
+        <div key={i} className="flex items-center gap-2">
+          <span className="flex-1 bg-muted rounded px-2 py-1">{f}</span>
+          <button onClick={() => onChange({ ...h.ops_data, factors: factors.filter((_, j) => j !== i) })} className="text-danger text-xs">삭제</button>
+        </div>
+      ))}
+      {factors.length < 3 && (
+        <div className="flex gap-2">
+          <input value={val} onChange={e=>setVal(e.target.value)} placeholder="핵심 위험요인 입력"
+            className="flex-1 h-9 px-3 rounded border bg-background text-sm" />
+          <Button size="sm" variant="outline" onClick={() => { if (val.trim()) { onChange({ ...h.ops_data, factors: [...factors, val.trim()] }); setVal(""); } }}>추가</Button>
+        </div>
+      )}
+    </div>
+  );
+}
