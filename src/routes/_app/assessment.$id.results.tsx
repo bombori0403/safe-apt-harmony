@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import type { RiskLevel } from "@/lib/types";
 import { RISK_ORDER, riskLevelClass } from "@/lib/types";
 import { toast } from "sonner";
+import { PhotoUpload } from "@/components/photo-upload";
 
 export const Route = createFileRoute("/_app/assessment/$id/results")({
   component: Results,
