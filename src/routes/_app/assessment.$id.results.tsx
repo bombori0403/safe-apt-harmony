@@ -148,6 +148,16 @@ function Results() {
               <OPSEditor h={h} onChange={(ops_data) => updateHazard(h.id, { ops_data })} />
             )}
 
+            <div className="pt-2 border-t">
+              <div className="text-xs text-muted-foreground mb-1.5">현장 사진</div>
+              <PhotoUpload
+                assessmentId={id}
+                hazardId={h.id}
+                photos={h.photos ?? []}
+                onChange={(photos) => updateHazard(h.id, { photos })}
+              />
+            </div>
+
             {h.level && (
               <div className="flex items-center justify-between text-sm">
                 <span className={`px-2 py-1 rounded font-medium ${riskLevelClass(h.level)}`}>{h.level}</span>
