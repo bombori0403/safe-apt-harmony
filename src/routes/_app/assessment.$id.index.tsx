@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { riskLevelClass, type RiskLevel } from "@/lib/types";
-import { ListChecks, ShieldCheck, Users, FileText } from "lucide-react";
+import { ListChecks, ShieldCheck, Users, FileText, Printer } from "lucide-react";
 
 export const Route = createFileRoute("/_app/assessment/$id/")({
   component: Detail,
@@ -50,6 +50,7 @@ function Detail() {
           <Link to="/assessment/$id/results" params={{ id }}><Button variant="outline" size="sm">위험성 결정</Button></Link>
           <Link to="/assessment/$id/measures" params={{ id }}><Button variant="outline" size="sm">감소대책</Button></Link>
           <Link to="/assessment/$id/share" params={{ id }}><Button size="sm">협의·공유</Button></Link>
+          <Link to="/assessment/$id/report" params={{ id }}><Button size="sm" variant="secondary" className="gap-1"><Printer className="h-4 w-4" />결과서</Button></Link>
         </div>
       </div>
 

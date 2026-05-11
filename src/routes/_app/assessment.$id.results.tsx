@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import type { RiskLevel } from "@/lib/types";
 import { RISK_ORDER, riskLevelClass } from "@/lib/types";
 import { toast } from "sonner";
+import { PhotoUpload } from "@/components/photo-upload";
 
 export const Route = createFileRoute("/_app/assessment/$id/results")({
   component: Results,
@@ -146,6 +147,16 @@ function Results() {
             {a.method === "OPS" && (
               <OPSEditor h={h} onChange={(ops_data) => updateHazard(h.id, { ops_data })} />
             )}
+
+            <div className="pt-2 border-t">
+              <div className="text-xs text-muted-foreground mb-1.5">현장 사진</div>
+              <PhotoUpload
+                assessmentId={id}
+                hazardId={h.id}
+                photos={h.photos ?? []}
+                onChange={(photos) => updateHazard(h.id, { photos })}
+              />
+            </div>
 
             {h.level && (
               <div className="flex items-center justify-between text-sm">
