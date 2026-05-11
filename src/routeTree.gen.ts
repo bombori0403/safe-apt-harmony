@@ -17,6 +17,7 @@ import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppConsoleRouteImport } from './routes/_app/console'
 import { Route as AppAssessmentNewRouteImport } from './routes/_app/assessment.new'
 import { Route as AppAssessmentIdResultsRouteImport } from './routes/_app/assessment.$id.results'
+import { Route as AppAssessmentIdMeasuresRouteImport } from './routes/_app/assessment.$id.measures'
 import { Route as AppAssessmentIdHazardsRouteImport } from './routes/_app/assessment.$id.hazards'
 
 const AppRoute = AppRouteImport.update({
@@ -58,6 +59,11 @@ const AppAssessmentIdResultsRoute = AppAssessmentIdResultsRouteImport.update({
   path: '/assessment/$id/results',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAssessmentIdMeasuresRoute = AppAssessmentIdMeasuresRouteImport.update({
+  id: '/assessment/$id/measures',
+  path: '/assessment/$id/measures',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAssessmentIdHazardsRoute = AppAssessmentIdHazardsRouteImport.update({
   id: '/assessment/$id/hazards',
   path: '/assessment/$id/hazards',
@@ -72,6 +78,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AppSettingsRoute
   '/assessment/new': typeof AppAssessmentNewRoute
   '/assessment/$id/hazards': typeof AppAssessmentIdHazardsRoute
+  '/assessment/$id/measures': typeof AppAssessmentIdMeasuresRoute
   '/assessment/$id/results': typeof AppAssessmentIdResultsRoute
 }
 export interface FileRoutesByTo {
@@ -82,6 +89,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AppSettingsRoute
   '/assessment/new': typeof AppAssessmentNewRoute
   '/assessment/$id/hazards': typeof AppAssessmentIdHazardsRoute
+  '/assessment/$id/measures': typeof AppAssessmentIdMeasuresRoute
   '/assessment/$id/results': typeof AppAssessmentIdResultsRoute
 }
 export interface FileRoutesById {
@@ -94,6 +102,7 @@ export interface FileRoutesById {
   '/_app/settings': typeof AppSettingsRoute
   '/_app/assessment/new': typeof AppAssessmentNewRoute
   '/_app/assessment/$id/hazards': typeof AppAssessmentIdHazardsRoute
+  '/_app/assessment/$id/measures': typeof AppAssessmentIdMeasuresRoute
   '/_app/assessment/$id/results': typeof AppAssessmentIdResultsRoute
 }
 export interface FileRouteTypes {
@@ -106,6 +115,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/assessment/new'
     | '/assessment/$id/hazards'
+    | '/assessment/$id/measures'
     | '/assessment/$id/results'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -116,6 +126,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/assessment/new'
     | '/assessment/$id/hazards'
+    | '/assessment/$id/measures'
     | '/assessment/$id/results'
   id:
     | '__root__'
@@ -127,6 +138,7 @@ export interface FileRouteTypes {
     | '/_app/settings'
     | '/_app/assessment/new'
     | '/_app/assessment/$id/hazards'
+    | '/_app/assessment/$id/measures'
     | '/_app/assessment/$id/results'
   fileRoutesById: FileRoutesById
 }
@@ -193,6 +205,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAssessmentIdResultsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/assessment/$id/measures': {
+      id: '/_app/assessment/$id/measures'
+      path: '/assessment/$id/measures'
+      fullPath: '/assessment/$id/measures'
+      preLoaderRoute: typeof AppAssessmentIdMeasuresRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/assessment/$id/hazards': {
       id: '/_app/assessment/$id/hazards'
       path: '/assessment/$id/hazards'
@@ -210,6 +229,7 @@ interface AppRouteChildren {
   AppSettingsRoute: typeof AppSettingsRoute
   AppAssessmentNewRoute: typeof AppAssessmentNewRoute
   AppAssessmentIdHazardsRoute: typeof AppAssessmentIdHazardsRoute
+  AppAssessmentIdMeasuresRoute: typeof AppAssessmentIdMeasuresRoute
   AppAssessmentIdResultsRoute: typeof AppAssessmentIdResultsRoute
 }
 
@@ -220,6 +240,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppSettingsRoute: AppSettingsRoute,
   AppAssessmentNewRoute: AppAssessmentNewRoute,
   AppAssessmentIdHazardsRoute: AppAssessmentIdHazardsRoute,
+  AppAssessmentIdMeasuresRoute: AppAssessmentIdMeasuresRoute,
   AppAssessmentIdResultsRoute: AppAssessmentIdResultsRoute,
 }
 
