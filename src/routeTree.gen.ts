@@ -20,6 +20,7 @@ import { Route as AppAssessmentNewRouteImport } from './routes/_app/assessment.n
 import { Route as AppAssessmentIdIndexRouteImport } from './routes/_app/assessment.$id.index'
 import { Route as AppAssessmentIdShareRouteImport } from './routes/_app/assessment.$id.share'
 import { Route as AppAssessmentIdResultsRouteImport } from './routes/_app/assessment.$id.results'
+import { Route as AppAssessmentIdReportRouteImport } from './routes/_app/assessment.$id.report'
 import { Route as AppAssessmentIdMeasuresRouteImport } from './routes/_app/assessment.$id.measures'
 import { Route as AppAssessmentIdHazardsRouteImport } from './routes/_app/assessment.$id.hazards'
 
@@ -77,6 +78,11 @@ const AppAssessmentIdResultsRoute = AppAssessmentIdResultsRouteImport.update({
   path: '/assessment/$id/results',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAssessmentIdReportRoute = AppAssessmentIdReportRouteImport.update({
+  id: '/assessment/$id/report',
+  path: '/assessment/$id/report',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAssessmentIdMeasuresRoute = AppAssessmentIdMeasuresRouteImport.update({
   id: '/assessment/$id/measures',
   path: '/assessment/$id/measures',
@@ -98,6 +104,7 @@ export interface FileRoutesByFullPath {
   '/assessment/new': typeof AppAssessmentNewRoute
   '/assessment/$id/hazards': typeof AppAssessmentIdHazardsRoute
   '/assessment/$id/measures': typeof AppAssessmentIdMeasuresRoute
+  '/assessment/$id/report': typeof AppAssessmentIdReportRoute
   '/assessment/$id/results': typeof AppAssessmentIdResultsRoute
   '/assessment/$id/share': typeof AppAssessmentIdShareRoute
   '/assessment/$id/': typeof AppAssessmentIdIndexRoute
@@ -112,6 +119,7 @@ export interface FileRoutesByTo {
   '/assessment/new': typeof AppAssessmentNewRoute
   '/assessment/$id/hazards': typeof AppAssessmentIdHazardsRoute
   '/assessment/$id/measures': typeof AppAssessmentIdMeasuresRoute
+  '/assessment/$id/report': typeof AppAssessmentIdReportRoute
   '/assessment/$id/results': typeof AppAssessmentIdResultsRoute
   '/assessment/$id/share': typeof AppAssessmentIdShareRoute
   '/assessment/$id': typeof AppAssessmentIdIndexRoute
@@ -128,6 +136,7 @@ export interface FileRoutesById {
   '/_app/assessment/new': typeof AppAssessmentNewRoute
   '/_app/assessment/$id/hazards': typeof AppAssessmentIdHazardsRoute
   '/_app/assessment/$id/measures': typeof AppAssessmentIdMeasuresRoute
+  '/_app/assessment/$id/report': typeof AppAssessmentIdReportRoute
   '/_app/assessment/$id/results': typeof AppAssessmentIdResultsRoute
   '/_app/assessment/$id/share': typeof AppAssessmentIdShareRoute
   '/_app/assessment/$id/': typeof AppAssessmentIdIndexRoute
@@ -144,6 +153,7 @@ export interface FileRouteTypes {
     | '/assessment/new'
     | '/assessment/$id/hazards'
     | '/assessment/$id/measures'
+    | '/assessment/$id/report'
     | '/assessment/$id/results'
     | '/assessment/$id/share'
     | '/assessment/$id/'
@@ -158,6 +168,7 @@ export interface FileRouteTypes {
     | '/assessment/new'
     | '/assessment/$id/hazards'
     | '/assessment/$id/measures'
+    | '/assessment/$id/report'
     | '/assessment/$id/results'
     | '/assessment/$id/share'
     | '/assessment/$id'
@@ -173,6 +184,7 @@ export interface FileRouteTypes {
     | '/_app/assessment/new'
     | '/_app/assessment/$id/hazards'
     | '/_app/assessment/$id/measures'
+    | '/_app/assessment/$id/report'
     | '/_app/assessment/$id/results'
     | '/_app/assessment/$id/share'
     | '/_app/assessment/$id/'
@@ -263,6 +275,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAssessmentIdResultsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/assessment/$id/report': {
+      id: '/_app/assessment/$id/report'
+      path: '/assessment/$id/report'
+      fullPath: '/assessment/$id/report'
+      preLoaderRoute: typeof AppAssessmentIdReportRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/assessment/$id/measures': {
       id: '/_app/assessment/$id/measures'
       path: '/assessment/$id/measures'
@@ -288,6 +307,7 @@ interface AppRouteChildren {
   AppAssessmentNewRoute: typeof AppAssessmentNewRoute
   AppAssessmentIdHazardsRoute: typeof AppAssessmentIdHazardsRoute
   AppAssessmentIdMeasuresRoute: typeof AppAssessmentIdMeasuresRoute
+  AppAssessmentIdReportRoute: typeof AppAssessmentIdReportRoute
   AppAssessmentIdResultsRoute: typeof AppAssessmentIdResultsRoute
   AppAssessmentIdShareRoute: typeof AppAssessmentIdShareRoute
   AppAssessmentIdIndexRoute: typeof AppAssessmentIdIndexRoute
@@ -301,6 +321,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAssessmentNewRoute: AppAssessmentNewRoute,
   AppAssessmentIdHazardsRoute: AppAssessmentIdHazardsRoute,
   AppAssessmentIdMeasuresRoute: AppAssessmentIdMeasuresRoute,
+  AppAssessmentIdReportRoute: AppAssessmentIdReportRoute,
   AppAssessmentIdResultsRoute: AppAssessmentIdResultsRoute,
   AppAssessmentIdShareRoute: AppAssessmentIdShareRoute,
   AppAssessmentIdIndexRoute: AppAssessmentIdIndexRoute,
@@ -316,3 +337,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
