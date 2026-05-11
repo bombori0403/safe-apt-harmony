@@ -11,11 +11,13 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ConfirmIdRouteImport } from './routes/confirm.$id'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppHistoryRouteImport } from './routes/_app/history'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppConsoleRouteImport } from './routes/_app/console'
 import { Route as AppAssessmentNewRouteImport } from './routes/_app/assessment.new'
+import { Route as AppAssessmentIdIndexRouteImport } from './routes/_app/assessment.$id.index'
 import { Route as AppAssessmentIdShareRouteImport } from './routes/_app/assessment.$id.share'
 import { Route as AppAssessmentIdResultsRouteImport } from './routes/_app/assessment.$id.results'
 import { Route as AppAssessmentIdMeasuresRouteImport } from './routes/_app/assessment.$id.measures'
@@ -28,6 +30,11 @@ const AppRoute = AppRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConfirmIdRoute = ConfirmIdRouteImport.update({
+  id: '/confirm/$id',
+  path: '/confirm/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
@@ -53,6 +60,11 @@ const AppConsoleRoute = AppConsoleRouteImport.update({
 const AppAssessmentNewRoute = AppAssessmentNewRouteImport.update({
   id: '/assessment/new',
   path: '/assessment/new',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAssessmentIdIndexRoute = AppAssessmentIdIndexRouteImport.update({
+  id: '/assessment/$id/',
+  path: '/assessment/$id/',
   getParentRoute: () => AppRoute,
 } as any)
 const AppAssessmentIdShareRoute = AppAssessmentIdShareRouteImport.update({
@@ -82,11 +94,13 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AppDashboardRoute
   '/history': typeof AppHistoryRoute
   '/settings': typeof AppSettingsRoute
+  '/confirm/$id': typeof ConfirmIdRoute
   '/assessment/new': typeof AppAssessmentNewRoute
   '/assessment/$id/hazards': typeof AppAssessmentIdHazardsRoute
   '/assessment/$id/measures': typeof AppAssessmentIdMeasuresRoute
   '/assessment/$id/results': typeof AppAssessmentIdResultsRoute
   '/assessment/$id/share': typeof AppAssessmentIdShareRoute
+  '/assessment/$id/': typeof AppAssessmentIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -94,11 +108,13 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AppDashboardRoute
   '/history': typeof AppHistoryRoute
   '/settings': typeof AppSettingsRoute
+  '/confirm/$id': typeof ConfirmIdRoute
   '/assessment/new': typeof AppAssessmentNewRoute
   '/assessment/$id/hazards': typeof AppAssessmentIdHazardsRoute
   '/assessment/$id/measures': typeof AppAssessmentIdMeasuresRoute
   '/assessment/$id/results': typeof AppAssessmentIdResultsRoute
   '/assessment/$id/share': typeof AppAssessmentIdShareRoute
+  '/assessment/$id': typeof AppAssessmentIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -108,11 +124,13 @@ export interface FileRoutesById {
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/history': typeof AppHistoryRoute
   '/_app/settings': typeof AppSettingsRoute
+  '/confirm/$id': typeof ConfirmIdRoute
   '/_app/assessment/new': typeof AppAssessmentNewRoute
   '/_app/assessment/$id/hazards': typeof AppAssessmentIdHazardsRoute
   '/_app/assessment/$id/measures': typeof AppAssessmentIdMeasuresRoute
   '/_app/assessment/$id/results': typeof AppAssessmentIdResultsRoute
   '/_app/assessment/$id/share': typeof AppAssessmentIdShareRoute
+  '/_app/assessment/$id/': typeof AppAssessmentIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -122,11 +140,13 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/history'
     | '/settings'
+    | '/confirm/$id'
     | '/assessment/new'
     | '/assessment/$id/hazards'
     | '/assessment/$id/measures'
     | '/assessment/$id/results'
     | '/assessment/$id/share'
+    | '/assessment/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -134,11 +154,13 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/history'
     | '/settings'
+    | '/confirm/$id'
     | '/assessment/new'
     | '/assessment/$id/hazards'
     | '/assessment/$id/measures'
     | '/assessment/$id/results'
     | '/assessment/$id/share'
+    | '/assessment/$id'
   id:
     | '__root__'
     | '/'
@@ -147,16 +169,19 @@ export interface FileRouteTypes {
     | '/_app/dashboard'
     | '/_app/history'
     | '/_app/settings'
+    | '/confirm/$id'
     | '/_app/assessment/new'
     | '/_app/assessment/$id/hazards'
     | '/_app/assessment/$id/measures'
     | '/_app/assessment/$id/results'
     | '/_app/assessment/$id/share'
+    | '/_app/assessment/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
+  ConfirmIdRoute: typeof ConfirmIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -173,6 +198,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/confirm/$id': {
+      id: '/confirm/$id'
+      path: '/confirm/$id'
+      fullPath: '/confirm/$id'
+      preLoaderRoute: typeof ConfirmIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app/settings': {
@@ -208,6 +240,13 @@ declare module '@tanstack/react-router' {
       path: '/assessment/new'
       fullPath: '/assessment/new'
       preLoaderRoute: typeof AppAssessmentNewRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/assessment/$id/': {
+      id: '/_app/assessment/$id/'
+      path: '/assessment/$id'
+      fullPath: '/assessment/$id/'
+      preLoaderRoute: typeof AppAssessmentIdIndexRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/assessment/$id/share': {
@@ -251,6 +290,7 @@ interface AppRouteChildren {
   AppAssessmentIdMeasuresRoute: typeof AppAssessmentIdMeasuresRoute
   AppAssessmentIdResultsRoute: typeof AppAssessmentIdResultsRoute
   AppAssessmentIdShareRoute: typeof AppAssessmentIdShareRoute
+  AppAssessmentIdIndexRoute: typeof AppAssessmentIdIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -263,6 +303,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAssessmentIdMeasuresRoute: AppAssessmentIdMeasuresRoute,
   AppAssessmentIdResultsRoute: AppAssessmentIdResultsRoute,
   AppAssessmentIdShareRoute: AppAssessmentIdShareRoute,
+  AppAssessmentIdIndexRoute: AppAssessmentIdIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -270,17 +311,8 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
+  ConfirmIdRoute: ConfirmIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
