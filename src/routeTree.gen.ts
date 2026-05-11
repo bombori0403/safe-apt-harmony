@@ -9,38 +9,165 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppSettingsRouteImport } from './routes/_app/settings'
+import { Route as AppHistoryRouteImport } from './routes/_app/history'
+import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
+import { Route as AppConsoleRouteImport } from './routes/_app/console'
+import { Route as AppAssessmentNewRouteImport } from './routes/_app/assessment.new'
+import { Route as AppAssessmentIdShareRouteImport } from './routes/_app/assessment.$id.share'
+import { Route as AppAssessmentIdResultsRouteImport } from './routes/_app/assessment.$id.results'
+import { Route as AppAssessmentIdMeasuresRouteImport } from './routes/_app/assessment.$id.measures'
+import { Route as AppAssessmentIdHazardsRouteImport } from './routes/_app/assessment.$id.hazards'
 
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppHistoryRoute = AppHistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDashboardRoute = AppDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppConsoleRoute = AppConsoleRouteImport.update({
+  id: '/console',
+  path: '/console',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAssessmentNewRoute = AppAssessmentNewRouteImport.update({
+  id: '/assessment/new',
+  path: '/assessment/new',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAssessmentIdShareRoute = AppAssessmentIdShareRouteImport.update({
+  id: '/assessment/$id/share',
+  path: '/assessment/$id/share',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAssessmentIdResultsRoute = AppAssessmentIdResultsRouteImport.update({
+  id: '/assessment/$id/results',
+  path: '/assessment/$id/results',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAssessmentIdMeasuresRoute = AppAssessmentIdMeasuresRouteImport.update({
+  id: '/assessment/$id/measures',
+  path: '/assessment/$id/measures',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAssessmentIdHazardsRoute = AppAssessmentIdHazardsRouteImport.update({
+  id: '/assessment/$id/hazards',
+  path: '/assessment/$id/hazards',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/console': typeof AppConsoleRoute
+  '/dashboard': typeof AppDashboardRoute
+  '/history': typeof AppHistoryRoute
+  '/settings': typeof AppSettingsRoute
+  '/assessment/new': typeof AppAssessmentNewRoute
+  '/assessment/$id/hazards': typeof AppAssessmentIdHazardsRoute
+  '/assessment/$id/measures': typeof AppAssessmentIdMeasuresRoute
+  '/assessment/$id/results': typeof AppAssessmentIdResultsRoute
+  '/assessment/$id/share': typeof AppAssessmentIdShareRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/console': typeof AppConsoleRoute
+  '/dashboard': typeof AppDashboardRoute
+  '/history': typeof AppHistoryRoute
+  '/settings': typeof AppSettingsRoute
+  '/assessment/new': typeof AppAssessmentNewRoute
+  '/assessment/$id/hazards': typeof AppAssessmentIdHazardsRoute
+  '/assessment/$id/measures': typeof AppAssessmentIdMeasuresRoute
+  '/assessment/$id/results': typeof AppAssessmentIdResultsRoute
+  '/assessment/$id/share': typeof AppAssessmentIdShareRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_app': typeof AppRouteWithChildren
+  '/_app/console': typeof AppConsoleRoute
+  '/_app/dashboard': typeof AppDashboardRoute
+  '/_app/history': typeof AppHistoryRoute
+  '/_app/settings': typeof AppSettingsRoute
+  '/_app/assessment/new': typeof AppAssessmentNewRoute
+  '/_app/assessment/$id/hazards': typeof AppAssessmentIdHazardsRoute
+  '/_app/assessment/$id/measures': typeof AppAssessmentIdMeasuresRoute
+  '/_app/assessment/$id/results': typeof AppAssessmentIdResultsRoute
+  '/_app/assessment/$id/share': typeof AppAssessmentIdShareRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/console'
+    | '/dashboard'
+    | '/history'
+    | '/settings'
+    | '/assessment/new'
+    | '/assessment/$id/hazards'
+    | '/assessment/$id/measures'
+    | '/assessment/$id/results'
+    | '/assessment/$id/share'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/console'
+    | '/dashboard'
+    | '/history'
+    | '/settings'
+    | '/assessment/new'
+    | '/assessment/$id/hazards'
+    | '/assessment/$id/measures'
+    | '/assessment/$id/results'
+    | '/assessment/$id/share'
+  id:
+    | '__root__'
+    | '/'
+    | '/_app'
+    | '/_app/console'
+    | '/_app/dashboard'
+    | '/_app/history'
+    | '/_app/settings'
+    | '/_app/assessment/new'
+    | '/_app/assessment/$id/hazards'
+    | '/_app/assessment/$id/measures'
+    | '/_app/assessment/$id/results'
+    | '/_app/assessment/$id/share'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +175,102 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/settings': {
+      id: '/_app/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/history': {
+      id: '/_app/history'
+      path: '/history'
+      fullPath: '/history'
+      preLoaderRoute: typeof AppHistoryRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/dashboard': {
+      id: '/_app/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AppDashboardRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/console': {
+      id: '/_app/console'
+      path: '/console'
+      fullPath: '/console'
+      preLoaderRoute: typeof AppConsoleRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/assessment/new': {
+      id: '/_app/assessment/new'
+      path: '/assessment/new'
+      fullPath: '/assessment/new'
+      preLoaderRoute: typeof AppAssessmentNewRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/assessment/$id/share': {
+      id: '/_app/assessment/$id/share'
+      path: '/assessment/$id/share'
+      fullPath: '/assessment/$id/share'
+      preLoaderRoute: typeof AppAssessmentIdShareRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/assessment/$id/results': {
+      id: '/_app/assessment/$id/results'
+      path: '/assessment/$id/results'
+      fullPath: '/assessment/$id/results'
+      preLoaderRoute: typeof AppAssessmentIdResultsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/assessment/$id/measures': {
+      id: '/_app/assessment/$id/measures'
+      path: '/assessment/$id/measures'
+      fullPath: '/assessment/$id/measures'
+      preLoaderRoute: typeof AppAssessmentIdMeasuresRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/assessment/$id/hazards': {
+      id: '/_app/assessment/$id/hazards'
+      path: '/assessment/$id/hazards'
+      fullPath: '/assessment/$id/hazards'
+      preLoaderRoute: typeof AppAssessmentIdHazardsRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
+interface AppRouteChildren {
+  AppConsoleRoute: typeof AppConsoleRoute
+  AppDashboardRoute: typeof AppDashboardRoute
+  AppHistoryRoute: typeof AppHistoryRoute
+  AppSettingsRoute: typeof AppSettingsRoute
+  AppAssessmentNewRoute: typeof AppAssessmentNewRoute
+  AppAssessmentIdHazardsRoute: typeof AppAssessmentIdHazardsRoute
+  AppAssessmentIdMeasuresRoute: typeof AppAssessmentIdMeasuresRoute
+  AppAssessmentIdResultsRoute: typeof AppAssessmentIdResultsRoute
+  AppAssessmentIdShareRoute: typeof AppAssessmentIdShareRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppConsoleRoute: AppConsoleRoute,
+  AppDashboardRoute: AppDashboardRoute,
+  AppHistoryRoute: AppHistoryRoute,
+  AppSettingsRoute: AppSettingsRoute,
+  AppAssessmentNewRoute: AppAssessmentNewRoute,
+  AppAssessmentIdHazardsRoute: AppAssessmentIdHazardsRoute,
+  AppAssessmentIdMeasuresRoute: AppAssessmentIdMeasuresRoute,
+  AppAssessmentIdResultsRoute: AppAssessmentIdResultsRoute,
+  AppAssessmentIdShareRoute: AppAssessmentIdShareRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
