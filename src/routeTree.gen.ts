@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppHistoryRouteImport } from './routes/_app/history'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppAssessmentNewRouteImport } from './routes/_app/assessment.new'
@@ -23,6 +24,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppHistoryRoute = AppHistoryRouteImport.update({
   id: '/history',
@@ -44,12 +50,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof AppDashboardRoute
   '/history': typeof AppHistoryRoute
+  '/settings': typeof AppSettingsRoute
   '/assessment/new': typeof AppAssessmentNewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof AppDashboardRoute
   '/history': typeof AppHistoryRoute
+  '/settings': typeof AppSettingsRoute
   '/assessment/new': typeof AppAssessmentNewRoute
 }
 export interface FileRoutesById {
@@ -58,19 +66,21 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/history': typeof AppHistoryRoute
+  '/_app/settings': typeof AppSettingsRoute
   '/_app/assessment/new': typeof AppAssessmentNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/history' | '/assessment/new'
+  fullPaths: '/' | '/dashboard' | '/history' | '/settings' | '/assessment/new'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/history' | '/assessment/new'
+  to: '/' | '/dashboard' | '/history' | '/settings' | '/assessment/new'
   id:
     | '__root__'
     | '/'
     | '/_app'
     | '/_app/dashboard'
     | '/_app/history'
+    | '/_app/settings'
     | '/_app/assessment/new'
   fileRoutesById: FileRoutesById
 }
@@ -94,6 +104,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_app/settings': {
+      id: '/_app/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
     }
     '/_app/history': {
       id: '/_app/history'
@@ -122,12 +139,14 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppDashboardRoute: typeof AppDashboardRoute
   AppHistoryRoute: typeof AppHistoryRoute
+  AppSettingsRoute: typeof AppSettingsRoute
   AppAssessmentNewRoute: typeof AppAssessmentNewRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppDashboardRoute: AppDashboardRoute,
   AppHistoryRoute: AppHistoryRoute,
+  AppSettingsRoute: AppSettingsRoute,
   AppAssessmentNewRoute: AppAssessmentNewRoute,
 }
 
