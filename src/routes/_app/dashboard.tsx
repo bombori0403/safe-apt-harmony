@@ -90,7 +90,7 @@ function Dashboard() {
           ) : (
             <div className="divide-y">
               {assessments.slice(0, 5).map((a) => (
-                <div key={a.id} className="py-3 flex items-center justify-between gap-3">
+                <Link key={a.id} to="/assessment/$id" params={{ id: a.id }} className="py-3 flex items-center justify-between gap-3 hover:bg-muted/30 -mx-2 px-2 rounded">
                   <div className="min-w-0 flex-1">
                     <div className="font-medium truncate">{a.work_name}</div>
                     <div className="text-xs text-muted-foreground mt-0.5">
@@ -98,7 +98,7 @@ function Dashboard() {
                     </div>
                   </div>
                   <Badge variant="outline">{a.status}</Badge>
-                </div>
+                </Link>
               ))}
             </div>
           )}

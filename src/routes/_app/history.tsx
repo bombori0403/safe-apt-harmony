@@ -44,7 +44,7 @@ function History() {
               <div className="p-8 text-center text-sm text-muted-foreground">기록이 없습니다.</div>
             )}
             {filtered.map(a => (
-              <Link key={a.id} to="/dashboard" className="flex flex-wrap items-center gap-3 p-4 hover:bg-muted/40 transition-colors">
+              <Link key={a.id} to="/assessment/$id" params={{ id: a.id }} className="flex flex-wrap items-center gap-3 p-4 hover:bg-muted/40 transition-colors">
                 <div className="flex-1 min-w-0">
                   <div className="font-medium truncate">{a.work_name}</div>
                   <div className="text-xs text-muted-foreground mt-0.5">
