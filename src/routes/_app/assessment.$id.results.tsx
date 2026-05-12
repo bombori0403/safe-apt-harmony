@@ -29,7 +29,7 @@ function Results() {
   useEffect(() => { load(); }, [id]);
 
   function standardize(method: string, level?: RiskLevel | null, likelihood?: number, severity?: number, ops_data?: any): RiskLevel | null {
-    if (method === "빈도강도" && likelihood && severity) {
+    if (method === "빈도강도법" && likelihood && severity) {
       const s = likelihood * severity;
       if (s <= 4) return "매우낮음";
       if (s <= 8) return "낮음";
@@ -91,7 +91,7 @@ function Results() {
           <Card key={h.id}><CardContent className="p-4 space-y-3">
             <div className="font-medium">{h.description}</div>
 
-            {a.method === "3단계" && (
+            {a.method === "3단계_판단법" && (
               <div className="grid grid-cols-3 gap-2">
                 {(["하","중","상"] as const).map(v => {
                   const lvl: RiskLevel = v === "상" ? "매우높음" : v === "중" ? "보통" : "낮음";
@@ -102,7 +102,7 @@ function Results() {
               </div>
             )}
 
-            {a.method === "5단계" && (
+            {a.method === "5단계_판단법" && (
               <div className="grid grid-cols-5 gap-1.5">
                 {(["매우낮음","낮음","보통","높음","매우높음"] as RiskLevel[]).map(lvl => (
                   <button key={lvl} onClick={() => updateHazard(h.id, { level: lvl })}
@@ -111,7 +111,7 @@ function Results() {
               </div>
             )}
 
-            {a.method === "빈도강도" && (
+            {a.method === "빈도강도법" && (
               <div className="space-y-2 text-sm">
                 <div className="flex items-center gap-2">
                   <span className="w-16 text-muted-foreground">가능성</span>
@@ -135,7 +135,7 @@ function Results() {
               </div>
             )}
 
-            {a.method === "체크리스트" && (
+            {a.method === "체크리스트법" && (
               <div className="flex gap-2">
                 <button onClick={() => updateHazard(h.id, { checklist_result: "적정", level: "낮음" })}
                   className={`flex-1 py-2.5 rounded-md border-2 ${h.checklist_result==="적정"?"border-success bg-success/10 text-success":"border-border"}`}>○ 적정</button>
