@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { WORK_CATEGORIES, type WorkCategory } from "@/lib/types";
+import { WORK_CATEGORIES, CATEGORY_LABEL, type WorkCategory } from "@/lib/types";
 import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
 
@@ -17,7 +17,7 @@ function Hazards() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
   const [assessment, setAssessment] = useState<any>(null);
-  const [category, setCategory] = useState<WorkCategory>("승강기 점검·정비");
+  const [category, setCategory] = useState<WorkCategory>("승강기_점검정비");
   const [library, setLibrary] = useState<{ id: string; description: string }[]>([]);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [custom, setCustom] = useState<string[]>([]);
@@ -65,7 +65,7 @@ function Hazards() {
           <Label>작업 카테고리</Label>
           <select value={category} onChange={e=>setCategory(e.target.value as WorkCategory)}
             className="w-full h-10 px-3 rounded-md border bg-background text-sm mt-1">
-            {WORK_CATEGORIES.map(c => <option key={c}>{c}</option>)}
+            {WORK_CATEGORIES.map(c => <option key={c} value={c}>{CATEGORY_LABEL[c]}</option>)}
           </select>
         </div>
 
