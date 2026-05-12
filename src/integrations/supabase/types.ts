@@ -16,50 +16,56 @@ export type Database = {
     Tables: {
       assessments: {
         Row: {
-          allowable_level: Database["public"]["Enums"]["risk_level"] | null
+          allowable_level: string | null
           assessment_date: string
           assessment_type: Database["public"]["Enums"]["assessment_type"]
+          completed_at: string | null
           complex_id: string
-          created_at: string
-          created_by: string
+          created_at: string | null
+          created_by: string | null
           id: string
           judgment_criteria: Json | null
           location: string | null
           method: Database["public"]["Enums"]["assessment_method"]
-          status: Database["public"]["Enums"]["assessment_status"]
-          updated_at: string
+          shared_at: string | null
+          status: Database["public"]["Enums"]["assessment_status"] | null
+          updated_at: string | null
           work_category: Database["public"]["Enums"]["work_category"] | null
           work_name: string
         }
         Insert: {
-          allowable_level?: Database["public"]["Enums"]["risk_level"] | null
-          assessment_date?: string
-          assessment_type?: Database["public"]["Enums"]["assessment_type"]
+          allowable_level?: string | null
+          assessment_date: string
+          assessment_type: Database["public"]["Enums"]["assessment_type"]
+          completed_at?: string | null
           complex_id: string
-          created_at?: string
-          created_by: string
+          created_at?: string | null
+          created_by?: string | null
           id?: string
           judgment_criteria?: Json | null
           location?: string | null
-          method?: Database["public"]["Enums"]["assessment_method"]
-          status?: Database["public"]["Enums"]["assessment_status"]
-          updated_at?: string
+          method: Database["public"]["Enums"]["assessment_method"]
+          shared_at?: string | null
+          status?: Database["public"]["Enums"]["assessment_status"] | null
+          updated_at?: string | null
           work_category?: Database["public"]["Enums"]["work_category"] | null
           work_name: string
         }
         Update: {
-          allowable_level?: Database["public"]["Enums"]["risk_level"] | null
+          allowable_level?: string | null
           assessment_date?: string
           assessment_type?: Database["public"]["Enums"]["assessment_type"]
+          completed_at?: string | null
           complex_id?: string
-          created_at?: string
-          created_by?: string
+          created_at?: string | null
+          created_by?: string | null
           id?: string
           judgment_criteria?: Json | null
           location?: string | null
           method?: Database["public"]["Enums"]["assessment_method"]
-          status?: Database["public"]["Enums"]["assessment_status"]
-          updated_at?: string
+          shared_at?: string | null
+          status?: Database["public"]["Enums"]["assessment_status"] | null
+          updated_at?: string | null
           work_category?: Database["public"]["Enums"]["work_category"] | null
           work_name?: string
         }
@@ -71,46 +77,83 @@ export type Database = {
             referencedRelation: "complexes"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "assessments_complex_id_fkey"
+            columns: ["complex_id"]
+            isOneToOne: false
+            referencedRelation: "v_company_dashboard"
+            referencedColumns: ["complex_id"]
+          },
+          {
+            foreignKeyName: "assessments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
         ]
       }
       companies: {
         Row: {
-          created_at: string
+          address: string | null
+          business_number: string | null
+          created_at: string | null
           id: string
           name: string
+          phone: string | null
+          super_admin_user_id: string | null
+          updated_at: string | null
         }
         Insert: {
-          created_at?: string
+          address?: string | null
+          business_number?: string | null
+          created_at?: string | null
           id?: string
           name: string
+          phone?: string | null
+          super_admin_user_id?: string | null
+          updated_at?: string | null
         }
         Update: {
-          created_at?: string
+          address?: string | null
+          business_number?: string | null
+          created_at?: string | null
           id?: string
           name?: string
+          phone?: string | null
+          super_admin_user_id?: string | null
+          updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "companies_super_admin_user_id_fkey"
+            columns: ["super_admin_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       complex_members: {
         Row: {
           complex_id: string
-          created_at: string
+          created_at: string | null
           id: string
-          role_in_complex: string | null
+          role_in_complex: Database["public"]["Enums"]["user_role"] | null
           user_id: string
         }
         Insert: {
           complex_id: string
-          created_at?: string
+          created_at?: string | null
           id?: string
-          role_in_complex?: string | null
+          role_in_complex?: Database["public"]["Enums"]["user_role"] | null
           user_id: string
         }
         Update: {
           complex_id?: string
-          created_at?: string
+          created_at?: string | null
           id?: string
-          role_in_complex?: string | null
+          role_in_complex?: Database["public"]["Enums"]["user_role"] | null
           user_id?: string
         }
         Relationships: [
@@ -121,35 +164,58 @@ export type Database = {
             referencedRelation: "complexes"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "complex_members_complex_id_fkey"
+            columns: ["complex_id"]
+            isOneToOne: false
+            referencedRelation: "v_company_dashboard"
+            referencedColumns: ["complex_id"]
+          },
+          {
+            foreignKeyName: "complex_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
         ]
       }
       complexes: {
         Row: {
-          address: string | null
+          address: string
           company_id: string | null
-          created_at: string
+          created_at: string | null
           household_count: number | null
           id: string
+          manager_name: string | null
+          manager_phone: string | null
           mgmt_type: Database["public"]["Enums"]["mgmt_type"]
           name: string
+          updated_at: string | null
         }
         Insert: {
-          address?: string | null
+          address: string
           company_id?: string | null
-          created_at?: string
+          created_at?: string | null
           household_count?: number | null
           id?: string
+          manager_name?: string | null
+          manager_phone?: string | null
           mgmt_type?: Database["public"]["Enums"]["mgmt_type"]
           name: string
+          updated_at?: string | null
         }
         Update: {
-          address?: string | null
+          address?: string
           company_id?: string | null
-          created_at?: string
+          created_at?: string | null
           household_count?: number | null
           id?: string
+          manager_name?: string | null
+          manager_phone?: string | null
           mgmt_type?: Database["public"]["Enums"]["mgmt_type"]
           name?: string
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -159,26 +225,48 @@ export type Database = {
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "complexes_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "v_company_dashboard"
+            referencedColumns: ["company_id"]
+          },
         ]
       }
       hazard_library: {
         Row: {
           category: Database["public"]["Enums"]["work_category"]
+          created_at: string | null
+          default_likelihood: number | null
+          default_severity: number | null
           description: string
           id: string
-          sort_order: number
+          is_active: boolean | null
+          sort_order: number | null
+          suggested_measures: string[] | null
         }
         Insert: {
           category: Database["public"]["Enums"]["work_category"]
+          created_at?: string | null
+          default_likelihood?: number | null
+          default_severity?: number | null
           description: string
           id?: string
-          sort_order?: number
+          is_active?: boolean | null
+          sort_order?: number | null
+          suggested_measures?: string[] | null
         }
         Update: {
           category?: Database["public"]["Enums"]["work_category"]
+          created_at?: string | null
+          default_likelihood?: number | null
+          default_severity?: number | null
           description?: string
           id?: string
-          sort_order?: number
+          is_active?: boolean | null
+          sort_order?: number | null
+          suggested_measures?: string[] | null
         }
         Relationships: []
       }
@@ -186,47 +274,53 @@ export type Database = {
         Row: {
           assessment_id: string
           checklist_result: string | null
-          created_at: string
+          created_at: string | null
           description: string
           exposed_workers: Json | null
           id: string
           level: Database["public"]["Enums"]["risk_level"] | null
           level_standardized: Database["public"]["Enums"]["risk_level"] | null
+          library_item_id: string | null
           likelihood: number | null
           location_detail: string | null
           ops_data: Json | null
           photos: Json | null
           severity: number | null
+          updated_at: string | null
         }
         Insert: {
           assessment_id: string
           checklist_result?: string | null
-          created_at?: string
+          created_at?: string | null
           description: string
           exposed_workers?: Json | null
           id?: string
           level?: Database["public"]["Enums"]["risk_level"] | null
           level_standardized?: Database["public"]["Enums"]["risk_level"] | null
+          library_item_id?: string | null
           likelihood?: number | null
           location_detail?: string | null
           ops_data?: Json | null
           photos?: Json | null
           severity?: number | null
+          updated_at?: string | null
         }
         Update: {
           assessment_id?: string
           checklist_result?: string | null
-          created_at?: string
+          created_at?: string | null
           description?: string
           exposed_workers?: Json | null
           id?: string
           level?: Database["public"]["Enums"]["risk_level"] | null
           level_standardized?: Database["public"]["Enums"]["risk_level"] | null
+          library_item_id?: string | null
           likelihood?: number | null
           location_detail?: string | null
           ops_data?: Json | null
           photos?: Json | null
           severity?: number | null
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -240,40 +334,49 @@ export type Database = {
       }
       measures: {
         Row: {
+          completed_at: string | null
           content: string
-          created_at: string
+          created_at: string | null
           due_date: string | null
           evidence: Json | null
           hazard_id: string
           id: string
-          measure_type: Database["public"]["Enums"]["measure_type"]
           residual_level: Database["public"]["Enums"]["risk_level"] | null
           responsible_name: string | null
-          status: Database["public"]["Enums"]["measure_status"]
+          responsible_user_id: string | null
+          status: Database["public"]["Enums"]["measure_status"] | null
+          type: Database["public"]["Enums"]["measure_type"]
+          updated_at: string | null
         }
         Insert: {
+          completed_at?: string | null
           content: string
-          created_at?: string
+          created_at?: string | null
           due_date?: string | null
           evidence?: Json | null
           hazard_id: string
           id?: string
-          measure_type?: Database["public"]["Enums"]["measure_type"]
           residual_level?: Database["public"]["Enums"]["risk_level"] | null
           responsible_name?: string | null
-          status?: Database["public"]["Enums"]["measure_status"]
+          responsible_user_id?: string | null
+          status?: Database["public"]["Enums"]["measure_status"] | null
+          type: Database["public"]["Enums"]["measure_type"]
+          updated_at?: string | null
         }
         Update: {
+          completed_at?: string | null
           content?: string
-          created_at?: string
+          created_at?: string | null
           due_date?: string | null
           evidence?: Json | null
           hazard_id?: string
           id?: string
-          measure_type?: Database["public"]["Enums"]["measure_type"]
           residual_level?: Database["public"]["Enums"]["risk_level"] | null
           responsible_name?: string | null
-          status?: Database["public"]["Enums"]["measure_status"]
+          responsible_user_id?: string | null
+          status?: Database["public"]["Enums"]["measure_status"] | null
+          type?: Database["public"]["Enums"]["measure_type"]
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -283,38 +386,51 @@ export type Database = {
             referencedRelation: "hazards"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "measures_responsible_user_id_fkey"
+            columns: ["responsible_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
         ]
       }
       near_miss: {
         Row: {
-          assessment_id: string
+          assessment_id: string | null
           cause: string | null
-          created_at: string
+          complex_id: string
+          created_at: string | null
           id: string
-          occurred_at: string | null
+          occurred_at: string
           photos: Json | null
+          reported_by: string | null
           result: string | null
-          situation: string | null
+          situation: string
         }
         Insert: {
-          assessment_id: string
+          assessment_id?: string | null
           cause?: string | null
-          created_at?: string
+          complex_id: string
+          created_at?: string | null
           id?: string
-          occurred_at?: string | null
+          occurred_at: string
           photos?: Json | null
+          reported_by?: string | null
           result?: string | null
-          situation?: string | null
+          situation: string
         }
         Update: {
-          assessment_id?: string
+          assessment_id?: string | null
           cause?: string | null
-          created_at?: string
+          complex_id?: string
+          created_at?: string | null
           id?: string
-          occurred_at?: string | null
+          occurred_at?: string
           photos?: Json | null
+          reported_by?: string | null
           result?: string | null
-          situation?: string | null
+          situation?: string
         }
         Relationships: [
           {
@@ -324,35 +440,65 @@ export type Database = {
             referencedRelation: "assessments"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "near_miss_complex_id_fkey"
+            columns: ["complex_id"]
+            isOneToOne: false
+            referencedRelation: "complexes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "near_miss_complex_id_fkey"
+            columns: ["complex_id"]
+            isOneToOne: false
+            referencedRelation: "v_company_dashboard"
+            referencedColumns: ["complex_id"]
+          },
+          {
+            foreignKeyName: "near_miss_reported_by_fkey"
+            columns: ["reported_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
         ]
       }
       participants: {
         Row: {
           assessment_id: string
-          created_at: string
+          confirmed: boolean | null
+          confirmed_at: string | null
+          created_at: string | null
+          email: string | null
           id: string
           name: string
-          participation_role: string
+          participation_role: Database["public"]["Enums"]["participation_role"]
           phone: string | null
           role: string | null
           user_id: string | null
         }
         Insert: {
           assessment_id: string
-          created_at?: string
+          confirmed?: boolean | null
+          confirmed_at?: string | null
+          created_at?: string | null
+          email?: string | null
           id?: string
           name: string
-          participation_role?: string
+          participation_role: Database["public"]["Enums"]["participation_role"]
           phone?: string | null
           role?: string | null
           user_id?: string | null
         }
         Update: {
           assessment_id?: string
-          created_at?: string
+          confirmed?: boolean | null
+          confirmed_at?: string | null
+          created_at?: string | null
+          email?: string | null
           id?: string
           name?: string
-          participation_role?: string
+          participation_role?: Database["public"]["Enums"]["participation_role"]
           phone?: string | null
           role?: string | null
           user_id?: string | null
@@ -365,55 +511,11 @@ export type Database = {
             referencedRelation: "assessments"
             referencedColumns: ["id"]
           },
-        ]
-      }
-      profiles: {
-        Row: {
-          affiliation: Database["public"]["Enums"]["affiliation_type"]
-          created_at: string
-          id: string
-          name: string
-          org_name: string | null
-          phone: string | null
-          position: Database["public"]["Enums"]["user_position"]
-          primary_company_id: string | null
-          primary_complex_id: string | null
-        }
-        Insert: {
-          affiliation?: Database["public"]["Enums"]["affiliation_type"]
-          created_at?: string
-          id: string
-          name?: string
-          org_name?: string | null
-          phone?: string | null
-          position?: Database["public"]["Enums"]["user_position"]
-          primary_company_id?: string | null
-          primary_complex_id?: string | null
-        }
-        Update: {
-          affiliation?: Database["public"]["Enums"]["affiliation_type"]
-          created_at?: string
-          id?: string
-          name?: string
-          org_name?: string | null
-          phone?: string | null
-          position?: Database["public"]["Enums"]["user_position"]
-          primary_company_id?: string | null
-          primary_complex_id?: string | null
-        }
-        Relationships: [
           {
-            foreignKeyName: "profiles_primary_company_id_fkey"
-            columns: ["primary_company_id"]
+            foreignKeyName: "participants_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "profiles_primary_complex_id_fkey"
-            columns: ["primary_complex_id"]
-            isOneToOne: false
-            referencedRelation: "complexes"
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -421,35 +523,38 @@ export type Database = {
       signatures: {
         Row: {
           assessment_id: string
+          created_at: string | null
           gps_lat: number | null
           gps_lng: number | null
           id: string
           ip_address: string | null
           participant_id: string
-          signature_image: string | null
-          signed_at: string
+          signature_image: string
+          signed_at: string | null
           user_agent: string | null
         }
         Insert: {
           assessment_id: string
+          created_at?: string | null
           gps_lat?: number | null
           gps_lng?: number | null
           id?: string
           ip_address?: string | null
           participant_id: string
-          signature_image?: string | null
-          signed_at?: string
+          signature_image: string
+          signed_at?: string | null
           user_agent?: string | null
         }
         Update: {
           assessment_id?: string
+          created_at?: string | null
           gps_lat?: number | null
           gps_lng?: number | null
           id?: string
           ip_address?: string | null
           participant_id?: string
-          signature_image?: string | null
-          signed_at?: string
+          signature_image?: string
+          signed_at?: string | null
           user_agent?: string | null
         }
         Relationships: [
@@ -469,92 +574,105 @@ export type Database = {
           },
         ]
       }
-      user_roles: {
+      users: {
         Row: {
-          company_id: string | null
+          auth_id: string | null
+          created_at: string | null
+          email: string
           id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
+          name: string
+          phone: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string | null
         }
         Insert: {
-          company_id?: string | null
+          auth_id?: string | null
+          created_at?: string | null
+          email: string
           id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id: string
+          name: string
+          phone?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string | null
         }
         Update: {
-          company_id?: string | null
+          auth_id?: string | null
+          created_at?: string | null
+          email?: string
           id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
+          name?: string
+          phone?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_roles_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {
-      [_ in never]: never
+      v_company_dashboard: {
+        Row: {
+          address: string | null
+          avg_participation_rate: number | null
+          company_id: string | null
+          company_name: string | null
+          complex_id: string | null
+          complex_name: string | null
+          last_assessment_date: string | null
+          this_month_count: number | null
+          unresolved_high: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      can_access_assessment: {
-        Args: { _assessment_id: string; _user_id: string }
-        Returns: boolean
-      }
-      can_access_complex: {
-        Args: { _complex_id: string; _user_id: string }
-        Returns: boolean
-      }
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
-      is_company_admin: {
-        Args: { _company_id: string; _user_id: string }
-        Returns: boolean
-      }
-      is_complex_member: {
-        Args: { _complex_id: string; _user_id: string }
-        Returns: boolean
+      create_sample_data_for_user: {
+        Args: { p_user_id: string }
+        Returns: string
       }
     }
     Enums: {
-      affiliation_type: "자가관리" | "위탁관리" | "본사"
-      app_role: "super_admin" | "member"
-      assessment_method: "3단계" | "5단계" | "빈도강도" | "체크리스트" | "OPS"
+      assessment_method:
+        | "3단계_판단법"
+        | "5단계_판단법"
+        | "빈도강도법"
+        | "체크리스트법"
+        | "OPS"
       assessment_status: "작성중" | "협의중" | "완료"
       assessment_type: "최초평가" | "정기평가" | "수시평가"
       measure_status: "대기" | "진행중" | "완료"
-      measure_type: "본질적" | "공학적" | "관리적" | "개인보호구"
+      measure_type: "본질적_대책" | "공학적_대책" | "관리적_대책" | "개인보호구"
       mgmt_type: "자가관리" | "위탁관리"
-      risk_level: "매우낮음" | "낮음" | "보통" | "높음" | "매우높음"
-      user_position:
+      participation_role: "책임자" | "평가자" | "근로자" | "검토자"
+      risk_level:
+        | "매우낮음"
+        | "낮음"
+        | "보통"
+        | "높음"
+        | "매우높음"
+        | "상"
+        | "중"
+        | "하"
+        | "적정"
+        | "보완"
+      user_role:
         | "관리사무소장"
         | "안전보건관리책임자"
         | "관리감독자"
         | "안전관리자"
         | "보건관리자"
         | "본사_안전담당"
+        | "super_admin"
         | "기타"
       work_category:
-        | "승강기 점검·정비"
-        | "기계실·보일러실 작업"
-        | "전기실·변전실 작업"
-        | "옥상·외벽 작업"
-        | "어린이 놀이시설 점검"
-        | "지하주차장·환기설비 작업"
-        | "소방시설 점검"
-        | "조경·외부 작업"
-        | "청소·미화·일반 사무"
+        | "승강기_점검정비"
+        | "기계실_보일러실"
+        | "전기실_변전실"
+        | "옥상_외벽"
+        | "어린이놀이시설"
+        | "지하주차장_환기"
+        | "소방시설"
+        | "조경_외부작업"
+        | "청소_미화_사무"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -682,34 +800,51 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      affiliation_type: ["자가관리", "위탁관리", "본사"],
-      app_role: ["super_admin", "member"],
-      assessment_method: ["3단계", "5단계", "빈도강도", "체크리스트", "OPS"],
+      assessment_method: [
+        "3단계_판단법",
+        "5단계_판단법",
+        "빈도강도법",
+        "체크리스트법",
+        "OPS",
+      ],
       assessment_status: ["작성중", "협의중", "완료"],
       assessment_type: ["최초평가", "정기평가", "수시평가"],
       measure_status: ["대기", "진행중", "완료"],
-      measure_type: ["본질적", "공학적", "관리적", "개인보호구"],
+      measure_type: ["본질적_대책", "공학적_대책", "관리적_대책", "개인보호구"],
       mgmt_type: ["자가관리", "위탁관리"],
-      risk_level: ["매우낮음", "낮음", "보통", "높음", "매우높음"],
-      user_position: [
+      participation_role: ["책임자", "평가자", "근로자", "검토자"],
+      risk_level: [
+        "매우낮음",
+        "낮음",
+        "보통",
+        "높음",
+        "매우높음",
+        "상",
+        "중",
+        "하",
+        "적정",
+        "보완",
+      ],
+      user_role: [
         "관리사무소장",
         "안전보건관리책임자",
         "관리감독자",
         "안전관리자",
         "보건관리자",
         "본사_안전담당",
+        "super_admin",
         "기타",
       ],
       work_category: [
-        "승강기 점검·정비",
-        "기계실·보일러실 작업",
-        "전기실·변전실 작업",
-        "옥상·외벽 작업",
-        "어린이 놀이시설 점검",
-        "지하주차장·환기설비 작업",
-        "소방시설 점검",
-        "조경·외부 작업",
-        "청소·미화·일반 사무",
+        "승강기_점검정비",
+        "기계실_보일러실",
+        "전기실_변전실",
+        "옥상_외벽",
+        "어린이놀이시설",
+        "지하주차장_환기",
+        "소방시설",
+        "조경_외부작업",
+        "청소_미화_사무",
       ],
     },
   },

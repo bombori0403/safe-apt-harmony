@@ -2,11 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { getCurrentUserContext } from "@/lib/user-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, AlertTriangle, Calendar, Users, TrendingUp } from "lucide-react";
-import { riskLevelClass, type RiskLevel } from "@/lib/types";
 
 export const Route = createFileRoute("/_app/dashboard")({
   component: Dashboard,
@@ -23,7 +23,7 @@ interface Assessment {
 
 function Dashboard() {
   const { user } = useAuth();
-  const [profile, setProfile] = useState<{ name: string; position: string; primary_complex_id: string | null } | null>(null);
+  const [userRow, setUserRow] = useState<any>(null);
   const [complexName, setComplexName] = useState("");
   const [assessments, setAssessments] = useState<Assessment[]>([]);
   const [unresolvedHigh, setUnresolvedHigh] = useState(0);
@@ -32,10 +32,10 @@ function Dashboard() {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data: p } = await supabase.from("profiles").select("name,position,primary_complex_id").eq("id", user.id).maybeSingle();
-      if (p) setProfile(p as any);
-      if (p?.primary_complex_id) {
-        const { data: c } = await supabase.from("complexes").select("name").eq("id", p.primary_complex_id).maybeSingle();
+      const { userRow, complexId } = await getCurrentUserContext(user.id);
+      setUserRow(userRow);
+      if (complexId) {
+        const { data: c } = await supabase.from("complexes").select("name").eq("id", complexId).maybeSingle();
         setComplexName(c?.name ?? "");
       }
       const { data: a } = await supabase.from("assessments").select("*").order("created_at", { ascending: false }).limit(20);
@@ -61,7 +61,7 @@ function Dashboard() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold">
-            안녕하세요, {profile?.name ?? ""} {profile?.position ?? ""}님
+            안녕하세요, {userRow?.name ?? ""} {userRow?.role ?? ""}님
           </h1>
           {complexName && <p className="text-sm text-muted-foreground mt-1">{complexName}</p>}
         </div>
