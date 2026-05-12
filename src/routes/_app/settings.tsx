@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { getCurrentUserContext } from "@/lib/user-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,17 +15,17 @@ export const Route = createFileRoute("/_app/settings")({
 
 function Settings() {
   const { user, signOut } = useAuth();
-  const [profile, setProfile] = useState<any>(null);
+  const [userRow, setUserRow] = useState<any>(null);
   const [complex, setComplex] = useState<any>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data: p } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
-      setProfile(p);
-      if (p?.primary_complex_id) {
-        const { data: c } = await supabase.from("complexes").select("*").eq("id", p.primary_complex_id).maybeSingle();
+      const { userRow, complexId } = await getCurrentUserContext(user.id);
+      setUserRow(userRow);
+      if (complexId) {
+        const { data: c } = await supabase.from("complexes").select("*").eq("id", complexId).maybeSingle();
         setComplex(c);
       }
     })();
@@ -47,10 +48,10 @@ function Settings() {
       <Card><CardContent className="p-5 space-y-3">
         <h2 className="font-semibold">사용자 프로필</h2>
         <div className="grid grid-cols-2 gap-3 text-sm">
-          <div><Label>이름</Label><div className="mt-1">{profile?.name}</div></div>
-          <div><Label>직책</Label><div className="mt-1">{profile?.position}</div></div>
-          <div><Label>소속</Label><div className="mt-1">{profile?.affiliation}</div></div>
-          <div><Label>연락처</Label><div className="mt-1">{profile?.phone ?? "-"}</div></div>
+          <div><Label>이름</Label><div className="mt-1">{userRow?.name}</div></div>
+          <div><Label>직책</Label><div className="mt-1">{userRow?.role}</div></div>
+          <div><Label>이메일</Label><div className="mt-1">{userRow?.email}</div></div>
+          <div><Label>연락처</Label><div className="mt-1">{userRow?.phone ?? "-"}</div></div>
         </div>
       </CardContent></Card>
 

@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { METHOD_INFO, recommendMethod } from "@/lib/method-recommend";
-import type { AssessmentMethod, AssessmentType, RiskLevel } from "@/lib/types";
+import { ASSESSMENT_METHODS, METHOD_LABEL, type AssessmentMethod, type AssessmentType, type RiskLevel } from "@/lib/types";
+import { getCurrentUserContext } from "@/lib/user-context";
 import { toast } from "sonner";
 import { Star } from "lucide-react";
 
@@ -16,26 +17,26 @@ export const Route = createFileRoute("/_app/assessment/new")({
   component: NewAssessment,
 });
 
-const METHODS: AssessmentMethod[] = ["3단계", "5단계", "빈도강도", "체크리스트", "OPS"];
-
 function NewAssessment() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [complexId, setComplexId] = useState<string>("");
+  const [userRowId, setUserRowId] = useState<string>("");
   const [type, setType] = useState<AssessmentType>("정기평가");
   const [workName, setWorkName] = useState("");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [location, setLocation] = useState("");
-  const [method, setMethod] = useState<AssessmentMethod>("5단계");
+  const [method, setMethod] = useState<AssessmentMethod>("5단계_판단법");
   const [allowable, setAllowable] = useState<RiskLevel>("낮음");
   const [participantConsent, setParticipantConsent] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!user) return;
-    supabase.from("profiles").select("primary_complex_id").eq("id", user.id).maybeSingle().then(({ data }) => {
-      if (data?.primary_complex_id) setComplexId(data.primary_complex_id);
+    getCurrentUserContext(user.id).then(({ userId, complexId }) => {
+      if (userId) setUserRowId(userId);
+      if (complexId) setComplexId(complexId);
     });
   }, [user]);
 
@@ -49,7 +50,7 @@ function NewAssessment() {
         .from("assessments")
         .insert({
           complex_id: complexId,
-          created_by: user!.id,
+          created_by: userRowId || null,
           assessment_type: type,
           work_name: workName,
           method,
@@ -120,7 +121,7 @@ function NewAssessment() {
           <h2 className="font-semibold text-lg">Step 2. 평가 방법 선택</h2>
           <p className="text-sm text-muted-foreground">다음 5종 중 1개를 선택하세요. 작업명에 따라 ★ 추천이 표시됩니다.</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {METHODS.map(m => {
+            {ASSESSMENT_METHODS.map(m => {
               const info = METHOD_INFO[m];
               const isRec = recommended === m;
               const isSel = method === m;
@@ -147,14 +148,14 @@ function NewAssessment() {
           <div className="rounded-md bg-muted p-3 text-sm">
             선택한 방법: <span className="font-semibold text-primary">{METHOD_INFO[method].title}</span>
           </div>
-          {method === "3단계" && (
+          {method === "3단계_판단법" && (
             <div className="text-sm space-y-2">
               <p><span className="font-semibold text-danger">상</span> = 사망 또는 영구장애를 일으키는 재해</p>
               <p><span className="font-semibold text-warning">중</span> = 휴업 1개월 이상의 부상·질병</p>
               <p><span className="font-semibold text-success">하</span> = 휴업 1개월 미만 또는 무휴업</p>
             </div>
           )}
-          {method === "5단계" && (
+          {method === "5단계_판단법" && (
             <div className="text-sm space-y-2">
               <p><span className="font-semibold text-danger">매우높음</span> = 사망 또는 영구장애</p>
               <p><span className="font-semibold text-danger">높음</span> = 6개월 이상 휴업 필요</p>
@@ -163,13 +164,13 @@ function NewAssessment() {
               <p className="text-muted-foreground"><span className="font-semibold">매우낮음</span> = 휴업 불필요</p>
             </div>
           )}
-          {method === "빈도강도" && (
+          {method === "빈도강도법" && (
             <div className="text-sm space-y-2">
               <p>가능성 1~5점 × 중대성 1~5점 = 위험성 점수</p>
               <p>1~4점=매우낮음 · 5~8점=낮음 · 9~12점=보통 · 13~16점=높음 · 17~25점=매우높음</p>
             </div>
           )}
-          {method === "체크리스트" && (
+          {method === "체크리스트법" && (
             <div className="text-sm space-y-2">
               <p>판정 기준: <span className="font-semibold text-success">○ 적정</span> / <span className="font-semibold text-danger">× 보완</span></p>
               <p className="text-muted-foreground">'보완' 항목은 자동으로 감소대책 수립 단계로 전달됩니다.</p>
@@ -230,6 +231,7 @@ function NewAssessment() {
               </label>
             </li>
           </ul>
+          <div className="text-xs text-muted-foreground">선택 방법: {METHOD_LABEL[method]}</div>
         </CardContent></Card>
       )}
 
