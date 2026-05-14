@@ -58,6 +58,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <Button variant="ghost" size="sm" onClick={signOut}>로그아웃</Button>
         </header>
         <main className="flex-1 pb-20 md:pb-0">{children}</main>
+        <footer className="hidden md:block border-t bg-card px-6 py-3 text-center text-xs text-muted-foreground">
+          Copyright © 2026. [kimsugyun/위험성평가-안전관리소]. All rights reserved.
+        </footer>
 
         {/* Bottom tabbar - mobile */}
         <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t flex">
