@@ -209,9 +209,14 @@ function Settings() {
                     onChange={e=>updateComplex(c.id, {manager_phone:e.target.value})} />
                 </div>
               </div>
-              <Button onClick={()=>saveComplex(c)} disabled={savingId===c.id}>
-                {savingId===c.id?"저장 중...":"저장"}
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={()=>saveComplex(c)} disabled={savingId===c.id}>
+                  {savingId===c.id?"저장 중...":"저장"}
+                </Button>
+                <Button variant="destructive" onClick={()=>handleDelete(c)} disabled={deletingId===c.id}>
+                  {deletingId===c.id?"삭제 중...":"삭제"}
+                </Button>
+              </div>
             </div>
           ))
         )}
