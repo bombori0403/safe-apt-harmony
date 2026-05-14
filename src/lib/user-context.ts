@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { ensureDefaultComplex } from "@/lib/user-context.functions";
 
 /**
  * 현재 로그인 사용자의 public.users.id (auth_id 기반)와 기본 단지 ID를 가져온다.
@@ -30,8 +31,9 @@ export async function getCurrentUserContext(authUid: string): Promise<{
   const context = await loadContext();
   if (context.userId && context.complexId) return context;
 
-  const { error } = await (supabase as any).rpc("ensure_current_user_default_complex");
-  if (error) {
+  try {
+    await ensureDefaultComplex();
+  } catch (error) {
     console.error("Failed to ensure default complex", error);
     return context;
   }
