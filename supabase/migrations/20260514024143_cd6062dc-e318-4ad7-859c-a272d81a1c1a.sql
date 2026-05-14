@@ -1,0 +1,1 @@
+ALTER VIEW public.v_company_dashboard SET (security_invoker = true);
