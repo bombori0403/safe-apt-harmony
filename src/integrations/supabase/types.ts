@@ -191,6 +191,7 @@ export type Database = {
           manager_phone: string | null
           mgmt_type: Database["public"]["Enums"]["mgmt_type"]
           name: string
+          next_assessment_date: string | null
           updated_at: string | null
         }
         Insert: {
@@ -203,6 +204,7 @@ export type Database = {
           manager_phone?: string | null
           mgmt_type?: Database["public"]["Enums"]["mgmt_type"]
           name: string
+          next_assessment_date?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -215,6 +217,7 @@ export type Database = {
           manager_phone?: string | null
           mgmt_type?: Database["public"]["Enums"]["mgmt_type"]
           name?: string
+          next_assessment_date?: string | null
           updated_at?: string | null
         }
         Relationships: [

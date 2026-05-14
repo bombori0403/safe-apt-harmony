@@ -1,0 +1,1 @@
+ALTER TABLE public.complexes ADD COLUMN IF NOT EXISTS next_assessment_date date;
