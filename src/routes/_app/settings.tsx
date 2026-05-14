@@ -104,7 +104,7 @@ function Settings() {
     if (!userRow) return;
     setSavingUser(true);
     const { error } = await supabase.from("users").update({
-      name: userRow.name, role: userRow.role, phone: userRow.phone,
+      name: userRow.name, job_title: userRow.job_title, phone: userRow.phone,
     }).eq("id", userRow.id);
     setSavingUser(false);
     if (error) toast.error(error.message); else toast.success("프로필이 저장되었습니다");
