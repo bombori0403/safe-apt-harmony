@@ -145,6 +145,29 @@ function Settings() {
               </select>
             </div>
           </div>
+          {complex.mgmt_type === "위탁관리" && company && (
+            <div className="space-y-3 rounded-md border bg-muted/30 p-3">
+              <div className="text-sm font-medium">위탁 본사 정보</div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>본사명</Label>
+                  <Input value={company.name ?? ""} onChange={e=>setCompany({...company, name:e.target.value})} />
+                </div>
+                <div>
+                  <Label>사업자등록번호</Label>
+                  <Input value={company.business_number ?? ""} onChange={e=>setCompany({...company, business_number:e.target.value})} />
+                </div>
+                <div>
+                  <Label>본사 연락처</Label>
+                  <Input value={company.phone ?? ""} onChange={e=>setCompany({...company, phone:e.target.value})} />
+                </div>
+                <div>
+                  <Label>본사 주소</Label>
+                  <Input value={company.address ?? ""} onChange={e=>setCompany({...company, address:e.target.value})} />
+                </div>
+              </div>
+            </div>
+          )}
           <Button onClick={saveComplex} disabled={saving}>{saving?"저장 중...":"단지 정보 저장"}</Button>
           </>
         ) : (
