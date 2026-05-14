@@ -110,6 +110,20 @@ function Settings() {
     if (error) toast.error(error.message); else toast.success("프로필이 저장되었습니다");
   }
 
+  async function handleDelete(c: any) {
+    if (!confirm(`'${c.name}' 단지를 삭제하시겠습니까?\n평가 기록이 있는 단지는 삭제할 수 없습니다.`)) return;
+    setDeletingId(c.id);
+    try {
+      await deleteComplexFn({ data: { complexId: c.id } });
+      toast.success("단지가 삭제되었습니다");
+      await reload();
+    } catch (e: any) {
+      toast.error(e?.message ?? "단지 삭제에 실패했습니다");
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
   async function saveComplex(c: any) {
     if (!c.name?.trim() || !c.address?.trim()) { toast.error("단지명/주소를 입력하세요"); return; }
     setSavingId(c.id);
