@@ -46,9 +46,10 @@ function NewAssessment() {
       const { data: list } = complexIds.length > 0
         ? await supabase.from("complexes").select("id, name").in("id", complexIds).order("created_at", { ascending: true })
         : { data: [] };
-      setComplexes(list);
+      const availableComplexes = list ?? [];
+      setComplexes(availableComplexes);
       if (complexId) setComplexId(complexId);
-      else if (list[0]) setComplexId(list[0].id);
+      else if (availableComplexes[0]) setComplexId(availableComplexes[0].id);
     });
   }, [user]);
 

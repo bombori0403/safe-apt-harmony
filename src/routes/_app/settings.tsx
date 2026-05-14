@@ -66,7 +66,7 @@ function Settings() {
         .in("id", complexIds)
         .order("created_at", { ascending: true });
       if (error) toast.error(error.message);
-      setComplexes(list);
+      setComplexes(list ?? []);
       setShowNewForm((list ?? []).length === 0);
     }
     setLoading(false);
