@@ -55,9 +55,10 @@ function Settings() {
         </div>
       </CardContent></Card>
 
-      {complex && (
-        <Card><CardContent className="p-5 space-y-3">
-          <h2 className="font-semibold">단지 정보</h2>
+      <Card><CardContent className="p-5 space-y-3">
+        <h2 className="font-semibold">단지 정보</h2>
+        {complex ? (
+          <>
           <div>
             <Label>단지명</Label>
             <Input value={complex.name ?? ""} onChange={e=>setComplex({...complex, name:e.target.value})} />
@@ -81,8 +82,11 @@ function Settings() {
             </div>
           </div>
           <Button onClick={saveComplex} disabled={saving}>{saving?"저장 중...":"단지 정보 저장"}</Button>
-        </CardContent></Card>
-      )}
+          </>
+        ) : (
+          <div className="rounded-md bg-muted p-3 text-sm text-muted-foreground">단지 정보를 준비하는 중입니다.</div>
+        )}
+      </CardContent></Card>
 
       <Card><CardContent className="p-5 space-y-3">
         <h2 className="font-semibold">계정</h2>
