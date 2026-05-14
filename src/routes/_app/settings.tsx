@@ -95,8 +95,6 @@ function Settings() {
       </CardContent></Card>
 
       <Card><CardContent className="p-5 space-y-3">
-
-      <Card><CardContent className="p-5 space-y-3">
         <h2 className="font-semibold">단지 정보</h2>
         {complex ? (
           <>
