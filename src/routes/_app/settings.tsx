@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { getCurrentUserContext } from "@/lib/user-context";
+import { createComplex } from "@/lib/user-context.functions";
+import { useServerFn } from "@tanstack/react-start";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,24 +25,60 @@ const USER_ROLES = [
   "기타",
 ];
 
+const EMPTY_COMPLEX = {
+  name: "", address: "", household_count: 0, mgmt_type: "위탁관리",
+  manager_name: "", manager_phone: "",
+};
+
 function Settings() {
   const { user, signOut } = useAuth();
+  const createComplexFn = useServerFn(createComplex);
   const [userRow, setUserRow] = useState<any>(null);
   const [complex, setComplex] = useState<any>(null);
+  const [newComplex, setNewComplex] = useState<any>(EMPTY_COMPLEX);
+  const [loading, setLoading] = useState(true);
   const [savingUser, setSavingUser] = useState(false);
   const [savingComplex, setSavingComplex] = useState(false);
+  const [creating, setCreating] = useState(false);
 
-  useEffect(() => {
+  async function reload() {
     if (!user) return;
-    (async () => {
-      const { userRow, complexId } = await getCurrentUserContext(user.id);
-      setUserRow(userRow);
-      if (complexId) {
-        const { data: c } = await supabase.from("complexes").select("*").eq("id", complexId).maybeSingle();
-        setComplex(c);
-      }
-    })();
-  }, [user]);
+    setLoading(true);
+    const { userRow, complexId } = await getCurrentUserContext(user.id);
+    setUserRow(userRow);
+    if (complexId) {
+      const { data: c } = await supabase.from("complexes").select("*").eq("id", complexId).maybeSingle();
+      setComplex(c);
+    } else {
+      setComplex(null);
+    }
+    setLoading(false);
+  }
+
+  useEffect(() => { reload(); }, [user]);
+
+  async function handleCreate() {
+    if (!newComplex.name?.trim()) { toast.error("단지명을 입력하세요"); return; }
+    if (!newComplex.address?.trim()) { toast.error("주소를 입력하세요"); return; }
+    setCreating(true);
+    try {
+      await createComplexFn({ data: {
+        name: newComplex.name.trim(),
+        address: newComplex.address.trim(),
+        household_count: Number(newComplex.household_count) || 0,
+        mgmt_type: newComplex.mgmt_type,
+        manager_name: newComplex.manager_name?.trim() || null,
+        manager_phone: newComplex.manager_phone?.trim() || null,
+      }});
+      toast.success("단지가 등록되었습니다");
+      setNewComplex(EMPTY_COMPLEX);
+      await reload();
+    } catch (e: any) {
+      toast.error(e?.message ?? "단지 등록에 실패했습니다");
+    } finally {
+      setCreating(false);
+    }
+  }
 
   async function saveUser() {
     if (!userRow) return;
@@ -146,8 +184,46 @@ function Settings() {
           </div>
           <Button onClick={saveComplex} disabled={savingComplex}>{savingComplex?"저장 중...":"단지 정보 저장"}</Button>
           </>
+        ) : loading ? (
+          <div className="rounded-md bg-muted p-3 text-sm text-muted-foreground">단지 정보를 불러오는 중...</div>
         ) : (
-          <div className="rounded-md bg-muted p-3 text-sm text-muted-foreground">단지 정보를 준비하는 중입니다.</div>
+          <>
+            <p className="text-sm text-muted-foreground">등록된 단지가 없습니다. 단지 정보를 입력해 등록하세요.</p>
+            <div>
+              <Label>단지명 *</Label>
+              <Input value={newComplex.name} onChange={e=>setNewComplex({...newComplex, name:e.target.value})} />
+            </div>
+            <div>
+              <Label>주소 *</Label>
+              <Input value={newComplex.address} onChange={e=>setNewComplex({...newComplex, address:e.target.value})} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>세대수</Label>
+                <Input type="number" min={0} value={newComplex.household_count}
+                  onChange={e=>setNewComplex({...newComplex, household_count:Number(e.target.value)})} />
+              </div>
+              <div>
+                <Label>관리방식</Label>
+                <select value={newComplex.mgmt_type} onChange={e=>setNewComplex({...newComplex, mgmt_type:e.target.value})}
+                  className="w-full h-10 px-3 rounded-md border bg-background text-sm">
+                  <option value="자가관리">자가관리</option>
+                  <option value="위탁관리">위탁관리</option>
+                </select>
+              </div>
+              <div>
+                <Label>관리자명</Label>
+                <Input value={newComplex.manager_name}
+                  onChange={e=>setNewComplex({...newComplex, manager_name:e.target.value})} />
+              </div>
+              <div>
+                <Label>관리자 연락처</Label>
+                <Input value={newComplex.manager_phone} placeholder="010-0000-0000"
+                  onChange={e=>setNewComplex({...newComplex, manager_phone:e.target.value})} />
+              </div>
+            </div>
+            <Button onClick={handleCreate} disabled={creating}>{creating?"등록 중...":"단지 등록"}</Button>
+          </>
         )}
       </CardContent></Card>
 
