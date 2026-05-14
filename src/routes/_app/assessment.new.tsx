@@ -22,6 +22,7 @@ function NewAssessment() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [complexId, setComplexId] = useState<string>("");
+  const [complexName, setComplexName] = useState<string>("");
   const [userRowId, setUserRowId] = useState<string>("");
   const [type, setType] = useState<AssessmentType>("정기평가");
   const [workName, setWorkName] = useState("");
@@ -34,9 +35,13 @@ function NewAssessment() {
 
   useEffect(() => {
     if (!user) return;
-    getCurrentUserContext(user.id).then(({ userId, complexId }) => {
+    getCurrentUserContext(user.id).then(async ({ userId, complexId }) => {
       if (userId) setUserRowId(userId);
-      if (complexId) setComplexId(complexId);
+      if (complexId) {
+        setComplexId(complexId);
+        const { data } = await supabase.from("complexes").select("name").eq("id", complexId).maybeSingle();
+        setComplexName(data?.name ?? "내 단지");
+      }
     });
   }, [user]);
 
@@ -87,6 +92,10 @@ function NewAssessment() {
       {step === 1 && (
         <Card><CardContent className="p-5 space-y-4">
           <h2 className="font-semibold text-lg">Step 1. 평가 기본정보</h2>
+          <div className="rounded-md border bg-muted/40 p-3 text-sm">
+            <div className="text-xs text-muted-foreground">평가 단지</div>
+            <div className="font-medium mt-0.5">{complexName || "단지 정보를 확인하는 중..."}</div>
+          </div>
           <div>
             <Label>평가 종류</Label>
             <div className="flex gap-2 mt-1.5">
