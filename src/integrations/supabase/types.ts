@@ -633,13 +633,6 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: string
       }
-      ensure_current_user_default_complex: {
-        Args: never
-        Returns: {
-          complex_id: string
-          user_id: string
-        }[]
-      }
     }
     Enums: {
       assessment_method:

@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.ensure_current_user_default_complex();
