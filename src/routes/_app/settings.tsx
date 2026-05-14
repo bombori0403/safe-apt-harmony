@@ -31,6 +31,17 @@ function Settings() {
     })();
   }, [user]);
 
+  const [savingUser, setSavingUser] = useState(false);
+  async function saveUser() {
+    if (!userRow) return;
+    setSavingUser(true);
+    const { error } = await supabase.from("users").update({
+      name: userRow.name, role: userRow.role, phone: userRow.phone,
+    }).eq("id", userRow.id);
+    setSavingUser(false);
+    if (error) toast.error(error.message); else toast.success("프로필이 저장되었습니다");
+  }
+
   async function saveComplex() {
     if (!complex) return;
     setSaving(true);
@@ -47,12 +58,40 @@ function Settings() {
 
       <Card><CardContent className="p-5 space-y-3">
         <h2 className="font-semibold">사용자 프로필</h2>
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          <div><Label>이름</Label><div className="mt-1">{userRow?.name}</div></div>
-          <div><Label>직책</Label><div className="mt-1">{userRow?.role}</div></div>
-          <div><Label>이메일</Label><div className="mt-1">{userRow?.email}</div></div>
-          <div><Label>연락처</Label><div className="mt-1">{userRow?.phone ?? "-"}</div></div>
+        {userRow ? (
+        <>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <Label>이름</Label>
+            <Input value={userRow.name ?? ""} onChange={e=>setUserRow({...userRow, name:e.target.value})} />
+          </div>
+          <div>
+            <Label>직책</Label>
+            <select value={userRow.role ?? "기타"} onChange={e=>setUserRow({...userRow, role:e.target.value})}
+              className="w-full h-10 px-3 rounded-md border bg-background text-sm">
+              <option value="관리사무소장">관리사무소장</option>
+              <option value="관리과장">관리과장</option>
+              <option value="시설주임">시설주임</option>
+              <option value="경비반장">경비반장</option>
+              <option value="미화반장">미화반장</option>
+              <option value="외주업체">외주업체</option>
+              <option value="기타">기타</option>
+            </select>
+          </div>
+          <div>
+            <Label>이메일</Label>
+            <div className="mt-1 text-sm text-muted-foreground h-10 flex items-center">{userRow.email}</div>
+          </div>
+          <div>
+            <Label>연락처</Label>
+            <Input value={userRow.phone ?? ""} onChange={e=>setUserRow({...userRow, phone:e.target.value})} />
+          </div>
         </div>
+        <Button onClick={saveUser} disabled={savingUser}>{savingUser?"저장 중...":"프로필 저장"}</Button>
+        </>
+        ) : (
+          <div className="rounded-md bg-muted p-3 text-sm text-muted-foreground">불러오는 중...</div>
+        )}
       </CardContent></Card>
 
       <Card><CardContent className="p-5 space-y-3">
