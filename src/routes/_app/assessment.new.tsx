@@ -37,11 +37,14 @@ function NewAssessment() {
     if (!user) return;
     getCurrentUserContext(user.id).then(async ({ userId, complexId }) => {
       if (userId) setUserRowId(userId);
-      if (complexId) {
-        setComplexId(complexId);
-        const { data } = await supabase.from("complexes").select("name").eq("id", complexId).maybeSingle();
-        setComplexName(data?.name ?? "내 단지");
-      }
+      const { data: members } = await supabase
+        .from("complex_members")
+        .select("complex_id, complexes(id, name)")
+        .eq("user_id", userId ?? "");
+      const list = (members ?? []).map((m: any) => m.complexes).filter(Boolean);
+      setComplexes(list);
+      if (complexId) setComplexId(complexId);
+      else if (list[0]) setComplexId(list[0].id);
     });
   }, [user]);
 
