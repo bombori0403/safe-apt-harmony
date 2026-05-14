@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { getCurrentUserContext } from "@/lib/user-context";
 import { createComplex } from "@/lib/user-context.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { Card, CardContent } from "@/components/ui/card";
@@ -34,23 +33,27 @@ function Settings() {
   const { user, signOut } = useAuth();
   const createComplexFn = useServerFn(createComplex);
   const [userRow, setUserRow] = useState<any>(null);
-  const [complex, setComplex] = useState<any>(null);
+  const [complexes, setComplexes] = useState<any[]>([]);
   const [newComplex, setNewComplex] = useState<any>(EMPTY_COMPLEX);
   const [loading, setLoading] = useState(true);
   const [savingUser, setSavingUser] = useState(false);
-  const [savingComplex, setSavingComplex] = useState(false);
+  const [savingId, setSavingId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [showNewForm, setShowNewForm] = useState(false);
 
   async function reload() {
     if (!user) return;
     setLoading(true);
-    const { userRow, complexId } = await getCurrentUserContext(user.id);
-    setUserRow(userRow);
-    if (complexId) {
-      const { data: c } = await supabase.from("complexes").select("*").eq("id", complexId).maybeSingle();
-      setComplex(c);
-    } else {
-      setComplex(null);
+    const { data: u } = await supabase.from("users").select("*").eq("auth_id", user.id).maybeSingle();
+    setUserRow(u);
+    if (u) {
+      const { data: members } = await supabase
+        .from("complex_members")
+        .select("complex_id, complexes(*)")
+        .eq("user_id", u.id);
+      const list = (members ?? []).map((m: any) => m.complexes).filter(Boolean);
+      setComplexes(list);
+      setShowNewForm(list.length === 0);
     }
     setLoading(false);
   }
@@ -72,6 +75,7 @@ function Settings() {
       }});
       toast.success("단지가 등록되었습니다");
       setNewComplex(EMPTY_COMPLEX);
+      setShowNewForm(false);
       await reload();
     } catch (e: any) {
       toast.error(e?.message ?? "단지 등록에 실패했습니다");
@@ -84,29 +88,25 @@ function Settings() {
     if (!userRow) return;
     setSavingUser(true);
     const { error } = await supabase.from("users").update({
-      name: userRow.name,
-      role: userRow.role,
-      phone: userRow.phone,
+      name: userRow.name, role: userRow.role, phone: userRow.phone,
     }).eq("id", userRow.id);
     setSavingUser(false);
     if (error) toast.error(error.message); else toast.success("프로필이 저장되었습니다");
   }
 
-  async function saveComplex() {
-    if (!complex) return;
-    if (!complex.name?.trim()) { toast.error("단지명을 입력하세요"); return; }
-    if (!complex.address?.trim()) { toast.error("주소를 입력하세요"); return; }
-    setSavingComplex(true);
+  async function saveComplex(c: any) {
+    if (!c.name?.trim() || !c.address?.trim()) { toast.error("단지명/주소를 입력하세요"); return; }
+    setSavingId(c.id);
     const { error } = await supabase.from("complexes").update({
-      name: complex.name,
-      address: complex.address,
-      household_count: complex.household_count,
-      mgmt_type: complex.mgmt_type,
-      manager_name: complex.manager_name,
-      manager_phone: complex.manager_phone,
-    }).eq("id", complex.id);
-    setSavingComplex(false);
+      name: c.name, address: c.address, household_count: c.household_count,
+      mgmt_type: c.mgmt_type, manager_name: c.manager_name, manager_phone: c.manager_phone,
+    }).eq("id", c.id);
+    setSavingId(null);
     if (error) toast.error(error.message); else toast.success("단지 정보가 저장되었습니다");
+  }
+
+  function updateComplex(id: string, patch: any) {
+    setComplexes(prev => prev.map(c => c.id === id ? { ...c, ...patch } : c));
   }
 
   return (
@@ -146,49 +146,68 @@ function Settings() {
         )}
       </CardContent></Card>
 
-      <Card><CardContent className="p-5 space-y-3">
-        <h2 className="font-semibold">단지 정보</h2>
-        {complex ? (
-          <>
-          <div>
-            <Label>단지명</Label>
-            <Input value={complex.name ?? ""} onChange={e=>setComplex({...complex, name:e.target.value})} />
-          </div>
-          <div>
-            <Label>주소</Label>
-            <Input value={complex.address ?? ""} onChange={e=>setComplex({...complex, address:e.target.value})} />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label>세대수</Label>
-              <Input type="number" min={0} value={complex.household_count ?? 0}
-                onChange={e=>setComplex({...complex, household_count:Number(e.target.value)})} />
-            </div>
-            <div>
-              <Label>관리방식</Label>
-              <select value={complex.mgmt_type ?? "위탁관리"} onChange={e=>setComplex({...complex, mgmt_type:e.target.value})}
-                className="w-full h-10 px-3 rounded-md border bg-background text-sm">
-                <option value="자가관리">자가관리</option>
-                <option value="위탁관리">위탁관리</option>
-              </select>
-            </div>
-            <div>
-              <Label>관리자명</Label>
-              <Input value={complex.manager_name ?? ""} onChange={e=>setComplex({...complex, manager_name:e.target.value})} />
-            </div>
-            <div>
-              <Label>관리자 연락처</Label>
-              <Input value={complex.manager_phone ?? ""} placeholder="010-0000-0000"
-                onChange={e=>setComplex({...complex, manager_phone:e.target.value})} />
-            </div>
-          </div>
-          <Button onClick={saveComplex} disabled={savingComplex}>{savingComplex?"저장 중...":"단지 정보 저장"}</Button>
-          </>
-        ) : loading ? (
-          <div className="rounded-md bg-muted p-3 text-sm text-muted-foreground">단지 정보를 불러오는 중...</div>
+      <Card><CardContent className="p-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="font-semibold">등록된 단지 ({complexes.length})</h2>
+          {complexes.length > 0 && !showNewForm && (
+            <Button size="sm" variant="outline" onClick={()=>setShowNewForm(true)}>+ 단지 추가</Button>
+          )}
+        </div>
+
+        {loading ? (
+          <div className="rounded-md bg-muted p-3 text-sm text-muted-foreground">불러오는 중...</div>
+        ) : complexes.length === 0 && !showNewForm ? (
+          <p className="text-sm text-muted-foreground">등록된 단지가 없습니다.</p>
         ) : (
-          <>
-            <p className="text-sm text-muted-foreground">등록된 단지가 없습니다. 단지 정보를 입력해 등록하세요.</p>
+          complexes.map(c => (
+            <div key={c.id} className="rounded-md border p-4 space-y-3">
+              <div>
+                <Label>단지명</Label>
+                <Input value={c.name ?? ""} onChange={e=>updateComplex(c.id, {name:e.target.value})} />
+              </div>
+              <div>
+                <Label>주소</Label>
+                <Input value={c.address ?? ""} onChange={e=>updateComplex(c.id, {address:e.target.value})} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>세대수</Label>
+                  <Input type="number" min={0} value={c.household_count ?? 0}
+                    onChange={e=>updateComplex(c.id, {household_count:Number(e.target.value)})} />
+                </div>
+                <div>
+                  <Label>관리방식</Label>
+                  <select value={c.mgmt_type ?? "위탁관리"} onChange={e=>updateComplex(c.id, {mgmt_type:e.target.value})}
+                    className="w-full h-10 px-3 rounded-md border bg-background text-sm">
+                    <option value="자가관리">자가관리</option>
+                    <option value="위탁관리">위탁관리</option>
+                  </select>
+                </div>
+                <div>
+                  <Label>관리자명</Label>
+                  <Input value={c.manager_name ?? ""} onChange={e=>updateComplex(c.id, {manager_name:e.target.value})} />
+                </div>
+                <div>
+                  <Label>관리자 연락처</Label>
+                  <Input value={c.manager_phone ?? ""} placeholder="010-0000-0000"
+                    onChange={e=>updateComplex(c.id, {manager_phone:e.target.value})} />
+                </div>
+              </div>
+              <Button onClick={()=>saveComplex(c)} disabled={savingId===c.id}>
+                {savingId===c.id?"저장 중...":"저장"}
+              </Button>
+            </div>
+          ))
+        )}
+
+        {showNewForm && (
+          <div className="rounded-md border border-dashed p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="font-medium text-sm">새 단지 등록</h3>
+              {complexes.length > 0 && (
+                <Button size="sm" variant="ghost" onClick={()=>{setShowNewForm(false); setNewComplex(EMPTY_COMPLEX);}}>취소</Button>
+              )}
+            </div>
             <div>
               <Label>단지명 *</Label>
               <Input value={newComplex.name} onChange={e=>setNewComplex({...newComplex, name:e.target.value})} />
@@ -223,7 +242,7 @@ function Settings() {
               </div>
             </div>
             <Button onClick={handleCreate} disabled={creating}>{creating?"등록 중...":"단지 등록"}</Button>
-          </>
+          </div>
         )}
       </CardContent></Card>
 
