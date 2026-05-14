@@ -39,9 +39,13 @@ function NewAssessment() {
       if (userId) setUserRowId(userId);
       const { data: members } = await supabase
         .from("complex_members")
-        .select("complex_id, complexes(id, name)")
+        .select("complex_id")
         .eq("user_id", userId ?? "");
-      const list = (members ?? []).map((m: any) => m.complexes).filter(Boolean);
+
+      const complexIds = [...new Set((members ?? []).map((m: any) => m.complex_id).filter(Boolean))];
+      const { data: list } = complexIds.length > 0
+        ? await supabase.from("complexes").select("id, name").in("id", complexIds).order("created_at", { ascending: true })
+        : { data: [] };
       setComplexes(list);
       if (complexId) setComplexId(complexId);
       else if (list[0]) setComplexId(list[0].id);

@@ -49,11 +49,25 @@ function Settings() {
     if (u) {
       const { data: members } = await supabase
         .from("complex_members")
-        .select("complex_id, complexes(*)")
+        .select("complex_id")
         .eq("user_id", u.id);
-      const list = (members ?? []).map((m: any) => m.complexes).filter(Boolean);
+
+      const complexIds = [...new Set((members ?? []).map((m: any) => m.complex_id).filter(Boolean))];
+      if (complexIds.length === 0) {
+        setComplexes([]);
+        setShowNewForm(true);
+        setLoading(false);
+        return;
+      }
+
+      const { data: list, error } = await supabase
+        .from("complexes")
+        .select("*")
+        .in("id", complexIds)
+        .order("created_at", { ascending: true });
+      if (error) toast.error(error.message);
       setComplexes(list);
-      setShowNewForm(list.length === 0);
+      setShowNewForm((list ?? []).length === 0);
     }
     setLoading(false);
   }
