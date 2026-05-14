@@ -13,11 +13,22 @@ export const Route = createFileRoute("/_app/settings")({
   component: Settings,
 });
 
+const USER_ROLES = [
+  "관리사무소장",
+  "안전보건관리책임자",
+  "관리감독자",
+  "안전관리자",
+  "보건관리자",
+  "본사_안전담당",
+  "기타",
+];
+
 function Settings() {
   const { user, signOut } = useAuth();
   const [userRow, setUserRow] = useState<any>(null);
   const [complex, setComplex] = useState<any>(null);
-  const [saving, setSaving] = useState(false);
+  const [savingUser, setSavingUser] = useState(false);
+  const [savingComplex, setSavingComplex] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -31,14 +42,33 @@ function Settings() {
     })();
   }, [user]);
 
+  async function saveUser() {
+    if (!userRow) return;
+    setSavingUser(true);
+    const { error } = await supabase.from("users").update({
+      name: userRow.name,
+      role: userRow.role,
+      phone: userRow.phone,
+    }).eq("id", userRow.id);
+    setSavingUser(false);
+    if (error) toast.error(error.message); else toast.success("프로필이 저장되었습니다");
+  }
+
   async function saveComplex() {
     if (!complex) return;
-    setSaving(true);
+    if (!complex.name?.trim()) { toast.error("단지명을 입력하세요"); return; }
+    if (!complex.address?.trim()) { toast.error("주소를 입력하세요"); return; }
+    setSavingComplex(true);
     const { error } = await supabase.from("complexes").update({
-      name: complex.name, address: complex.address, household_count: complex.household_count, mgmt_type: complex.mgmt_type,
+      name: complex.name,
+      address: complex.address,
+      household_count: complex.household_count,
+      mgmt_type: complex.mgmt_type,
+      manager_name: complex.manager_name,
+      manager_phone: complex.manager_phone,
     }).eq("id", complex.id);
-    setSaving(false);
-    if (error) toast.error(error.message); else toast.success("저장되었습니다");
+    setSavingComplex(false);
+    if (error) toast.error(error.message); else toast.success("단지 정보가 저장되었습니다");
   }
 
   return (
@@ -47,12 +77,35 @@ function Settings() {
 
       <Card><CardContent className="p-5 space-y-3">
         <h2 className="font-semibold">사용자 프로필</h2>
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          <div><Label>이름</Label><div className="mt-1">{userRow?.name}</div></div>
-          <div><Label>직책</Label><div className="mt-1">{userRow?.role}</div></div>
-          <div><Label>이메일</Label><div className="mt-1">{userRow?.email}</div></div>
-          <div><Label>연락처</Label><div className="mt-1">{userRow?.phone ?? "-"}</div></div>
-        </div>
+        {userRow ? (
+          <>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>이름</Label>
+                <Input value={userRow.name ?? ""} onChange={e=>setUserRow({...userRow, name:e.target.value})} />
+              </div>
+              <div>
+                <Label>직책</Label>
+                <select value={userRow.role ?? "기타"} onChange={e=>setUserRow({...userRow, role:e.target.value})}
+                  className="w-full h-10 px-3 rounded-md border bg-background text-sm">
+                  {USER_ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                </select>
+              </div>
+              <div>
+                <Label>이메일</Label>
+                <Input value={userRow.email ?? ""} disabled />
+              </div>
+              <div>
+                <Label>연락처</Label>
+                <Input value={userRow.phone ?? ""} placeholder="010-0000-0000"
+                  onChange={e=>setUserRow({...userRow, phone:e.target.value})} />
+              </div>
+            </div>
+            <Button onClick={saveUser} disabled={savingUser}>{savingUser?"저장 중...":"프로필 저장"}</Button>
+          </>
+        ) : (
+          <div className="rounded-md bg-muted p-3 text-sm text-muted-foreground">사용자 정보를 불러오는 중...</div>
+        )}
       </CardContent></Card>
 
       <Card><CardContent className="p-5 space-y-3">
@@ -70,18 +123,28 @@ function Settings() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>세대수</Label>
-              <Input type="number" value={complex.household_count ?? 0} onChange={e=>setComplex({...complex, household_count:Number(e.target.value)})} />
+              <Input type="number" min={0} value={complex.household_count ?? 0}
+                onChange={e=>setComplex({...complex, household_count:Number(e.target.value)})} />
             </div>
             <div>
               <Label>관리방식</Label>
-              <select value={complex.mgmt_type} onChange={e=>setComplex({...complex, mgmt_type:e.target.value})}
+              <select value={complex.mgmt_type ?? "위탁관리"} onChange={e=>setComplex({...complex, mgmt_type:e.target.value})}
                 className="w-full h-10 px-3 rounded-md border bg-background text-sm">
                 <option value="자가관리">자가관리</option>
                 <option value="위탁관리">위탁관리</option>
               </select>
             </div>
+            <div>
+              <Label>관리자명</Label>
+              <Input value={complex.manager_name ?? ""} onChange={e=>setComplex({...complex, manager_name:e.target.value})} />
+            </div>
+            <div>
+              <Label>관리자 연락처</Label>
+              <Input value={complex.manager_phone ?? ""} placeholder="010-0000-0000"
+                onChange={e=>setComplex({...complex, manager_phone:e.target.value})} />
+            </div>
           </div>
-          <Button onClick={saveComplex} disabled={saving}>{saving?"저장 중...":"단지 정보 저장"}</Button>
+          <Button onClick={saveComplex} disabled={savingComplex}>{savingComplex?"저장 중...":"단지 정보 저장"}</Button>
           </>
         ) : (
           <div className="rounded-md bg-muted p-3 text-sm text-muted-foreground">단지 정보를 준비하는 중입니다.</div>
