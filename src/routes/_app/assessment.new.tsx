@@ -22,7 +22,7 @@ function NewAssessment() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [complexId, setComplexId] = useState<string>("");
-  const [complexName, setComplexName] = useState<string>("");
+  const [complexes, setComplexes] = useState<{id:string; name:string}[]>([]);
   const [userRowId, setUserRowId] = useState<string>("");
   const [type, setType] = useState<AssessmentType>("정기평가");
   const [workName, setWorkName] = useState("");
