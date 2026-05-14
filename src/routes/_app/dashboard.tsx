@@ -6,7 +6,11 @@ import { getCurrentUserContext } from "@/lib/user-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Calendar as CalendarComp } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { toast } from "sonner";
 import { Plus, AlertTriangle, Calendar, Users, TrendingUp } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_app/dashboard")({
   component: Dashboard,
@@ -24,19 +28,28 @@ interface Assessment {
 function Dashboard() {
   const { user } = useAuth();
   const [userRow, setUserRow] = useState<any>(null);
+  const [complexId, setComplexId] = useState<string | null>(null);
   const [complexName, setComplexName] = useState("");
   const [assessments, setAssessments] = useState<Assessment[]>([]);
   const [unresolvedHigh, setUnresolvedHigh] = useState(0);
   const [monthCount, setMonthCount] = useState(0);
+  const [nextDate, setNextDate] = useState<Date | undefined>(undefined);
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     (async () => {
       const { userRow, complexId } = await getCurrentUserContext(user.id);
       setUserRow(userRow);
+      setComplexId(complexId ?? null);
       if (complexId) {
-        const { data: c } = await supabase.from("complexes").select("name").eq("id", complexId).maybeSingle();
+        const { data: c } = await supabase
+          .from("complexes")
+          .select("name, next_assessment_date")
+          .eq("id", complexId)
+          .maybeSingle();
         setComplexName(c?.name ?? "");
+        if (c?.next_assessment_date) setNextDate(new Date(c.next_assessment_date));
       }
       const { data: a } = await supabase.from("assessments").select("*").order("created_at", { ascending: false }).limit(20);
       setAssessments((a ?? []) as Assessment[]);
@@ -55,6 +68,29 @@ function Dashboard() {
       setUnresolvedHigh(hc ?? 0);
     })();
   }, [user]);
+
+  const handleDateSelect = async (d: Date | undefined) => {
+    setNextDate(d);
+    setCalendarOpen(false);
+    if (!complexId) {
+      toast.error("먼저 설정에서 단지를 등록해주세요.");
+      return;
+    }
+    const iso = d ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}` : null;
+    const { error } = await supabase.from("complexes").update({ next_assessment_date: iso }).eq("id", complexId);
+    if (error) toast.error("저장 실패: " + error.message);
+    else toast.success(d ? "다음 정기평가 날짜가 저장되었습니다." : "날짜가 해제되었습니다.");
+  };
+
+  const nextDisplay = (() => {
+    if (!nextDate) return { value: "미정", sub: "날짜 선택" };
+    const today = new Date(); today.setHours(0,0,0,0);
+    const target = new Date(nextDate); target.setHours(0,0,0,0);
+    const diff = Math.round((target.getTime() - today.getTime()) / 86400000);
+    if (diff > 0) return { value: `D-${diff}`, sub: `${target.getMonth() + 1}/${target.getDate()}` };
+    if (diff === 0) return { value: "D-DAY", sub: "오늘" };
+    return { value: `D+${-diff}`, sub: "지남" };
+  })();
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
@@ -75,7 +111,40 @@ function Dashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <KpiCard title="이번 달 평가" value={monthCount} icon={TrendingUp} />
         <KpiCard title="높음·매우높음 미해결" value={unresolvedHigh} icon={AlertTriangle} danger />
-        <KpiCard title="다음 정기평가" value="D-30" icon={Calendar} sub="예정" />
+        <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+          <PopoverTrigger asChild>
+            <button type="button" className="text-left">
+              <Card className="hover:border-primary/40 transition-colors cursor-pointer">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between text-muted-foreground text-xs">
+                    <span>다음 정기평가</span>
+                    <Calendar className="h-4 w-4" />
+                  </div>
+                  <div className="text-2xl md:text-3xl font-bold mt-2">
+                    {nextDisplay.value}
+                    <span className="text-sm font-normal text-muted-foreground ml-1">{nextDisplay.sub}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <CalendarComp
+              mode="single"
+              selected={nextDate}
+              onSelect={handleDateSelect}
+              initialFocus
+              className={cn("p-3 pointer-events-auto")}
+            />
+            {nextDate && (
+              <div className="p-2 border-t">
+                <Button variant="ghost" size="sm" className="w-full" onClick={() => handleDateSelect(undefined)}>
+                  날짜 해제
+                </Button>
+              </div>
+            )}
+          </PopoverContent>
+        </Popover>
         <KpiCard title="참여 확인 대기" value={0} icon={Users} sub="명" />
       </div>
 
