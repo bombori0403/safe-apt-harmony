@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { createComplex } from "@/lib/user-context.functions";
+import { createComplex, deleteComplex } from "@/lib/user-context.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -32,6 +32,8 @@ const EMPTY_COMPLEX = {
 function Settings() {
   const { user, signOut } = useAuth();
   const createComplexFn = useServerFn(createComplex);
+  const deleteComplexFn = useServerFn(deleteComplex);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [userRow, setUserRow] = useState<any>(null);
   const [complexes, setComplexes] = useState<any[]>([]);
   const [newComplex, setNewComplex] = useState<any>(EMPTY_COMPLEX);
@@ -106,6 +108,20 @@ function Settings() {
     }).eq("id", userRow.id);
     setSavingUser(false);
     if (error) toast.error(error.message); else toast.success("프로필이 저장되었습니다");
+  }
+
+  async function handleDelete(c: any) {
+    if (!confirm(`'${c.name}' 단지를 삭제하시겠습니까?\n평가 기록이 있는 단지는 삭제할 수 없습니다.`)) return;
+    setDeletingId(c.id);
+    try {
+      await deleteComplexFn({ data: { complexId: c.id } });
+      toast.success("단지가 삭제되었습니다");
+      await reload();
+    } catch (e: any) {
+      toast.error(e?.message ?? "단지 삭제에 실패했습니다");
+    } finally {
+      setDeletingId(null);
+    }
   }
 
   async function saveComplex(c: any) {
@@ -207,9 +223,14 @@ function Settings() {
                     onChange={e=>updateComplex(c.id, {manager_phone:e.target.value})} />
                 </div>
               </div>
-              <Button onClick={()=>saveComplex(c)} disabled={savingId===c.id}>
-                {savingId===c.id?"저장 중...":"저장"}
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={()=>saveComplex(c)} disabled={savingId===c.id}>
+                  {savingId===c.id?"저장 중...":"저장"}
+                </Button>
+                <Button variant="destructive" onClick={()=>handleDelete(c)} disabled={deletingId===c.id}>
+                  {deletingId===c.id?"삭제 중...":"삭제"}
+                </Button>
+              </div>
             </div>
           ))
         )}
