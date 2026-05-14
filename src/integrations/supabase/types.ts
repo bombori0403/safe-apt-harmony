@@ -625,6 +625,10 @@ export type Database = {
       }
     }
     Functions: {
+      can_access_assessment: {
+        Args: { _assessment_id: string }
+        Returns: boolean
+      }
       create_sample_data_for_user: {
         Args: { p_user_id: string }
         Returns: string
