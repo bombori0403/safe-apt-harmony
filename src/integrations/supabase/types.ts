@@ -633,6 +633,10 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: string
       }
+      current_user_id: { Args: never; Returns: string }
+      user_admin_company_ids: { Args: never; Returns: string[] }
+      user_complex_ids: { Args: never; Returns: string[] }
+      user_member_company_ids: { Args: never; Returns: string[] }
     }
     Enums: {
       assessment_method:
