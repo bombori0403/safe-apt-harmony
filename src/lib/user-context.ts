@@ -38,19 +38,3 @@ export async function getCurrentUserContext(authUid: string): Promise<{
 
   return loadContext();
 }
-  const { data: userRow } = await supabase
-    .from("users")
-    .select("*")
-    .eq("auth_id", authUid)
-    .maybeSingle();
-  if (!userRow) return { userId: null, complexId: null, userRow: null };
-
-  const { data: member } = await supabase
-    .from("complex_members")
-    .select("complex_id")
-    .eq("user_id", userRow.id)
-    .limit(1)
-    .maybeSingle();
-
-  return { userId: userRow.id, complexId: member?.complex_id ?? null, userRow };
-}
