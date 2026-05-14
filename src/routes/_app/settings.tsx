@@ -32,6 +32,8 @@ const EMPTY_COMPLEX = {
 function Settings() {
   const { user, signOut } = useAuth();
   const createComplexFn = useServerFn(createComplex);
+  const deleteComplexFn = useServerFn(deleteComplex);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [userRow, setUserRow] = useState<any>(null);
   const [complexes, setComplexes] = useState<any[]>([]);
   const [newComplex, setNewComplex] = useState<any>(EMPTY_COMPLEX);
