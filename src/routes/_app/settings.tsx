@@ -104,7 +104,7 @@ function Settings() {
     if (!userRow) return;
     setSavingUser(true);
     const { error } = await supabase.from("users").update({
-      name: userRow.name, role: userRow.role, phone: userRow.phone,
+      name: userRow.name, job_title: userRow.job_title, phone: userRow.phone,
     }).eq("id", userRow.id);
     setSavingUser(false);
     if (error) toast.error(error.message); else toast.success("프로필이 저장되었습니다");
@@ -154,10 +154,8 @@ function Settings() {
               </div>
               <div>
                 <Label>직책</Label>
-                <select value={userRow.role ?? "기타"} onChange={e=>setUserRow({...userRow, role:e.target.value})}
-                  className="w-full h-10 px-3 rounded-md border bg-background text-sm">
-                  {USER_ROLES.map(r => <option key={r} value={r}>{r}</option>)}
-                </select>
+                <Input value={userRow.job_title ?? ""} placeholder="예: 관리사무소장"
+                  onChange={e=>setUserRow({...userRow, job_title:e.target.value})} />
               </div>
               <div>
                 <Label>이메일</Label>
