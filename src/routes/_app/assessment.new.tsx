@@ -95,9 +95,18 @@ function NewAssessment() {
       {step === 1 && (
         <Card><CardContent className="p-5 space-y-4">
           <h2 className="font-semibold text-lg">Step 1. 평가 기본정보</h2>
-          <div className="rounded-md border bg-muted/40 p-3 text-sm">
-            <div className="text-xs text-muted-foreground">평가 단지</div>
-            <div className="font-medium mt-0.5">{complexName || "단지 정보를 확인하는 중..."}</div>
+          <div>
+            <Label>평가 단지</Label>
+            {complexes.length === 0 ? (
+              <div className="rounded-md border bg-muted/40 p-3 text-sm text-muted-foreground mt-1.5">
+                등록된 단지가 없습니다. 설정에서 단지를 먼저 등록해주세요.
+              </div>
+            ) : (
+              <select value={complexId} onChange={e=>setComplexId(e.target.value)}
+                className="w-full h-10 px-3 rounded-md border bg-background text-sm mt-1.5">
+                {complexes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            )}
           </div>
           <div>
             <Label>평가 종류</Label>
