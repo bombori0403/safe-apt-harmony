@@ -184,8 +184,46 @@ function Settings() {
           </div>
           <Button onClick={saveComplex} disabled={savingComplex}>{savingComplex?"저장 중...":"단지 정보 저장"}</Button>
           </>
+        ) : loading ? (
+          <div className="rounded-md bg-muted p-3 text-sm text-muted-foreground">단지 정보를 불러오는 중...</div>
         ) : (
-          <div className="rounded-md bg-muted p-3 text-sm text-muted-foreground">단지 정보를 준비하는 중입니다.</div>
+          <>
+            <p className="text-sm text-muted-foreground">등록된 단지가 없습니다. 단지 정보를 입력해 등록하세요.</p>
+            <div>
+              <Label>단지명 *</Label>
+              <Input value={newComplex.name} onChange={e=>setNewComplex({...newComplex, name:e.target.value})} />
+            </div>
+            <div>
+              <Label>주소 *</Label>
+              <Input value={newComplex.address} onChange={e=>setNewComplex({...newComplex, address:e.target.value})} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>세대수</Label>
+                <Input type="number" min={0} value={newComplex.household_count}
+                  onChange={e=>setNewComplex({...newComplex, household_count:Number(e.target.value)})} />
+              </div>
+              <div>
+                <Label>관리방식</Label>
+                <select value={newComplex.mgmt_type} onChange={e=>setNewComplex({...newComplex, mgmt_type:e.target.value})}
+                  className="w-full h-10 px-3 rounded-md border bg-background text-sm">
+                  <option value="자가관리">자가관리</option>
+                  <option value="위탁관리">위탁관리</option>
+                </select>
+              </div>
+              <div>
+                <Label>관리자명</Label>
+                <Input value={newComplex.manager_name}
+                  onChange={e=>setNewComplex({...newComplex, manager_name:e.target.value})} />
+              </div>
+              <div>
+                <Label>관리자 연락처</Label>
+                <Input value={newComplex.manager_phone} placeholder="010-0000-0000"
+                  onChange={e=>setNewComplex({...newComplex, manager_phone:e.target.value})} />
+              </div>
+            </div>
+            <Button onClick={handleCreate} disabled={creating}>{creating?"등록 중...":"단지 등록"}</Button>
+          </>
         )}
       </CardContent></Card>
 
