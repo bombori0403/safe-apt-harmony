@@ -82,3 +82,37 @@ export const createComplex = createServerFn({ method: "POST" })
 
     return { complexId: complex.id };
   });
+
+const deleteComplexSchema = z.object({ complexId: z.string().uuid() });
+
+export const deleteComplex = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => deleteComplexSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const userRow = await ensureUserRow(context.userId);
+
+    // Verify caller is a member of this complex
+    const { data: member } = await supabaseAdmin
+      .from("complex_members")
+      .select("id")
+      .eq("complex_id", data.complexId)
+      .eq("user_id", userRow.id)
+      .maybeSingle();
+    if (!member) throw new Error("해당 단지에 대한 권한이 없습니다.");
+
+    // Block deletion if assessments exist
+    const { count } = await supabaseAdmin
+      .from("assessments")
+      .select("id", { count: "exact", head: true })
+      .eq("complex_id", data.complexId);
+    if ((count ?? 0) > 0) {
+      throw new Error(`이 단지에 평가 기록(${count}건)이 있어 삭제할 수 없습니다.`);
+    }
+
+    await supabaseAdmin.from("near_miss").delete().eq("complex_id", data.complexId);
+    await supabaseAdmin.from("complex_members").delete().eq("complex_id", data.complexId);
+    const { error } = await supabaseAdmin.from("complexes").delete().eq("id", data.complexId);
+    if (error) throw error;
+
+    return { ok: true };
+  });
