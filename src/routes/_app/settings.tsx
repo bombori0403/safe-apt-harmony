@@ -17,6 +17,7 @@ function Settings() {
   const { user, signOut } = useAuth();
   const [userRow, setUserRow] = useState<any>(null);
   const [complex, setComplex] = useState<any>(null);
+  const [company, setCompany] = useState<any>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -27,6 +28,12 @@ function Settings() {
       if (complexId) {
         const { data: c } = await supabase.from("complexes").select("*").eq("id", complexId).maybeSingle();
         setComplex(c);
+        if (c?.company_id) {
+          const { data: co } = await supabase.from("companies").select("*").eq("id", c.company_id).maybeSingle();
+          setCompany(co ?? { name: "", business_number: "", phone: "", address: "" });
+        } else {
+          setCompany({ name: "", business_number: "", phone: "", address: "" });
+        }
       }
     })();
   }, [user]);
@@ -45,8 +52,26 @@ function Settings() {
   async function saveComplex() {
     if (!complex) return;
     setSaving(true);
+    let companyId = complex.company_id ?? null;
+
+    if (complex.mgmt_type === "위탁관리" && company && (company.name || company.business_number || company.phone || company.address)) {
+      if (companyId) {
+        const { error: cuErr } = await supabase.from("companies").update({
+          name: company.name, business_number: company.business_number, phone: company.phone, address: company.address,
+        }).eq("id", companyId);
+        if (cuErr) { setSaving(false); toast.error(cuErr.message); return; }
+      } else {
+        const { data: ins, error: ciErr } = await supabase.from("companies").insert({
+          name: company.name || "본사", business_number: company.business_number, phone: company.phone, address: company.address,
+        }).select("id").single();
+        if (ciErr) { setSaving(false); toast.error(ciErr.message); return; }
+        companyId = ins.id;
+      }
+    }
+
     const { error } = await supabase.from("complexes").update({
       name: complex.name, address: complex.address, household_count: complex.household_count, mgmt_type: complex.mgmt_type,
+      company_id: complex.mgmt_type === "위탁관리" ? companyId : null,
     }).eq("id", complex.id);
     setSaving(false);
     if (error) toast.error(error.message); else toast.success("저장되었습니다");
@@ -120,6 +145,29 @@ function Settings() {
               </select>
             </div>
           </div>
+          {complex.mgmt_type === "위탁관리" && company && (
+            <div className="space-y-3 rounded-md border bg-muted/30 p-3">
+              <div className="text-sm font-medium">위탁 본사 정보</div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>본사명</Label>
+                  <Input value={company.name ?? ""} onChange={e=>setCompany({...company, name:e.target.value})} />
+                </div>
+                <div>
+                  <Label>사업자등록번호</Label>
+                  <Input value={company.business_number ?? ""} onChange={e=>setCompany({...company, business_number:e.target.value})} />
+                </div>
+                <div>
+                  <Label>본사 연락처</Label>
+                  <Input value={company.phone ?? ""} onChange={e=>setCompany({...company, phone:e.target.value})} />
+                </div>
+                <div>
+                  <Label>본사 주소</Label>
+                  <Input value={company.address ?? ""} onChange={e=>setCompany({...company, address:e.target.value})} />
+                </div>
+              </div>
+            </div>
+          )}
           <Button onClick={saveComplex} disabled={saving}>{saving?"저장 중...":"단지 정보 저장"}</Button>
           </>
         ) : (
