@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { createComplex, deleteComplex } from "@/lib/user-context.functions";
+import { leaveOrganization, deleteAccount, deleteOrganization } from "@/lib/account.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
