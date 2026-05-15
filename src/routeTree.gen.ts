@@ -14,11 +14,16 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as ConfirmIdRouteImport } from './routes/confirm.$id'
+import { Route as AppWorkStopRightRouteImport } from './routes/_app/work-stop-right'
+import { Route as AppWorkStopRecordsRouteImport } from './routes/_app/work-stop-records'
 import { Route as AppTeamRouteImport } from './routes/_app/team'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
+import { Route as AppNearMissRouteImport } from './routes/_app/near-miss'
 import { Route as AppHistoryRouteImport } from './routes/_app/history'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppConsoleRouteImport } from './routes/_app/console'
+import { Route as AppNearMissNewRouteImport } from './routes/_app/near-miss.new'
+import { Route as AppNearMissIdRouteImport } from './routes/_app/near-miss.$id'
 import { Route as AppAssessmentNewRouteImport } from './routes/_app/assessment.new'
 import { Route as AppAssessmentIdIndexRouteImport } from './routes/_app/assessment.$id.index'
 import { Route as AppAssessmentIdShareRouteImport } from './routes/_app/assessment.$id.share'
@@ -51,6 +56,16 @@ const ConfirmIdRoute = ConfirmIdRouteImport.update({
   path: '/confirm/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppWorkStopRightRoute = AppWorkStopRightRouteImport.update({
+  id: '/work-stop-right',
+  path: '/work-stop-right',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppWorkStopRecordsRoute = AppWorkStopRecordsRouteImport.update({
+  id: '/work-stop-records',
+  path: '/work-stop-records',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppTeamRoute = AppTeamRouteImport.update({
   id: '/team',
   path: '/team',
@@ -59,6 +74,11 @@ const AppTeamRoute = AppTeamRouteImport.update({
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppNearMissRoute = AppNearMissRouteImport.update({
+  id: '/near-miss',
+  path: '/near-miss',
   getParentRoute: () => AppRoute,
 } as any)
 const AppHistoryRoute = AppHistoryRouteImport.update({
@@ -75,6 +95,16 @@ const AppConsoleRoute = AppConsoleRouteImport.update({
   id: '/console',
   path: '/console',
   getParentRoute: () => AppRoute,
+} as any)
+const AppNearMissNewRoute = AppNearMissNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AppNearMissRoute,
+} as any)
+const AppNearMissIdRoute = AppNearMissIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AppNearMissRoute,
 } as any)
 const AppAssessmentNewRoute = AppAssessmentNewRouteImport.update({
   id: '/assessment/new',
@@ -118,11 +148,16 @@ export interface FileRoutesByFullPath {
   '/console': typeof AppConsoleRoute
   '/dashboard': typeof AppDashboardRoute
   '/history': typeof AppHistoryRoute
+  '/near-miss': typeof AppNearMissRouteWithChildren
   '/settings': typeof AppSettingsRoute
   '/team': typeof AppTeamRoute
+  '/work-stop-records': typeof AppWorkStopRecordsRoute
+  '/work-stop-right': typeof AppWorkStopRightRoute
   '/confirm/$id': typeof ConfirmIdRoute
   '/invite/$token': typeof InviteTokenRoute
   '/assessment/new': typeof AppAssessmentNewRoute
+  '/near-miss/$id': typeof AppNearMissIdRoute
+  '/near-miss/new': typeof AppNearMissNewRoute
   '/assessment/$id/hazards': typeof AppAssessmentIdHazardsRoute
   '/assessment/$id/measures': typeof AppAssessmentIdMeasuresRoute
   '/assessment/$id/report': typeof AppAssessmentIdReportRoute
@@ -136,11 +171,16 @@ export interface FileRoutesByTo {
   '/console': typeof AppConsoleRoute
   '/dashboard': typeof AppDashboardRoute
   '/history': typeof AppHistoryRoute
+  '/near-miss': typeof AppNearMissRouteWithChildren
   '/settings': typeof AppSettingsRoute
   '/team': typeof AppTeamRoute
+  '/work-stop-records': typeof AppWorkStopRecordsRoute
+  '/work-stop-right': typeof AppWorkStopRightRoute
   '/confirm/$id': typeof ConfirmIdRoute
   '/invite/$token': typeof InviteTokenRoute
   '/assessment/new': typeof AppAssessmentNewRoute
+  '/near-miss/$id': typeof AppNearMissIdRoute
+  '/near-miss/new': typeof AppNearMissNewRoute
   '/assessment/$id/hazards': typeof AppAssessmentIdHazardsRoute
   '/assessment/$id/measures': typeof AppAssessmentIdMeasuresRoute
   '/assessment/$id/report': typeof AppAssessmentIdReportRoute
@@ -156,11 +196,16 @@ export interface FileRoutesById {
   '/_app/console': typeof AppConsoleRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/history': typeof AppHistoryRoute
+  '/_app/near-miss': typeof AppNearMissRouteWithChildren
   '/_app/settings': typeof AppSettingsRoute
   '/_app/team': typeof AppTeamRoute
+  '/_app/work-stop-records': typeof AppWorkStopRecordsRoute
+  '/_app/work-stop-right': typeof AppWorkStopRightRoute
   '/confirm/$id': typeof ConfirmIdRoute
   '/invite/$token': typeof InviteTokenRoute
   '/_app/assessment/new': typeof AppAssessmentNewRoute
+  '/_app/near-miss/$id': typeof AppNearMissIdRoute
+  '/_app/near-miss/new': typeof AppNearMissNewRoute
   '/_app/assessment/$id/hazards': typeof AppAssessmentIdHazardsRoute
   '/_app/assessment/$id/measures': typeof AppAssessmentIdMeasuresRoute
   '/_app/assessment/$id/report': typeof AppAssessmentIdReportRoute
@@ -176,11 +221,16 @@ export interface FileRouteTypes {
     | '/console'
     | '/dashboard'
     | '/history'
+    | '/near-miss'
     | '/settings'
     | '/team'
+    | '/work-stop-records'
+    | '/work-stop-right'
     | '/confirm/$id'
     | '/invite/$token'
     | '/assessment/new'
+    | '/near-miss/$id'
+    | '/near-miss/new'
     | '/assessment/$id/hazards'
     | '/assessment/$id/measures'
     | '/assessment/$id/report'
@@ -194,11 +244,16 @@ export interface FileRouteTypes {
     | '/console'
     | '/dashboard'
     | '/history'
+    | '/near-miss'
     | '/settings'
     | '/team'
+    | '/work-stop-records'
+    | '/work-stop-right'
     | '/confirm/$id'
     | '/invite/$token'
     | '/assessment/new'
+    | '/near-miss/$id'
+    | '/near-miss/new'
     | '/assessment/$id/hazards'
     | '/assessment/$id/measures'
     | '/assessment/$id/report'
@@ -213,11 +268,16 @@ export interface FileRouteTypes {
     | '/_app/console'
     | '/_app/dashboard'
     | '/_app/history'
+    | '/_app/near-miss'
     | '/_app/settings'
     | '/_app/team'
+    | '/_app/work-stop-records'
+    | '/_app/work-stop-right'
     | '/confirm/$id'
     | '/invite/$token'
     | '/_app/assessment/new'
+    | '/_app/near-miss/$id'
+    | '/_app/near-miss/new'
     | '/_app/assessment/$id/hazards'
     | '/_app/assessment/$id/measures'
     | '/_app/assessment/$id/report'
@@ -271,6 +331,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConfirmIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/work-stop-right': {
+      id: '/_app/work-stop-right'
+      path: '/work-stop-right'
+      fullPath: '/work-stop-right'
+      preLoaderRoute: typeof AppWorkStopRightRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/work-stop-records': {
+      id: '/_app/work-stop-records'
+      path: '/work-stop-records'
+      fullPath: '/work-stop-records'
+      preLoaderRoute: typeof AppWorkStopRecordsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/team': {
       id: '/_app/team'
       path: '/team'
@@ -283,6 +357,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/near-miss': {
+      id: '/_app/near-miss'
+      path: '/near-miss'
+      fullPath: '/near-miss'
+      preLoaderRoute: typeof AppNearMissRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/history': {
@@ -305,6 +386,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/console'
       preLoaderRoute: typeof AppConsoleRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/_app/near-miss/new': {
+      id: '/_app/near-miss/new'
+      path: '/new'
+      fullPath: '/near-miss/new'
+      preLoaderRoute: typeof AppNearMissNewRouteImport
+      parentRoute: typeof AppNearMissRoute
+    }
+    '/_app/near-miss/$id': {
+      id: '/_app/near-miss/$id'
+      path: '/$id'
+      fullPath: '/near-miss/$id'
+      preLoaderRoute: typeof AppNearMissIdRouteImport
+      parentRoute: typeof AppNearMissRoute
     }
     '/_app/assessment/new': {
       id: '/_app/assessment/new'
@@ -358,12 +453,29 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AppNearMissRouteChildren {
+  AppNearMissIdRoute: typeof AppNearMissIdRoute
+  AppNearMissNewRoute: typeof AppNearMissNewRoute
+}
+
+const AppNearMissRouteChildren: AppNearMissRouteChildren = {
+  AppNearMissIdRoute: AppNearMissIdRoute,
+  AppNearMissNewRoute: AppNearMissNewRoute,
+}
+
+const AppNearMissRouteWithChildren = AppNearMissRoute._addFileChildren(
+  AppNearMissRouteChildren,
+)
+
 interface AppRouteChildren {
   AppConsoleRoute: typeof AppConsoleRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppHistoryRoute: typeof AppHistoryRoute
+  AppNearMissRoute: typeof AppNearMissRouteWithChildren
   AppSettingsRoute: typeof AppSettingsRoute
   AppTeamRoute: typeof AppTeamRoute
+  AppWorkStopRecordsRoute: typeof AppWorkStopRecordsRoute
+  AppWorkStopRightRoute: typeof AppWorkStopRightRoute
   AppAssessmentNewRoute: typeof AppAssessmentNewRoute
   AppAssessmentIdHazardsRoute: typeof AppAssessmentIdHazardsRoute
   AppAssessmentIdMeasuresRoute: typeof AppAssessmentIdMeasuresRoute
@@ -377,8 +489,11 @@ const AppRouteChildren: AppRouteChildren = {
   AppConsoleRoute: AppConsoleRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppHistoryRoute: AppHistoryRoute,
+  AppNearMissRoute: AppNearMissRouteWithChildren,
   AppSettingsRoute: AppSettingsRoute,
   AppTeamRoute: AppTeamRoute,
+  AppWorkStopRecordsRoute: AppWorkStopRecordsRoute,
+  AppWorkStopRightRoute: AppWorkStopRightRoute,
   AppAssessmentNewRoute: AppAssessmentNewRoute,
   AppAssessmentIdHazardsRoute: AppAssessmentIdHazardsRoute,
   AppAssessmentIdMeasuresRoute: AppAssessmentIdMeasuresRoute,
