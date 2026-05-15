@@ -18,10 +18,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const path = useRouterState({ select: (r) => r.location.pathname });
   const { signOut, user } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [orgName, setOrgName] = useState<string>("");
   useEffect(() => {
     if (!user) return;
-    supabase.from("users").select("org_role").eq("auth_id", user.id).maybeSingle()
-      .then(({ data }) => setIsAdmin(data?.org_role === "admin"));
+    supabase.from("users").select("org_role, organization_id").eq("auth_id", user.id).maybeSingle()
+      .then(async ({ data }) => {
+        setIsAdmin(data?.org_role === "admin");
+        if (data?.organization_id) {
+          const { data: org } = await supabase.from("organizations").select("name").eq("id", data.organization_id).maybeSingle();
+          if (org?.name) setOrgName(org.name);
+        }
+      });
   }, [user]);
   const visibleNav = NAV.filter(n => !n.adminOnly || isAdmin);
   return (
@@ -30,7 +37,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <aside className="hidden md:flex w-60 shrink-0 flex-col border-r bg-sidebar text-sidebar-foreground">
         <div className="flex items-center gap-2 px-5 h-16 border-b">
           <Shield className="h-6 w-6 text-primary" />
-          <div className="font-bold text-lg tracking-tight">안전관리소</div>
+          <div className="min-w-0">
+            <div className="font-bold text-lg tracking-tight leading-tight">안전관리소</div>
+            {orgName && <div className="text-[11px] text-muted-foreground truncate">{orgName}</div>}
+          </div>
         </div>
         <nav className="flex-1 p-3 space-y-1">
           {visibleNav.map(({ to, label, icon: Icon }) => {
@@ -62,8 +72,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
         <header className="md:hidden h-14 flex items-center justify-between px-4 border-b bg-card">
-          <div className="flex items-center gap-2 font-bold">
-            <Shield className="h-5 w-5 text-primary" /> 안전관리소
+          <div className="flex items-center gap-2 font-bold min-w-0">
+            <Shield className="h-5 w-5 text-primary shrink-0" />
+            <span className="truncate">안전관리소{orgName && <span className="text-xs text-muted-foreground font-normal ml-1">· {orgName}</span>}</span>
           </div>
           <Button variant="ghost" size="sm" onClick={signOut}>로그아웃</Button>
         </header>
