@@ -94,13 +94,15 @@ function History() {
                     허용 {a.allowable_level}
                   </span>
                 )}
-                <Button
-                  variant="ghost" size="icon"
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPendingDelete(a); }}
-                  aria-label="삭제"
-                >
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
+                {canManage && (
+                  <Button
+                    variant="ghost" size="icon"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPendingDelete(a); }}
+                    aria-label="삭제"
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                )}
               </div>
             ))}
           </div>
