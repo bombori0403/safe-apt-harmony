@@ -155,8 +155,13 @@ function Dashboard() {
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold">
-            안녕하세요, {userRow?.name ?? ""} {userRow?.job_title || userRow?.role || ""}님
+          <h1 className="text-2xl md:text-3xl font-bold flex flex-wrap items-center gap-2">
+            <span>안녕하세요, {userRow?.name ?? ""} {userRow?.job_title || userRow?.role || ""}님</span>
+            {userRow?.org_role && (
+              <Badge variant={userRow.org_role === "admin" ? "default" : userRow.org_role === "manager" ? "secondary" : "outline"} className="text-xs font-medium">
+                {userRow.org_role === "admin" ? "관리자" : userRow.org_role === "manager" ? "매니저" : "일반"}
+              </Badge>
+            )}
           </h1>
           {currentComplexName && <p className="text-sm text-muted-foreground mt-1">{currentComplexName}</p>}
         </div>
