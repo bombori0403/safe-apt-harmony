@@ -74,7 +74,7 @@ export const createInvitation = createServerFn({ method: "POST" })
       .insert({
         email: data.email.toLowerCase(),
         role: data.role,
-        organization_id: admin.organization_id,
+        organization_id: admin.organization_id!,
         invited_by: admin.id,
       })
       .select("id, token")

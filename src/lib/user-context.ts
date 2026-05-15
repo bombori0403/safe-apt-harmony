@@ -33,7 +33,7 @@ export async function getCurrentUserContext(authUid: string): Promise<{
   const { data: cx } = await supabase
     .from("complexes")
     .select("id")
-    .eq("organization_id", userRow.organization_id)
+    .eq("organization_id", userRow.organization_id ?? "")
     .limit(1)
     .maybeSingle();
 
