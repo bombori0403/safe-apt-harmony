@@ -795,6 +795,7 @@ export type Database = {
       work_stop_records: {
         Row: {
           assessment_id: string | null
+          cause_photos: Json
           complex_id: string
           created_at: string
           exercised_at: string
@@ -804,6 +805,7 @@ export type Database = {
           organization_id: string | null
           reflected_in_assessment: boolean
           reported_by: string | null
+          resolution_photos: Json
           result: string
           result_detail: string | null
           stop_reason: string
@@ -812,6 +814,7 @@ export type Database = {
         }
         Insert: {
           assessment_id?: string | null
+          cause_photos?: Json
           complex_id: string
           created_at?: string
           exercised_at?: string
@@ -821,6 +824,7 @@ export type Database = {
           organization_id?: string | null
           reflected_in_assessment?: boolean
           reported_by?: string | null
+          resolution_photos?: Json
           result?: string
           result_detail?: string | null
           stop_reason: string
@@ -829,6 +833,7 @@ export type Database = {
         }
         Update: {
           assessment_id?: string | null
+          cause_photos?: Json
           complex_id?: string
           created_at?: string
           exercised_at?: string
@@ -838,6 +843,7 @@ export type Database = {
           organization_id?: string | null
           reflected_in_assessment?: boolean
           reported_by?: string | null
+          resolution_photos?: Json
           result?: string
           result_detail?: string | null
           stop_reason?: string
