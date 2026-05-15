@@ -97,7 +97,7 @@ function Dashboard() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold">
-            안녕하세요, {userRow?.name ?? ""} {userRow?.role ?? ""}님
+            안녕하세요, {userRow?.name ?? ""} {userRow?.job_title || userRow?.role || ""}님
           </h1>
           {complexName && <p className="text-sm text-muted-foreground mt-1">{complexName}</p>}
         </div>
