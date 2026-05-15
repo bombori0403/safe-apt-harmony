@@ -51,6 +51,10 @@ function Settings() {
     setLoading(true);
     const { data: u } = await supabase.from("users").select("*").eq("auth_id", user.id).maybeSingle();
     setUserRow(u);
+    if (u?.organization_id) {
+      const { data: o } = await supabase.from("organizations").select("*").eq("id", u.organization_id).maybeSingle();
+      setOrg(o);
+    }
     if (u) {
       const { data: members } = await supabase
         .from("complex_members")
