@@ -14,6 +14,7 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as ConfirmIdRouteImport } from './routes/confirm.$id'
+import { Route as AppTeamRouteImport } from './routes/_app/team'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppHistoryRouteImport } from './routes/_app/history'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
@@ -49,6 +50,11 @@ const ConfirmIdRoute = ConfirmIdRouteImport.update({
   id: '/confirm/$id',
   path: '/confirm/$id',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppTeamRoute = AppTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
@@ -113,6 +119,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AppDashboardRoute
   '/history': typeof AppHistoryRoute
   '/settings': typeof AppSettingsRoute
+  '/team': typeof AppTeamRoute
   '/confirm/$id': typeof ConfirmIdRoute
   '/invite/$token': typeof InviteTokenRoute
   '/assessment/new': typeof AppAssessmentNewRoute
@@ -130,6 +137,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AppDashboardRoute
   '/history': typeof AppHistoryRoute
   '/settings': typeof AppSettingsRoute
+  '/team': typeof AppTeamRoute
   '/confirm/$id': typeof ConfirmIdRoute
   '/invite/$token': typeof InviteTokenRoute
   '/assessment/new': typeof AppAssessmentNewRoute
@@ -149,6 +157,7 @@ export interface FileRoutesById {
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/history': typeof AppHistoryRoute
   '/_app/settings': typeof AppSettingsRoute
+  '/_app/team': typeof AppTeamRoute
   '/confirm/$id': typeof ConfirmIdRoute
   '/invite/$token': typeof InviteTokenRoute
   '/_app/assessment/new': typeof AppAssessmentNewRoute
@@ -168,6 +177,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/history'
     | '/settings'
+    | '/team'
     | '/confirm/$id'
     | '/invite/$token'
     | '/assessment/new'
@@ -185,6 +195,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/history'
     | '/settings'
+    | '/team'
     | '/confirm/$id'
     | '/invite/$token'
     | '/assessment/new'
@@ -203,6 +214,7 @@ export interface FileRouteTypes {
     | '/_app/dashboard'
     | '/_app/history'
     | '/_app/settings'
+    | '/_app/team'
     | '/confirm/$id'
     | '/invite/$token'
     | '/_app/assessment/new'
@@ -258,6 +270,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/confirm/$id'
       preLoaderRoute: typeof ConfirmIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_app/team': {
+      id: '/_app/team'
+      path: '/team'
+      fullPath: '/team'
+      preLoaderRoute: typeof AppTeamRouteImport
+      parentRoute: typeof AppRoute
     }
     '/_app/settings': {
       id: '/_app/settings'
@@ -344,6 +363,7 @@ interface AppRouteChildren {
   AppDashboardRoute: typeof AppDashboardRoute
   AppHistoryRoute: typeof AppHistoryRoute
   AppSettingsRoute: typeof AppSettingsRoute
+  AppTeamRoute: typeof AppTeamRoute
   AppAssessmentNewRoute: typeof AppAssessmentNewRoute
   AppAssessmentIdHazardsRoute: typeof AppAssessmentIdHazardsRoute
   AppAssessmentIdMeasuresRoute: typeof AppAssessmentIdMeasuresRoute
@@ -358,6 +378,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppDashboardRoute: AppDashboardRoute,
   AppHistoryRoute: AppHistoryRoute,
   AppSettingsRoute: AppSettingsRoute,
+  AppTeamRoute: AppTeamRoute,
   AppAssessmentNewRoute: AppAssessmentNewRoute,
   AppAssessmentIdHazardsRoute: AppAssessmentIdHazardsRoute,
   AppAssessmentIdMeasuresRoute: AppAssessmentIdMeasuresRoute,
@@ -379,3 +400,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
