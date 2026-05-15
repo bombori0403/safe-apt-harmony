@@ -8,7 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Copy, Trash2, UserPlus } from "lucide-react";
+import { Copy, Trash2, UserPlus, QrCode } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { QRCodeSVG } from "qrcode.react";
 
 export const Route = createFileRoute("/_app/team")({ component: TeamPage });
 
@@ -24,6 +26,7 @@ function TeamPage() {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<"admin" | "manager" | "member">("member");
   const [loading, setLoading] = useState(false);
+  const [qrLink, setQrLink] = useState<string | null>(null);
 
   async function load() {
     try {
@@ -43,7 +46,8 @@ function TeamPage() {
       const res = await invite({ data: { email, role } });
       const link = `${window.location.origin}/invite/${res.token}`;
       await navigator.clipboard.writeText(link).catch(() => {});
-      toast.success("초대 링크가 복사되었습니다.");
+      setQrLink(link);
+      toast.success("초대 링크가 복사되었습니다. QR로도 공유 가능합니다.");
       setEmail("");
       load();
     } catch (e) {
@@ -82,7 +86,7 @@ function TeamPage() {
             </div>
             <Button type="submit" disabled={loading}>{loading ? "처리..." : "초대 링크 생성"}</Button>
           </form>
-          <p className="text-xs text-muted-foreground mt-2">생성된 링크가 자동 복사됩니다. 직원에게 전달하세요.</p>
+          <p className="text-xs text-muted-foreground mt-2">생성된 링크가 자동 복사되고 QR 코드가 표시됩니다. 직원이 핸드폰으로 스캔하면 바로 가입 페이지로 이동합니다.</p>
         </CardContent>
       </Card>
 
@@ -144,6 +148,9 @@ function TeamPage() {
                           await navigator.clipboard.writeText(`${window.location.origin}/invite/${i.token}`);
                           toast.success("링크 복사됨");
                         }}><Copy className="h-3.5 w-3.5" /></Button>
+                        <Button variant="outline" size="sm" onClick={() => {
+                          setQrLink(`${window.location.origin}/invite/${i.token}`);
+                        }}><QrCode className="h-3.5 w-3.5" /></Button>
                         <Button variant="outline" size="sm" onClick={async () => {
                           await revoke({ data: { id: i.id } }); toast.success("취소됨"); load();
                         }}>취소</Button>
@@ -156,6 +163,29 @@ function TeamPage() {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={!!qrLink} onOpenChange={(o) => !o && setQrLink(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>초대 QR 코드</DialogTitle>
+            <DialogDescription>직원이 핸드폰 카메라로 스캔하면 가입 페이지로 이동합니다.</DialogDescription>
+          </DialogHeader>
+          {qrLink && (
+            <div className="flex flex-col items-center gap-3">
+              <div className="p-4 bg-white rounded-lg border">
+                <QRCodeSVG value={qrLink} size={220} level="M" />
+              </div>
+              <div className="w-full">
+                <div className="text-[11px] text-muted-foreground break-all bg-muted p-2 rounded">{qrLink}</div>
+              </div>
+              <Button variant="outline" size="sm" className="w-full" onClick={async () => {
+                await navigator.clipboard.writeText(qrLink);
+                toast.success("링크 복사됨");
+              }}><Copy className="h-3.5 w-3.5 mr-1" />링크 복사</Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
