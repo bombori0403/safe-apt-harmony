@@ -59,6 +59,20 @@ function NewAssessment() {
     });
   }, [user]);
 
+  const [pickedNearMiss, setPickedNearMiss] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    if (!complexId) return;
+    const since = new Date(Date.now() - 365 * 86400_000).toISOString();
+    (supabase as any).from("near_miss").select("*")
+      .eq("complex_id", complexId)
+      .gte("occurred_at", since)
+      .order("occurred_at", { ascending: false })
+      .then(({ data }: any) => setNearMiss(data ?? []));
+    supabase.from("complexes").select("manager_phone").eq("id", complexId).maybeSingle()
+      .then(({ data }) => setComplexPhone(data?.manager_phone ?? ""));
+  }, [complexId]);
+
   const recommended = workName ? recommendMethod(workName) : null;
 
   async function submit() {
