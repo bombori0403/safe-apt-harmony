@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { riskLevelClass, type RiskLevel } from "@/lib/types";
 import { ListChecks, ShieldCheck, Users, FileText, Printer, Pencil, Trash2 } from "lucide-react";
 import { deleteAssessment, updateAssessment } from "@/lib/assessment.functions";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_app/assessment/$id/")({
   component: Detail,
@@ -27,6 +28,9 @@ export const Route = createFileRoute("/_app/assessment/$id/")({
 function Detail() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [role, setRole] = useState<string | null>(null);
+  const canManage = role === "admin" || role === "manager";
   const [a, setA] = useState<any>(null);
   const [hazards, setHazards] = useState<any[]>([]);
   const [parts, setParts] = useState<any[]>([]);
