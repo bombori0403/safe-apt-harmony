@@ -77,6 +77,7 @@ function NewAssessment() {
 
   async function submit() {
     if (!complexId) { toast.error("단지가 지정되지 않았습니다"); return; }
+    if (!workStopConsent) { toast.error("작업중지권 안내 동의가 필요합니다"); return; }
     setSaving(true);
     try {
       const { data, error } = await supabase
@@ -95,6 +96,19 @@ function NewAssessment() {
         .select()
         .single();
       if (error) throw error;
+
+      // 위험요인으로 등록한 아차사고를 hazards에 자동 추가
+      const pickedIds = Object.keys(pickedNearMiss).filter(k => pickedNearMiss[k]);
+      const picked = nearMiss.filter(n => pickedIds.includes(n.id));
+      if (picked.length) {
+        await supabase.from("hazards").insert(
+          picked.map(n => ({
+            assessment_id: data.id,
+            description: `[아차사고 반영] ${n.situation}${n.location_detail ? ` (${n.location_detail})` : ""}`,
+          }))
+        );
+      }
+
       toast.success("평가 생성 완료. 유해·위험요인 파악 단계로 이동합니다.");
       navigate({ to: "/assessment/$id/hazards", params: { id: data.id } });
     } catch (e) {
