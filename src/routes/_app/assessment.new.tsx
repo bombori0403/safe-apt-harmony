@@ -11,7 +11,9 @@ import { METHOD_INFO, recommendMethod } from "@/lib/method-recommend";
 import { ASSESSMENT_METHODS, METHOD_LABEL, type AssessmentMethod, type AssessmentType, type RiskLevel } from "@/lib/types";
 import { getCurrentUserContext } from "@/lib/user-context";
 import { toast } from "sonner";
-import { Star } from "lucide-react";
+import { Star, AlertTriangle, ShieldAlert, ChevronDown, ChevronUp } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { WORK_STOP_LAW_TITLE, WORK_STOP_LAW_TEXT } from "@/lib/work-stop-law";
 
 export const Route = createFileRoute("/_app/assessment/new")({
   component: NewAssessment,
