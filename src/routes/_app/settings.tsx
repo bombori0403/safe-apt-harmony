@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { createComplex, deleteComplex } from "@/lib/user-context.functions";
+import { leaveOrganization, deleteAccount, deleteOrganization } from "@/lib/account.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -281,7 +282,51 @@ function Settings() {
 
       <Card><CardContent className="p-5 space-y-3">
         <h2 className="font-semibold">계정</h2>
-        <Button variant="outline" onClick={signOut}>로그아웃</Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={signOut}>로그아웃</Button>
+          <Button
+            variant="outline"
+            onClick={async () => {
+              if (!confirm("조직에서 나가시겠습니까?\n계정은 유지되지만 조직 데이터에 더 이상 접근할 수 없습니다.")) return;
+              try {
+                await leaveOrganization();
+                toast.success("조직에서 나갔습니다.");
+                await signOut();
+              } catch (e: any) { toast.error(e?.message ?? "실패"); }
+            }}
+          >조직에서 나가기</Button>
+          <Button
+            variant="destructive"
+            onClick={async () => {
+              if (!confirm("계정을 완전히 삭제합니다. 되돌릴 수 없습니다. 진행할까요?")) return;
+              if (!confirm("정말 계정을 삭제하시겠습니까?")) return;
+              try {
+                await deleteAccount();
+                toast.success("계정이 삭제되었습니다.");
+                await signOut();
+              } catch (e: any) { toast.error(e?.message ?? "실패"); }
+            }}
+          >계정 삭제</Button>
+          {userRow?.org_role === "admin" && (
+            <Button
+              variant="destructive"
+              onClick={async () => {
+                const name = prompt("조직과 모든 데이터(단지/평가/멤버)를 영구 삭제합니다.\n확인을 위해 '삭제'를 입력하세요.");
+                if (name !== "삭제") return;
+                try {
+                  await deleteOrganization();
+                  toast.success("조직이 삭제되었습니다.");
+                  await signOut();
+                } catch (e: any) { toast.error(e?.message ?? "실패"); }
+              }}
+            >조직 삭제 (관리자)</Button>
+          )}
+        </div>
+        <p className="text-xs text-muted-foreground">
+          · 조직에서 나가기: 본인 멤버 기록만 제거 (계정 유지)<br/>
+          · 계정 삭제: 본인 계정 + 멤버 기록 영구 삭제<br/>
+          · 조직 삭제: 조직 전체 데이터와 모든 구성원 영구 삭제
+        </p>
       </CardContent></Card>
     </div>
   );
