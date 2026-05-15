@@ -809,6 +809,8 @@ export type Database = {
           result: string
           result_detail: string | null
           stop_reason: string
+          supervisor_name: string | null
+          supervisor_phone: string | null
           updated_at: string
           work_description: string
         }
@@ -828,6 +830,8 @@ export type Database = {
           result?: string
           result_detail?: string | null
           stop_reason: string
+          supervisor_name?: string | null
+          supervisor_phone?: string | null
           updated_at?: string
           work_description: string
         }
@@ -847,6 +851,8 @@ export type Database = {
           result?: string
           result_detail?: string | null
           stop_reason?: string
+          supervisor_name?: string | null
+          supervisor_phone?: string | null
           updated_at?: string
           work_description?: string
         }
