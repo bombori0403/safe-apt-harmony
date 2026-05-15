@@ -143,6 +143,8 @@ function TeamPage() {
               ))}
             </div>
           )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader><CardTitle className="text-base">직원 목록</CardTitle></CardHeader>
