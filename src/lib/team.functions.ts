@@ -133,8 +133,9 @@ export const removeMember = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!target || target.organization_id !== admin.organization_id) throw new Error("권한이 없습니다.");
 
+    const targetAuthId: string | null = target.auth_id ?? null;
     await supabaseAdmin.from("users").delete().eq("id", data.userId);
-    if (target.auth_id) {
+    if (targetAuthId) {
       await supabaseAdmin.auth.admin.deleteUser(target.auth_id).catch(() => {});
     }
     return { ok: true };
