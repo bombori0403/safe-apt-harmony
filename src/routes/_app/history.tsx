@@ -14,6 +14,7 @@ import { Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { riskLevelClass, type RiskLevel } from "@/lib/types";
 import { deleteAssessment } from "@/lib/assessment.functions";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_app/history")({
   component: History,
@@ -25,6 +26,15 @@ function History() {
   const [pendingDelete, setPendingDelete] = useState<any>(null);
   const [deleting, setDeleting] = useState(false);
   const del = useServerFn(deleteAssessment);
+  const { user } = useAuth();
+  const [role, setRole] = useState<string | null>(null);
+  const canManage = role === "admin" || role === "manager";
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("users").select("org_role").eq("auth_id", user.id).maybeSingle()
+      .then(({ data }) => setRole(data?.org_role ?? null));
+  }, [user]);
 
   const load = () =>
     supabase.from("assessments").select("*").order("assessment_date", { ascending: false }).then(({ data }) => {
@@ -84,13 +94,15 @@ function History() {
                     허용 {a.allowable_level}
                   </span>
                 )}
-                <Button
-                  variant="ghost" size="icon"
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPendingDelete(a); }}
-                  aria-label="삭제"
-                >
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
+                {canManage && (
+                  <Button
+                    variant="ghost" size="icon"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPendingDelete(a); }}
+                    aria-label="삭제"
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                )}
               </div>
             ))}
           </div>
