@@ -358,39 +358,51 @@ export type Database = {
       invitations: {
         Row: {
           created_at: string
-          email: string
+          email: string | null
           expires_at: string
           id: string
           invited_by: string | null
+          is_link: boolean
+          label: string | null
+          max_uses: number | null
           organization_id: string
           role: Database["public"]["Enums"]["org_role"]
           status: Database["public"]["Enums"]["invitation_status"]
           token: string
           used_at: string | null
+          used_count: number
         }
         Insert: {
           created_at?: string
-          email: string
+          email?: string | null
           expires_at?: string
           id?: string
           invited_by?: string | null
+          is_link?: boolean
+          label?: string | null
+          max_uses?: number | null
           organization_id: string
           role?: Database["public"]["Enums"]["org_role"]
           status?: Database["public"]["Enums"]["invitation_status"]
           token?: string
           used_at?: string | null
+          used_count?: number
         }
         Update: {
           created_at?: string
-          email?: string
+          email?: string | null
           expires_at?: string
           id?: string
           invited_by?: string | null
+          is_link?: boolean
+          label?: string | null
+          max_uses?: number | null
           organization_id?: string
           role?: Database["public"]["Enums"]["org_role"]
           status?: Database["public"]["Enums"]["invitation_status"]
           token?: string
           used_at?: string | null
+          used_count?: number
         }
         Relationships: [
           {
@@ -785,6 +797,7 @@ export type Database = {
         Args: { _token: string }
         Returns: {
           email: string
+          is_link: boolean
           organization_name: string
           reason: string
           role: Database["public"]["Enums"]["org_role"]

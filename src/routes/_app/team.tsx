@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { listTeam, createInvitation, revokeInvitation, updateMemberRole, removeMember } from "@/lib/team.functions";
+import { listTeam, createInvitation, revokeInvitation, updateMemberRole, removeMember, createInviteLink } from "@/lib/team.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,7 @@ function TeamPage() {
   const revoke = useServerFn(revokeInvitation);
   const updateRole = useServerFn(updateMemberRole);
   const removeFn = useServerFn(removeMember);
+  const makeLink = useServerFn(createInviteLink);
 
   const [data, setData] = useState<any>(null);
   const [email, setEmail] = useState("");
@@ -87,6 +88,61 @@ function TeamPage() {
             <Button type="submit" disabled={loading}>{loading ? "처리..." : "초대 링크 생성"}</Button>
           </form>
           <p className="text-xs text-muted-foreground mt-2">생성된 링크가 자동 복사되고 QR 코드가 표시됩니다. 직원이 핸드폰으로 스캔하면 바로 가입 페이지로 이동합니다.</p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2"><QrCode className="h-4 w-4" />권한별 QR 초대 링크 (다회용)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-xs text-muted-foreground mb-3">
+            이메일 없이 권한별로 1개의 링크/QR을 만들어 인쇄·공유하면, 여러 직원이 스캔해 본인 이메일로 가입할 수 있습니다. (기본 30일 유효)
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {(["member", "manager", "admin"] as const).map((r) => (
+              <Button key={r} variant="outline" size="sm" onClick={async () => {
+                try {
+                  const res = await makeLink({ data: { role: r, expiresInDays: 30, label: r === "admin" ? "관리자" : r === "manager" ? "매니저" : "일반" } });
+                  const link = `${window.location.origin}/invite/${res.token}`;
+                  await navigator.clipboard.writeText(link).catch(() => {});
+                  setQrLink(link);
+                  toast.success(`${r === "admin" ? "관리자" : r === "manager" ? "매니저" : "일반"} 링크 생성됨`);
+                  load();
+                } catch (e) {
+                  toast.error(e instanceof Error ? e.message : "실패");
+                }
+              }}>
+                <QrCode className="h-3.5 w-3.5 mr-1" />
+                {r === "admin" ? "관리자" : r === "manager" ? "매니저" : "일반"} QR 만들기
+              </Button>
+            ))}
+          </div>
+          {data.invitations.filter((i: any) => i.is_link && i.status !== "revoked").length > 0 && (
+            <div className="mt-4 divide-y border rounded-md">
+              {data.invitations.filter((i: any) => i.is_link && i.status !== "revoked").map((i: any) => (
+                <div key={i.id} className="p-3 flex flex-wrap items-center justify-between gap-2 text-sm">
+                  <div>
+                    <div className="font-medium">{i.label ?? i.role} <Badge variant="secondary" className="ml-1">{i.role}</Badge></div>
+                    <div className="text-xs text-muted-foreground">
+                      사용 {i.used_count}{i.max_uses ? ` / ${i.max_uses}` : ""}회 · 만료 {new Date(i.expires_at).toLocaleDateString("ko-KR")}
+                    </div>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button variant="outline" size="sm" onClick={() => setQrLink(`${window.location.origin}/invite/${i.token}`)}><QrCode className="h-3.5 w-3.5" /></Button>
+                    <Button variant="outline" size="sm" onClick={async () => {
+                      await navigator.clipboard.writeText(`${window.location.origin}/invite/${i.token}`);
+                      toast.success("링크 복사됨");
+                    }}><Copy className="h-3.5 w-3.5" /></Button>
+                    <Button variant="outline" size="sm" onClick={async () => {
+                      if (!confirm("이 링크를 비활성화할까요?")) return;
+                      await revoke({ data: { id: i.id } }); toast.success("비활성화됨"); load();
+                    }}>비활성화</Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
