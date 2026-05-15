@@ -99,7 +99,9 @@ function WorkStopRecords() {
   // Resume dialog state
   const [resumeId, setResumeId] = useState<string | null>(null);
   const [resumeDetail, setResumeDetail] = useState("");
+  const [beforeFixPhotos, setBeforeFixPhotos] = useState<string[]>([]);
   const [resumePhotos, setResumePhotos] = useState<string[]>([]);
+  const [existingCausePhotos, setExistingCausePhotos] = useState<string[]>([]);
   const [resumeSaving, setResumeSaving] = useState(false);
 
   useEffect(() => {
@@ -157,16 +159,26 @@ function WorkStopRecords() {
     if (!resumeId) return;
     if (resumePhotos.length < MIN_PHOTOS) { toast.error(`시정 완료 사진을 최소 ${MIN_PHOTOS}장 첨부해주세요`); return; }
     setResumeSaving(true);
+    const mergedCause = [...existingCausePhotos, ...beforeFixPhotos];
     const { error } = await (supabase as any).from("work_stop_records").update({
       result: "작업재개",
       result_detail: resumeDetail || null,
+      cause_photos: mergedCause,
       resolution_photos: resumePhotos,
     }).eq("id", resumeId);
     setResumeSaving(false);
     if (error) { toast.error(error.message); return; }
     toast.success("작업 재개 처리되었습니다");
-    setResumeId(null); setResumeDetail(""); setResumePhotos([]);
+    setResumeId(null); setResumeDetail(""); setResumePhotos([]); setBeforeFixPhotos([]); setExistingCausePhotos([]);
     load();
+  }
+
+  function openResume(it: any) {
+    setResumeId(it.id);
+    setResumeDetail("");
+    setBeforeFixPhotos([]);
+    setResumePhotos([]);
+    setExistingCausePhotos(Array.isArray(it.cause_photos) ? it.cause_photos : []);
   }
 
   return (
@@ -268,7 +280,7 @@ function WorkStopRecords() {
                       <Button size="sm" variant="outline" className="gap-1.5"><Printer className="h-4 w-4"/>기록서 보기 / 출력</Button>
                     </Link>
                     {it.result !== "작업재개" && (
-                      <Button size="sm" variant="outline" className="gap-1.5" onClick={()=>{ setResumeId(it.id); setResumeDetail(""); setResumePhotos([]); }}>
+                      <Button size="sm" variant="outline" className="gap-1.5" onClick={()=>openResume(it)}>
                         <CheckCircle2 className="h-4 w-4"/>시정 완료 · 작업 재개 처리
                       </Button>
                     )}
@@ -284,8 +296,21 @@ function WorkStopRecords() {
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>작업 재개 처리</DialogTitle></DialogHeader>
           <div className="space-y-3">
+            {existingCausePhotos.length > 0 && (
+              <div>
+                <Label className="text-sm">기존 중지 원인 사진</Label>
+                <div className="flex flex-wrap gap-1.5 mt-1.5">
+                  {existingCausePhotos.map((u,i)=>(
+                    <div key={i} className="w-16 h-16 rounded border overflow-hidden bg-muted">
+                      <img src={u} alt="" className="w-full h-full object-cover" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            <PhotoPicker label="시정 전 사진 (추가)" photos={beforeFixPhotos} onChange={setBeforeFixPhotos} />
             <div><Label>시정 내용</Label><Textarea value={resumeDetail} onChange={e=>setResumeDetail(e.target.value)} rows={3} className="mt-1" placeholder="시정 조치 내용 및 안전 확인 사항" /></div>
-            <PhotoPicker label="시정 완료 / 작업 재개 사진" photos={resumePhotos} onChange={setResumePhotos} />
+            <PhotoPicker label="시정 후 / 작업 재개 사진" photos={resumePhotos} onChange={setResumePhotos} />
             <Button onClick={submitResume} disabled={resumeSaving} className="w-full">{resumeSaving?"처리 중...":"작업 재개 처리"}</Button>
           </div>
         </DialogContent>
