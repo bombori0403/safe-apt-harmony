@@ -4,12 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Printer, ArrowLeft } from "lucide-react";
 
-export const Route = createFileRoute("/_app/work-stop-records/$id")({
+export const Route = createFileRoute("/_app/work-stop-records_/$id")({
   component: WorkStopRecordDetail,
 });
 
 function WorkStopRecordDetail() {
-  const { id } = useParams({ from: "/_app/work-stop-records/$id" });
+  const { id } = useParams({ strict: false }) as { id: string };
   const [rec, setRec] = useState<any>(null);
   const [complex, setComplex] = useState<any>(null);
 
