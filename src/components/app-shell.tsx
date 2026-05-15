@@ -72,8 +72,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
         <header className="md:hidden h-14 flex items-center justify-between px-4 border-b bg-card">
-          <div className="flex items-center gap-2 font-bold">
-            <Shield className="h-5 w-5 text-primary" /> 안전관리소
+          <div className="flex items-center gap-2 font-bold min-w-0">
+            <Shield className="h-5 w-5 text-primary shrink-0" />
+            <span className="truncate">안전관리소{orgName && <span className="text-xs text-muted-foreground font-normal ml-1">· {orgName}</span>}</span>
           </div>
           <Button variant="ghost" size="sm" onClick={signOut}>로그아웃</Button>
         </header>
