@@ -196,6 +196,54 @@ function Settings() {
         )}
       </CardContent></Card>
 
+      {org && (
+        <Card><CardContent className="p-5 space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="font-semibold">본사 정보</h2>
+            {userRow?.org_role !== "admin" && (
+              <span className="text-xs text-muted-foreground">관리자만 수정 가능</span>
+            )}
+          </div>
+          {(() => {
+            const readOnly = userRow?.org_role !== "admin";
+            return (
+              <>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>본사명 *</Label>
+                    <Input value={org.name ?? ""} disabled={readOnly}
+                      onChange={e=>setOrg({...org, name:e.target.value})} />
+                  </div>
+                  <div>
+                    <Label>대표자명</Label>
+                    <Input value={org.representative_name ?? ""} disabled={readOnly}
+                      onChange={e=>setOrg({...org, representative_name:e.target.value})} />
+                  </div>
+                  <div className="col-span-2">
+                    <Label>주소</Label>
+                    <Input value={org.address ?? ""} disabled={readOnly}
+                      onChange={e=>setOrg({...org, address:e.target.value})} />
+                  </div>
+                  <div>
+                    <Label>대표 연락처</Label>
+                    <Input value={org.phone ?? ""} placeholder="02-0000-0000" disabled={readOnly}
+                      onChange={e=>setOrg({...org, phone:e.target.value})} />
+                  </div>
+                  <div>
+                    <Label>사업자번호</Label>
+                    <Input value={org.business_number ?? ""} placeholder="000-00-00000" disabled={readOnly}
+                      onChange={e=>setOrg({...org, business_number:e.target.value})} />
+                  </div>
+                </div>
+                {!readOnly && (
+                  <Button onClick={saveOrg} disabled={savingOrg}>{savingOrg?"저장 중...":"본사 정보 저장"}</Button>
+                )}
+              </>
+            );
+          })()}
+        </CardContent></Card>
+      )}
+
       <Card><CardContent className="p-5 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="font-semibold">등록된 단지 ({complexes.length})</h2>
