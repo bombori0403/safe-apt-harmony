@@ -88,6 +88,8 @@ function WorkStopRecords() {
   const [exercisedAt, setExercisedAt] = useState(new Date().toISOString().slice(0,16));
   const [name, setName] = useState("");
   const [position, setPosition] = useState("");
+  const [supName, setSupName] = useState("");
+  const [supPhone, setSupPhone] = useState("");
   const [workDesc, setWorkDesc] = useState("");
   const [reason, setReason] = useState("");
   const [result, setResult] = useState("작업중단");
@@ -145,12 +147,14 @@ function WorkStopRecords() {
       reflected_in_assessment: false,
       cause_photos: causePhotos,
       resolution_photos: resolutionPhotos,
+      supervisor_name: supName || null,
+      supervisor_phone: supPhone || null,
     });
     setSaving(false);
     if (error) { toast.error(error.message); return; }
     toast.success("등록되었습니다");
     setOpen(false);
-    setName(""); setPosition(""); setWorkDesc(""); setReason(""); setResultDetail("");
+    setName(""); setPosition(""); setWorkDesc(""); setReason(""); setResultDetail(""); setSupName(""); setSupPhone("");
     setCausePhotos([]); setResolutionPhotos([]); setResult("작업중단");
     load();
   }
@@ -210,6 +214,10 @@ function WorkStopRecords() {
                 <div className="grid grid-cols-2 gap-2">
                   <div><Label>행사자 성명</Label><Input value={name} onChange={e=>setName(e.target.value)} className="mt-1" /></div>
                   <div><Label>직책</Label><Input value={position} onChange={e=>setPosition(e.target.value)} className="mt-1" /></div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div><Label>관리감독자 성명</Label><Input value={supName} onChange={e=>setSupName(e.target.value)} placeholder="예: 관리사무소장" className="mt-1" /></div>
+                  <div><Label>관리감독자 연락처</Label><Input value={supPhone} onChange={e=>setSupPhone(e.target.value)} placeholder="010-0000-0000" className="mt-1" /></div>
                 </div>
                 <div><Label>작업 내용</Label><Textarea value={workDesc} onChange={e=>setWorkDesc(e.target.value)} rows={2} className="mt-1" /></div>
                 <div><Label>중지 사유</Label><Textarea value={reason} onChange={e=>setReason(e.target.value)} rows={3} className="mt-1" placeholder="급박한 위험 요인을 구체적으로 작성" /></div>

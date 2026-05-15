@@ -63,7 +63,7 @@ function WorkStopRecordDetail() {
               <th className="bg-gray-100 px-2 py-1.5 text-left border-r border-black/70">행사자</th>
               <td className="px-2 py-1.5 border-r border-black/70">{rec.exerciser_name}{rec.exerciser_position ? ` (${rec.exerciser_position})` : ""}</td>
               <th className="bg-gray-100 px-2 py-1.5 text-left border-r border-black/70">관리감독자</th>
-              <td className="px-2 py-1.5">{complex?.manager_name ?? "-"}{complex?.manager_phone ? ` / ${complex.manager_phone}` : ""}</td>
+              <td className="px-2 py-1.5">{(rec.supervisor_name ?? complex?.manager_name) || "-"}{(rec.supervisor_phone ?? complex?.manager_phone) ? ` / ${rec.supervisor_phone ?? complex?.manager_phone}` : ""}</td>
             </tr>
             <tr className="border border-black/70">
               <th className="bg-gray-100 px-2 py-1.5 text-left border-r border-black/70 align-top">작업 내용</th>
@@ -113,7 +113,7 @@ function WorkStopRecordDetail() {
           </div>
           <div className="border border-black/70 p-3">
             <div className="text-xs text-gray-700 mb-6">관리감독자 확인</div>
-            <div className="text-right">{complex?.manager_name ?? "________"} (인)</div>
+            <div className="text-right">{(rec.supervisor_name ?? complex?.manager_name) || "________"} (인)</div>
           </div>
         </div>
 
