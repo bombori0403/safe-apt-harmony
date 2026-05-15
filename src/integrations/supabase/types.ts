@@ -806,6 +806,7 @@ export type Database = {
       current_user_org: { Args: never; Returns: string }
       is_org_admin: { Args: never; Returns: boolean }
       is_org_manager: { Args: never; Returns: boolean }
+      org_can_manage_assessment: { Args: never; Returns: boolean }
       org_can_write: { Args: never; Returns: boolean }
       user_admin_company_ids: { Args: never; Returns: string[] }
       user_complex_ids: { Args: never; Returns: string[] }

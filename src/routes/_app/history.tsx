@@ -1,20 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Search, Trash2 } from "lucide-react";
-import { toast } from "sonner";
+import { Search } from "lucide-react";
 import { riskLevelClass, type RiskLevel } from "@/lib/types";
-import { deleteAssessment } from "@/lib/assessment.functions";
-import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_app/history")({
   component: History,
@@ -23,18 +14,6 @@ export const Route = createFileRoute("/_app/history")({
 function History() {
   const [items, setItems] = useState<any[]>([]);
   const [q, setQ] = useState("");
-  const [pendingDelete, setPendingDelete] = useState<any>(null);
-  const [deleting, setDeleting] = useState(false);
-  const del = useServerFn(deleteAssessment);
-  const { user } = useAuth();
-  const [role, setRole] = useState<string | null>(null);
-  const canManage = role === "admin" || role === "manager";
-
-  useEffect(() => {
-    if (!user) return;
-    supabase.from("users").select("org_role").eq("auth_id", user.id).maybeSingle()
-      .then(({ data }) => setRole(data?.org_role ?? null));
-  }, [user]);
 
   const load = () =>
     supabase.from("assessments").select("*").order("assessment_date", { ascending: false }).then(({ data }) => {
@@ -44,21 +23,6 @@ function History() {
   useEffect(() => { load(); }, []);
 
   const filtered = items.filter(i => !q || i.work_name?.includes(q));
-
-  const handleDelete = async () => {
-    if (!pendingDelete) return;
-    setDeleting(true);
-    try {
-      await del({ data: { assessmentId: pendingDelete.id } });
-      toast.success("삭제되었습니다.");
-      setPendingDelete(null);
-      await load();
-    } catch (e: any) {
-      toast.error("삭제 실패: " + (e?.message ?? e));
-    } finally {
-      setDeleting(false);
-    }
-  };
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-5">
@@ -94,37 +58,11 @@ function History() {
                     허용 {a.allowable_level}
                   </span>
                 )}
-                {canManage && (
-                  <Button
-                    variant="ghost" size="icon"
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPendingDelete(a); }}
-                    aria-label="삭제"
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                )}
               </div>
             ))}
           </div>
         </CardContent>
       </Card>
-
-      <AlertDialog open={!!pendingDelete} onOpenChange={(o) => !o && setPendingDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>평가를 삭제하시겠습니까?</AlertDialogTitle>
-            <AlertDialogDescription>
-              "{pendingDelete?.work_name}" 평가와 관련된 모든 유해·위험요인, 감소대책, 참여자, 서명이 함께 삭제됩니다. 이 작업은 되돌릴 수 없습니다.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>취소</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} disabled={deleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              {deleting ? "삭제 중..." : "삭제"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

@@ -22,6 +22,12 @@ async function ensureAccess(assessmentId: string, orgId: string) {
   if (!a || a.organization_id !== orgId) throw new Error("권한이 없습니다.");
 }
 
+function ensureManagerOrAdmin(role: string | null) {
+  if (role !== "admin" && role !== "manager") {
+    throw new Error("관리자 또는 매니저만 가능합니다.");
+  }
+}
+
 const deleteSchema = z.object({ assessmentId: z.string().uuid() });
 
 export const deleteAssessment = createServerFn({ method: "POST" })
@@ -29,6 +35,7 @@ export const deleteAssessment = createServerFn({ method: "POST" })
   .inputValidator((i) => deleteSchema.parse(i))
   .handler(async ({ data, context }) => {
     const me = await getMe(context.userId);
+    ensureManagerOrAdmin(me.org_role);
     await ensureAccess(data.assessmentId, me.organization_id!);
 
     const { data: hazards } = await supabaseAdmin
@@ -57,6 +64,7 @@ export const updateAssessment = createServerFn({ method: "POST" })
   .inputValidator((i) => updateSchema.parse(i))
   .handler(async ({ data, context }) => {
     const me = await getMe(context.userId);
+    ensureManagerOrAdmin(me.org_role);
     await ensureAccess(data.assessmentId, me.organization_id!);
     const { error } = await supabaseAdmin
       .from("assessments")
