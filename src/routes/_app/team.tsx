@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { Copy, Trash2, UserPlus, QrCode } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { QRCodeSVG } from "qrcode.react";
+import { buildInviteLink } from "@/lib/app-url";
 
 export const Route = createFileRoute("/_app/team")({ component: TeamPage });
 
@@ -45,7 +46,7 @@ function TeamPage() {
     setLoading(true);
     try {
       const res = await invite({ data: { email, role } });
-      const link = `${window.location.origin}/invite/${res.token}`;
+      const link = buildInviteLink(res.token);
       await navigator.clipboard.writeText(link).catch(() => {});
       setQrLink(link);
       toast.success("초대 링크가 복사되었습니다. QR로도 공유 가능합니다.");
@@ -104,7 +105,7 @@ function TeamPage() {
               <Button key={r} variant="outline" size="sm" onClick={async () => {
                 try {
                   const res = await makeLink({ data: { role: r, expiresInDays: 30, label: r === "admin" ? "관리자" : r === "manager" ? "매니저" : "일반" } });
-                  const link = `${window.location.origin}/invite/${res.token}`;
+                  const link = buildInviteLink(res.token);
                   await navigator.clipboard.writeText(link).catch(() => {});
                   setQrLink(link);
                   toast.success(`${r === "admin" ? "관리자" : r === "manager" ? "매니저" : "일반"} 링크 생성됨`);
@@ -129,9 +130,9 @@ function TeamPage() {
                     </div>
                   </div>
                   <div className="flex gap-1">
-                    <Button variant="outline" size="sm" onClick={() => setQrLink(`${window.location.origin}/invite/${i.token}`)}><QrCode className="h-3.5 w-3.5" /></Button>
+                    <Button variant="outline" size="sm" onClick={() => setQrLink(buildInviteLink(i.token))}><QrCode className="h-3.5 w-3.5" /></Button>
                     <Button variant="outline" size="sm" onClick={async () => {
-                      await navigator.clipboard.writeText(`${window.location.origin}/invite/${i.token}`);
+                      await navigator.clipboard.writeText(buildInviteLink(i.token));
                       toast.success("링크 복사됨");
                     }}><Copy className="h-3.5 w-3.5" /></Button>
                     <Button variant="outline" size="sm" onClick={async () => {
@@ -201,11 +202,11 @@ function TeamPage() {
                     {i.status === "pending" && (
                       <>
                         <Button variant="outline" size="sm" onClick={async () => {
-                          await navigator.clipboard.writeText(`${window.location.origin}/invite/${i.token}`);
+                          await navigator.clipboard.writeText(buildInviteLink(i.token));
                           toast.success("링크 복사됨");
                         }}><Copy className="h-3.5 w-3.5" /></Button>
                         <Button variant="outline" size="sm" onClick={() => {
-                          setQrLink(`${window.location.origin}/invite/${i.token}`);
+                          setQrLink(buildInviteLink(i.token));
                         }}><QrCode className="h-3.5 w-3.5" /></Button>
                         <Button variant="outline" size="sm" onClick={async () => {
                           await revoke({ data: { id: i.id } }); toast.success("취소됨"); load();
