@@ -9,7 +9,7 @@ export const Route = createFileRoute("/_app/work-stop-records_/$id")({
 });
 
 function WorkStopRecordDetail() {
-  const { id } = useParams({ from: "/_app/work-stop-records/$id" });
+  const { id } = useParams({ from: "/_app/work-stop-records_/$id" });
   const [rec, setRec] = useState<any>(null);
   const [complex, setComplex] = useState<any>(null);
 
