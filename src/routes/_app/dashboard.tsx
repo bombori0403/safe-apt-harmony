@@ -8,8 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar as CalendarComp } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, AlertTriangle, Calendar, Users, TrendingUp } from "lucide-react";
+import { Plus, AlertTriangle, Calendar, Users, TrendingUp, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_app/dashboard")({
@@ -23,63 +24,117 @@ interface Assessment {
   assessment_date: string;
   status: string;
   created_at: string;
+  complex_id?: string;
+}
+
+interface ComplexRow {
+  id: string;
+  name: string;
+  next_assessment_date: string | null;
 }
 
 function Dashboard() {
   const { user } = useAuth();
   const [userRow, setUserRow] = useState<any>(null);
-  const [complexId, setComplexId] = useState<string | null>(null);
-  const [complexName, setComplexName] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [myComplexId, setMyComplexId] = useState<string | null>(null);
+  const [complexes, setComplexes] = useState<ComplexRow[]>([]);
+  const [selectedComplexId, setSelectedComplexId] = useState<string>("all");
   const [assessments, setAssessments] = useState<Assessment[]>([]);
   const [unresolvedHigh, setUnresolvedHigh] = useState(0);
   const [monthCount, setMonthCount] = useState(0);
   const [nextDate, setNextDate] = useState<Date | undefined>(undefined);
   const [calendarOpen, setCalendarOpen] = useState(false);
 
+  // Load user context once
   useEffect(() => {
     if (!user) return;
     (async () => {
       const { userRow, complexId } = await getCurrentUserContext(user.id);
       setUserRow(userRow);
-      setComplexId(complexId ?? null);
-      if (complexId) {
+      const admin = userRow?.org_role === "admin";
+      setIsAdmin(admin);
+      setMyComplexId(complexId ?? null);
+
+      if (admin) {
+        const { data: cs } = await supabase
+          .from("complexes")
+          .select("id, name, next_assessment_date")
+          .order("name");
+        setComplexes((cs ?? []) as ComplexRow[]);
+        setSelectedComplexId("all");
+      } else if (complexId) {
         const { data: c } = await supabase
           .from("complexes")
-          .select("name, next_assessment_date")
+          .select("id, name, next_assessment_date")
           .eq("id", complexId)
           .maybeSingle();
-        setComplexName(c?.name ?? "");
-        if (c?.next_assessment_date) setNextDate(new Date(c.next_assessment_date));
+        if (c) setComplexes([c as ComplexRow]);
+        setSelectedComplexId(complexId);
       }
-      const { data: a } = await supabase.from("assessments").select("*").order("created_at", { ascending: false }).limit(20);
+    })();
+  }, [user]);
+
+  // Reload metrics when selection changes
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const scoped = selectedComplexId !== "all";
+
+      let aQ = supabase.from("assessments").select("*").order("created_at", { ascending: false }).limit(20);
+      if (scoped) aQ = aQ.eq("complex_id", selectedComplexId);
+      const { data: a } = await aQ;
       setAssessments((a ?? []) as Assessment[]);
 
       const startMonth = new Date(); startMonth.setDate(1); startMonth.setHours(0,0,0,0);
-      const { count: mc } = await supabase
-        .from("assessments")
-        .select("*", { count: "exact", head: true })
-        .gte("created_at", startMonth.toISOString());
+      let mQ = supabase.from("assessments").select("*", { count: "exact", head: true }).gte("created_at", startMonth.toISOString());
+      if (scoped) mQ = mQ.eq("complex_id", selectedComplexId);
+      const { count: mc } = await mQ;
       setMonthCount(mc ?? 0);
 
-      const { count: hc } = await supabase
-        .from("hazards")
-        .select("*", { count: "exact", head: true })
-        .in("level", ["높음", "매우높음"]);
-      setUnresolvedHigh(hc ?? 0);
+      if (scoped) {
+        // Fetch hazards joined via assessments of selected complex
+        const { data: aids } = await supabase.from("assessments").select("id").eq("complex_id", selectedComplexId);
+        const ids = (aids ?? []).map((x: any) => x.id);
+        if (ids.length === 0) {
+          setUnresolvedHigh(0);
+        } else {
+          const { count: hc } = await supabase
+            .from("hazards")
+            .select("*", { count: "exact", head: true })
+            .in("level", ["높음", "매우높음"])
+            .in("assessment_id", ids);
+          setUnresolvedHigh(hc ?? 0);
+        }
+      } else {
+        const { count: hc } = await supabase
+          .from("hazards")
+          .select("*", { count: "exact", head: true })
+          .in("level", ["높음", "매우높음"]);
+        setUnresolvedHigh(hc ?? 0);
+      }
+
+      const cur = complexes.find((c) => c.id === selectedComplexId);
+      if (cur?.next_assessment_date) setNextDate(new Date(cur.next_assessment_date));
+      else setNextDate(undefined);
     })();
-  }, [user]);
+  }, [user, selectedComplexId, complexes]);
 
   const handleDateSelect = async (d: Date | undefined) => {
     setNextDate(d);
     setCalendarOpen(false);
-    if (!complexId) {
-      toast.error("먼저 설정에서 단지를 등록해주세요.");
+    const targetComplex = selectedComplexId !== "all" ? selectedComplexId : myComplexId;
+    if (!targetComplex) {
+      toast.error("단지를 선택해주세요.");
       return;
     }
     const iso = d ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}` : null;
-    const { error } = await supabase.from("complexes").update({ next_assessment_date: iso }).eq("id", complexId);
+    const { error } = await supabase.from("complexes").update({ next_assessment_date: iso }).eq("id", targetComplex);
     if (error) toast.error("저장 실패: " + error.message);
-    else toast.success(d ? "다음 정기평가 날짜가 저장되었습니다." : "날짜가 해제되었습니다.");
+    else {
+      toast.success(d ? "다음 정기평가 날짜가 저장되었습니다." : "날짜가 해제되었습니다.");
+      setComplexes((prev) => prev.map((c) => c.id === targetComplex ? { ...c, next_assessment_date: iso } : c));
+    }
   };
 
   const nextDisplay = (() => {
@@ -92,6 +147,10 @@ function Dashboard() {
     return { value: `D+${-diff}`, sub: "지남" };
   })();
 
+  const currentComplexName = selectedComplexId === "all"
+    ? "전체 단지"
+    : complexes.find((c) => c.id === selectedComplexId)?.name ?? "";
+
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -99,7 +158,7 @@ function Dashboard() {
           <h1 className="text-2xl md:text-3xl font-bold">
             안녕하세요, {userRow?.name ?? ""} {userRow?.job_title || userRow?.role || ""}님
           </h1>
-          {complexName && <p className="text-sm text-muted-foreground mt-1">{complexName}</p>}
+          {currentComplexName && <p className="text-sm text-muted-foreground mt-1">{currentComplexName}</p>}
         </div>
         <Link to="/assessment/new">
           <Button size="lg" className="gap-2 shadow-md shadow-primary/20">
@@ -108,21 +167,43 @@ function Dashboard() {
         </Link>
       </div>
 
+      {isAdmin && complexes.length > 0 && (
+        <Card>
+          <CardContent className="p-3 md:p-4 flex items-center gap-3">
+            <Building2 className="h-4 w-4 text-muted-foreground shrink-0" />
+            <span className="text-sm text-muted-foreground shrink-0">단지 보기:</span>
+            <Select value={selectedComplexId} onValueChange={setSelectedComplexId}>
+              <SelectTrigger className="max-w-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">전체 단지</SelectItem>
+                {complexes.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <KpiCard title="이번 달 평가" value={monthCount} icon={TrendingUp} />
         <KpiCard title="높음·매우높음 미해결" value={unresolvedHigh} icon={AlertTriangle} danger />
         <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
           <PopoverTrigger asChild>
-            <button type="button" className="text-left">
-              <Card className="hover:border-primary/40 transition-colors cursor-pointer">
+            <button type="button" className="text-left" disabled={selectedComplexId === "all"}>
+              <Card className={cn("transition-colors", selectedComplexId === "all" ? "opacity-60" : "hover:border-primary/40 cursor-pointer")}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between text-muted-foreground text-xs">
                     <span>다음 정기평가</span>
                     <Calendar className="h-4 w-4" />
                   </div>
                   <div className="text-2xl md:text-3xl font-bold mt-2">
-                    {nextDisplay.value}
-                    <span className="text-sm font-normal text-muted-foreground ml-1">{nextDisplay.sub}</span>
+                    {selectedComplexId === "all" ? "—" : nextDisplay.value}
+                    <span className="text-sm font-normal text-muted-foreground ml-1">
+                      {selectedComplexId === "all" ? "단지 선택" : nextDisplay.sub}
+                    </span>
                   </div>
                 </CardContent>
               </Card>
