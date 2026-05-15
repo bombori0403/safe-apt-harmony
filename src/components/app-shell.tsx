@@ -18,10 +18,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const path = useRouterState({ select: (r) => r.location.pathname });
   const { signOut, user } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [orgName, setOrgName] = useState<string>("");
   useEffect(() => {
     if (!user) return;
-    supabase.from("users").select("org_role").eq("auth_id", user.id).maybeSingle()
-      .then(({ data }) => setIsAdmin(data?.org_role === "admin"));
+    supabase.from("users").select("org_role, organization_id").eq("auth_id", user.id).maybeSingle()
+      .then(async ({ data }) => {
+        setIsAdmin(data?.org_role === "admin");
+        if (data?.organization_id) {
+          const { data: org } = await supabase.from("organizations").select("name").eq("id", data.organization_id).maybeSingle();
+          if (org?.name) setOrgName(org.name);
+        }
+      });
   }, [user]);
   const visibleNav = NAV.filter(n => !n.adminOnly || isAdmin);
   return (
