@@ -26,10 +26,13 @@ function Confirm() {
 
   useEffect(() => {
     (async () => {
-      const { data: ass } = await supabase.from("assessments").select("work_name,assessment_date,method").eq("id", id).maybeSingle();
-      setA(ass);
-      const { data: p } = await supabase.from("participants").select("id,name,role").eq("assessment_id", id);
-      setParts(p ?? []);
+      try {
+        const res = await getConfirmInfo({ data: { assessmentId: id } });
+        setA(res.assessment);
+        setParts(res.participants);
+      } catch (e: any) {
+        toast.error(e.message ?? "평가 정보를 불러오지 못했습니다.");
+      }
     })();
   }, [id]);
 
