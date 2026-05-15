@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, ShieldAlert, Camera, X, Loader2, CheckCircle2 } from "lucide-react";
+import { Plus, ShieldAlert, Camera, X, Loader2, CheckCircle2, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { getCurrentUserContext } from "@/lib/user-context";
 import { compressImage } from "@/lib/image-compress";
