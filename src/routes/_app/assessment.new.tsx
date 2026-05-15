@@ -33,6 +33,10 @@ function NewAssessment() {
   const [method, setMethod] = useState<AssessmentMethod>("5단계_판단법");
   const [allowable, setAllowable] = useState<RiskLevel>("낮음");
   const [participantConsent, setParticipantConsent] = useState(false);
+  const [workStopConsent, setWorkStopConsent] = useState(false);
+  const [nearMiss, setNearMiss] = useState<any[]>([]);
+  const [nmExpanded, setNmExpanded] = useState(false);
+  const [complexPhone, setComplexPhone] = useState<string>("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
