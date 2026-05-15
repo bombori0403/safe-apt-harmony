@@ -20,6 +20,7 @@ function TeamPage() {
   const fetchTeam = useServerFn(listTeam);
   const invite = useServerFn(createInvitation);
   const revoke = useServerFn(revokeInvitation);
+  const delInvite = useServerFn(deleteInvitation);
   const updateRole = useServerFn(updateMemberRole);
   const removeFn = useServerFn(removeMember);
   const makeLink = useServerFn(createInviteLink);
