@@ -201,27 +201,42 @@ function TeamPage() {
             </div>
           )}
 
-          {data.invitations.filter((i: any) => i.is_link && i.status !== "revoked").length > 0 && (
+          {data.invitations.filter((i: any) => i.is_link).length > 0 && (
             <div className="mt-4 divide-y border rounded-md">
-              {data.invitations.filter((i: any) => i.is_link && i.status !== "revoked").map((i: any) => (
-                <div key={i.id} className="p-3 flex flex-wrap items-center justify-between gap-2 text-sm">
+              {data.invitations.filter((i: any) => i.is_link).map((i: any) => (
+                <div key={i.id} className={`p-3 flex flex-wrap items-center justify-between gap-2 text-sm ${i.status === "revoked" ? "opacity-60" : ""}`}>
                   <div>
-                    <div className="font-medium">{i.label ?? i.role} <Badge variant="secondary" className="ml-1">{i.role}</Badge>{i.complex_id && <span className="ml-1 text-xs text-muted-foreground">{complexById.get(i.complex_id)}</span>}</div>
+                    <div className="font-medium">
+                      {i.label ?? i.role} <Badge variant="secondary" className="ml-1">{i.role}</Badge>
+                      {i.complex_id && <span className="ml-1 text-xs text-muted-foreground">{complexById.get(i.complex_id)}</span>}
+                      {i.status === "revoked" && <Badge variant="outline" className="ml-1 text-xs">비활성화</Badge>}
+                    </div>
                     <div className="text-xs text-muted-foreground">
                       사용 {i.used_count}{i.max_uses ? ` / ${i.max_uses}` : ""}회 · 만료 {new Date(i.expires_at).toLocaleDateString("ko-KR")}
                     </div>
                   </div>
                   <div className="flex gap-1">
-                    <Button variant="outline" size="sm" onClick={() => setQrLink(buildInviteLink(i.token))}><QrCode className="h-3.5 w-3.5" /></Button>
-                    <Button variant="outline" size="sm" onClick={async () => {
-                      await navigator.clipboard.writeText(buildInviteLink(i.token));
-                      toast.success("링크 복사됨");
-                    }}><Copy className="h-3.5 w-3.5" /></Button>
-                    {(isAdmin || i.invited_by === data.me.id) && (
+                    {i.status !== "revoked" && (
+                      <>
+                        <Button variant="outline" size="sm" onClick={() => setQrLink(buildInviteLink(i.token))}><QrCode className="h-3.5 w-3.5" /></Button>
+                        <Button variant="outline" size="sm" onClick={async () => {
+                          await navigator.clipboard.writeText(buildInviteLink(i.token));
+                          toast.success("링크 복사됨");
+                        }}><Copy className="h-3.5 w-3.5" /></Button>
+                      </>
+                    )}
+                    {(isAdmin || i.invited_by === data.me.id) && i.status !== "revoked" && (
                       <Button variant="outline" size="sm" onClick={async () => {
                         if (!confirm("이 링크를 비활성화할까요?")) return;
                         await revoke({ data: { id: i.id } }); toast.success("비활성화됨"); load();
                       }}>비활성화</Button>
+                    )}
+                    {(isAdmin || i.invited_by === data.me.id) && (
+                      <Button variant="outline" size="sm" onClick={async () => {
+                        if (!confirm("이 초대 링크를 영구 삭제할까요?")) return;
+                        try { await delInvite({ data: { id: i.id } }); toast.success("삭제됨"); load(); }
+                        catch (e) { toast.error(e instanceof Error ? e.message : "실패"); }
+                      }}><Trash2 className="h-3.5 w-3.5" /></Button>
                     )}
                   </div>
                 </div>
