@@ -346,6 +346,13 @@ function TeamPage() {
                         )}
                       </>
                     )}
+                    {(isAdmin || i.invited_by === data.me.id) && (
+                      <Button variant="outline" size="sm" onClick={async () => {
+                        if (!confirm("이 초대 내역을 영구 삭제할까요?")) return;
+                        try { await delInvite({ data: { id: i.id } }); toast.success("삭제됨"); load(); }
+                        catch (e) { toast.error(e instanceof Error ? e.message : "실패"); }
+                      }}><Trash2 className="h-3.5 w-3.5" /></Button>
+                    )}
                   </div>
                 </div>
               ))}
