@@ -9,8 +9,10 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SignupRouteImport } from './routes/signup'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as ConfirmIdRouteImport } from './routes/confirm.$id'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppHistoryRouteImport } from './routes/_app/history'
@@ -24,6 +26,11 @@ import { Route as AppAssessmentIdReportRouteImport } from './routes/_app/assessm
 import { Route as AppAssessmentIdMeasuresRouteImport } from './routes/_app/assessment.$id.measures'
 import { Route as AppAssessmentIdHazardsRouteImport } from './routes/_app/assessment.$id.hazards'
 
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppRoute = AppRouteImport.update({
   id: '/_app',
   getParentRoute: () => rootRouteImport,
@@ -31,6 +38,11 @@ const AppRoute = AppRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InviteTokenRoute = InviteTokenRouteImport.update({
+  id: '/invite/$token',
+  path: '/invite/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConfirmIdRoute = ConfirmIdRouteImport.update({
@@ -96,11 +108,13 @@ const AppAssessmentIdHazardsRoute = AppAssessmentIdHazardsRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/signup': typeof SignupRoute
   '/console': typeof AppConsoleRoute
   '/dashboard': typeof AppDashboardRoute
   '/history': typeof AppHistoryRoute
   '/settings': typeof AppSettingsRoute
   '/confirm/$id': typeof ConfirmIdRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/assessment/new': typeof AppAssessmentNewRoute
   '/assessment/$id/hazards': typeof AppAssessmentIdHazardsRoute
   '/assessment/$id/measures': typeof AppAssessmentIdMeasuresRoute
@@ -111,11 +125,13 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/signup': typeof SignupRoute
   '/console': typeof AppConsoleRoute
   '/dashboard': typeof AppDashboardRoute
   '/history': typeof AppHistoryRoute
   '/settings': typeof AppSettingsRoute
   '/confirm/$id': typeof ConfirmIdRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/assessment/new': typeof AppAssessmentNewRoute
   '/assessment/$id/hazards': typeof AppAssessmentIdHazardsRoute
   '/assessment/$id/measures': typeof AppAssessmentIdMeasuresRoute
@@ -128,11 +144,13 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
+  '/signup': typeof SignupRoute
   '/_app/console': typeof AppConsoleRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/history': typeof AppHistoryRoute
   '/_app/settings': typeof AppSettingsRoute
   '/confirm/$id': typeof ConfirmIdRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/_app/assessment/new': typeof AppAssessmentNewRoute
   '/_app/assessment/$id/hazards': typeof AppAssessmentIdHazardsRoute
   '/_app/assessment/$id/measures': typeof AppAssessmentIdMeasuresRoute
@@ -145,11 +163,13 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/signup'
     | '/console'
     | '/dashboard'
     | '/history'
     | '/settings'
     | '/confirm/$id'
+    | '/invite/$token'
     | '/assessment/new'
     | '/assessment/$id/hazards'
     | '/assessment/$id/measures'
@@ -160,11 +180,13 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/signup'
     | '/console'
     | '/dashboard'
     | '/history'
     | '/settings'
     | '/confirm/$id'
+    | '/invite/$token'
     | '/assessment/new'
     | '/assessment/$id/hazards'
     | '/assessment/$id/measures'
@@ -176,11 +198,13 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_app'
+    | '/signup'
     | '/_app/console'
     | '/_app/dashboard'
     | '/_app/history'
     | '/_app/settings'
     | '/confirm/$id'
+    | '/invite/$token'
     | '/_app/assessment/new'
     | '/_app/assessment/$id/hazards'
     | '/_app/assessment/$id/measures'
@@ -193,11 +217,20 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
+  SignupRoute: typeof SignupRoute
   ConfirmIdRoute: typeof ConfirmIdRoute
+  InviteTokenRoute: typeof InviteTokenRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_app': {
       id: '/_app'
       path: ''
@@ -210,6 +243,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invite/$token': {
+      id: '/invite/$token'
+      path: '/invite/$token'
+      fullPath: '/invite/$token'
+      preLoaderRoute: typeof InviteTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/confirm/$id': {
@@ -332,7 +372,9 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
+  SignupRoute: SignupRoute,
   ConfirmIdRoute: ConfirmIdRoute,
+  InviteTokenRoute: InviteTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
