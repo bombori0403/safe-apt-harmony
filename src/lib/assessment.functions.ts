@@ -49,7 +49,7 @@ const updateSchema = z.object({
   work_name: z.string().trim().min(1).max(200),
   assessment_date: z.string().min(1),
   location: z.string().trim().max(200).optional().nullable(),
-  status: z.enum(["작성중", "협의중", "완료", "보관"]).optional(),
+  status: z.enum(["작성중", "협의중", "완료"]).optional(),
 });
 
 export const updateAssessment = createServerFn({ method: "POST" })
