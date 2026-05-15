@@ -21,6 +21,7 @@ function TeamPage() {
   const revoke = useServerFn(revokeInvitation);
   const updateRole = useServerFn(updateMemberRole);
   const removeFn = useServerFn(removeMember);
+  const makeLink = useServerFn(createInviteLink);
 
   const [data, setData] = useState<any>(null);
   const [email, setEmail] = useState("");
