@@ -36,6 +36,8 @@ function Settings() {
   const deleteComplexFn = useServerFn(deleteComplex);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [userRow, setUserRow] = useState<any>(null);
+  const [org, setOrg] = useState<any>(null);
+  const [savingOrg, setSavingOrg] = useState(false);
   const [complexes, setComplexes] = useState<any[]>([]);
   const [newComplex, setNewComplex] = useState<any>(EMPTY_COMPLEX);
   const [loading, setLoading] = useState(true);
