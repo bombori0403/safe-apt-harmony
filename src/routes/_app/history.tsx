@@ -26,6 +26,15 @@ function History() {
   const [pendingDelete, setPendingDelete] = useState<any>(null);
   const [deleting, setDeleting] = useState(false);
   const del = useServerFn(deleteAssessment);
+  const { user } = useAuth();
+  const [role, setRole] = useState<string | null>(null);
+  const canManage = role === "admin" || role === "manager";
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("users").select("org_role").eq("auth_id", user.id).maybeSingle()
+      .then(({ data }) => setRole(data?.org_role ?? null));
+  }, [user]);
 
   const load = () =>
     supabase.from("assessments").select("*").order("assessment_date", { ascending: false }).then(({ data }) => {
