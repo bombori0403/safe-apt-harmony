@@ -37,7 +37,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <aside className="hidden md:flex w-60 shrink-0 flex-col border-r bg-sidebar text-sidebar-foreground">
         <div className="flex items-center gap-2 px-5 h-16 border-b">
           <Shield className="h-6 w-6 text-primary" />
-          <div className="font-bold text-lg tracking-tight">안전관리소</div>
+          <div className="min-w-0">
+            <div className="font-bold text-lg tracking-tight leading-tight">안전관리소</div>
+            {orgName && <div className="text-[11px] text-muted-foreground truncate">{orgName}</div>}
+          </div>
         </div>
         <nav className="flex-1 p-3 space-y-1">
           {visibleNav.map(({ to, label, icon: Icon }) => {
