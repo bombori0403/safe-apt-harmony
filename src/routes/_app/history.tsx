@@ -14,6 +14,7 @@ import { Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { riskLevelClass, type RiskLevel } from "@/lib/types";
 import { deleteAssessment } from "@/lib/assessment.functions";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_app/history")({
   component: History,
