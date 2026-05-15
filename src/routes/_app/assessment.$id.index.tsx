@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { riskLevelClass, type RiskLevel } from "@/lib/types";
 import { ListChecks, ShieldCheck, Users, FileText, Printer, Pencil, Trash2 } from "lucide-react";
 import { deleteAssessment, updateAssessment } from "@/lib/assessment.functions";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_app/assessment/$id/")({
   component: Detail,
@@ -27,6 +28,9 @@ export const Route = createFileRoute("/_app/assessment/$id/")({
 function Detail() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [role, setRole] = useState<string | null>(null);
+  const canManage = role === "admin" || role === "manager";
   const [a, setA] = useState<any>(null);
   const [hazards, setHazards] = useState<any[]>([]);
   const [parts, setParts] = useState<any[]>([]);
@@ -62,6 +66,12 @@ function Detail() {
   };
 
   useEffect(() => { load(); }, [id]);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("users").select("org_role").eq("auth_id", user.id).maybeSingle()
+      .then(({ data }) => setRole(data?.org_role ?? null));
+  }, [user]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -108,13 +118,21 @@ function Detail() {
           <p className="text-sm text-muted-foreground">{a.assessment_date} · {a.location ?? "-"} · {a.work_category ?? "-"}</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="gap-1"><Pencil className="h-4 w-4" />수정</Button>
+          {canManage && (
+            <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="gap-1"><Pencil className="h-4 w-4" />수정</Button>
+          )}
           <Link to="/assessment/$id/hazards" params={{ id }}><Button variant="outline" size="sm">유해·위험요인</Button></Link>
-          <Link to="/assessment/$id/results" params={{ id }}><Button variant="outline" size="sm">위험성 결정</Button></Link>
+          {canManage && (
+            <Link to="/assessment/$id/results" params={{ id }}><Button variant="outline" size="sm">위험성 결정</Button></Link>
+          )}
           <Link to="/assessment/$id/measures" params={{ id }}><Button variant="outline" size="sm">감소대책</Button></Link>
           <Link to="/assessment/$id/share" params={{ id }}><Button size="sm">협의·공유</Button></Link>
-          <Link to="/assessment/$id/report" params={{ id }}><Button size="sm" variant="secondary" className="gap-1"><Printer className="h-4 w-4" />결과서</Button></Link>
-          <Button variant="outline" size="sm" onClick={() => setDelOpen(true)} className="gap-1 text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" />삭제</Button>
+          {canManage && (
+            <Link to="/assessment/$id/report" params={{ id }}><Button size="sm" variant="secondary" className="gap-1"><Printer className="h-4 w-4" />결과서</Button></Link>
+          )}
+          {canManage && (
+            <Button variant="outline" size="sm" onClick={() => setDelOpen(true)} className="gap-1 text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" />삭제</Button>
+          )}
         </div>
       </div>
 

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Printer, ArrowLeft } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { riskLevelClass, type RiskLevel } from "@/lib/types";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_app/assessment/$id/report")({
   component: Report,
@@ -12,11 +13,19 @@ export const Route = createFileRoute("/_app/assessment/$id/report")({
 
 function Report() {
   const { id } = Route.useParams();
+  const { user } = useAuth();
+  const [role, setRole] = useState<string | null>(null);
   const [a, setA] = useState<any>(null);
   const [complex, setComplex] = useState<any>(null);
   const [hazards, setHazards] = useState<any[]>([]);
   const [parts, setParts] = useState<any[]>([]);
   const [sigs, setSigs] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("users").select("org_role").eq("auth_id", user.id).maybeSingle()
+      .then(({ data }) => setRole(data?.org_role ?? null));
+  }, [user]);
 
   useEffect(() => {
     (async () => {
@@ -35,6 +44,15 @@ function Report() {
     })();
   }, [id]);
 
+  if (role && role !== "admin" && role !== "manager") {
+    return (
+      <div className="p-8 max-w-md mx-auto text-center space-y-3">
+        <h1 className="text-xl font-bold">접근 권한이 없습니다</h1>
+        <p className="text-sm text-muted-foreground">결과서는 매니저 이상만 사용할 수 있습니다.</p>
+        <Link to="/assessment/$id" params={{ id }}><Button variant="outline" size="sm">돌아가기</Button></Link>
+      </div>
+    );
+  }
   if (!a) return <div className="p-8 text-muted-foreground">불러오는 중...</div>;
 
   return (
