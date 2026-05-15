@@ -766,6 +766,10 @@ export type Database = {
         Args: { _assessment_id: string }
         Returns: boolean
       }
+      can_write_assessment: {
+        Args: { _assessment_id: string }
+        Returns: boolean
+      }
       create_sample_data_for_user: {
         Args: { p_user_id: string }
         Returns: string
@@ -773,6 +777,7 @@ export type Database = {
       current_user_id: { Args: never; Returns: string }
       current_user_org: { Args: never; Returns: string }
       is_org_admin: { Args: never; Returns: boolean }
+      org_can_write: { Args: never; Returns: boolean }
       user_admin_company_ids: { Args: never; Returns: string[] }
       user_complex_ids: { Args: never; Returns: string[] }
       user_member_company_ids: { Args: never; Returns: string[] }
