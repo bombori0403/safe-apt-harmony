@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, ShieldAlert, Camera, X, Loader2, CheckCircle2 } from "lucide-react";
+import { Plus, ShieldAlert, Camera, X, Loader2, CheckCircle2, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { getCurrentUserContext } from "@/lib/user-context";
 import { compressImage } from "@/lib/image-compress";
@@ -263,11 +263,16 @@ function WorkStopRecords() {
                       </div>
                     </div>
                   )}
-                  {it.result !== "작업재개" && (
-                    <Button size="sm" variant="outline" className="gap-1.5" onClick={()=>{ setResumeId(it.id); setResumeDetail(""); setResumePhotos([]); }}>
-                      <CheckCircle2 className="h-4 w-4"/>시정 완료 · 작업 재개 처리
-                    </Button>
-                  )}
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    <Link to="/work-stop-records/$id" params={{ id: it.id }}>
+                      <Button size="sm" variant="outline" className="gap-1.5"><Printer className="h-4 w-4"/>기록서 보기 / 출력</Button>
+                    </Link>
+                    {it.result !== "작업재개" && (
+                      <Button size="sm" variant="outline" className="gap-1.5" onClick={()=>{ setResumeId(it.id); setResumeDetail(""); setResumePhotos([]); }}>
+                        <CheckCircle2 className="h-4 w-4"/>시정 완료 · 작업 재개 처리
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>

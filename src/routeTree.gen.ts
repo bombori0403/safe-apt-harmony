@@ -22,6 +22,7 @@ import { Route as AppNearMissRouteImport } from './routes/_app/near-miss'
 import { Route as AppHistoryRouteImport } from './routes/_app/history'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppConsoleRouteImport } from './routes/_app/console'
+import { Route as AppWorkStopRecordsIdRouteImport } from './routes/_app/work-stop-records.$id'
 import { Route as AppNearMissNewRouteImport } from './routes/_app/near-miss.new'
 import { Route as AppNearMissIdRouteImport } from './routes/_app/near-miss.$id'
 import { Route as AppAssessmentNewRouteImport } from './routes/_app/assessment.new'
@@ -96,6 +97,11 @@ const AppConsoleRoute = AppConsoleRouteImport.update({
   path: '/console',
   getParentRoute: () => AppRoute,
 } as any)
+const AppWorkStopRecordsIdRoute = AppWorkStopRecordsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AppWorkStopRecordsRoute,
+} as any)
 const AppNearMissNewRoute = AppNearMissNewRouteImport.update({
   id: '/new',
   path: '/new',
@@ -151,13 +157,14 @@ export interface FileRoutesByFullPath {
   '/near-miss': typeof AppNearMissRouteWithChildren
   '/settings': typeof AppSettingsRoute
   '/team': typeof AppTeamRoute
-  '/work-stop-records': typeof AppWorkStopRecordsRoute
+  '/work-stop-records': typeof AppWorkStopRecordsRouteWithChildren
   '/work-stop-right': typeof AppWorkStopRightRoute
   '/confirm/$id': typeof ConfirmIdRoute
   '/invite/$token': typeof InviteTokenRoute
   '/assessment/new': typeof AppAssessmentNewRoute
   '/near-miss/$id': typeof AppNearMissIdRoute
   '/near-miss/new': typeof AppNearMissNewRoute
+  '/work-stop-records/$id': typeof AppWorkStopRecordsIdRoute
   '/assessment/$id/hazards': typeof AppAssessmentIdHazardsRoute
   '/assessment/$id/measures': typeof AppAssessmentIdMeasuresRoute
   '/assessment/$id/report': typeof AppAssessmentIdReportRoute
@@ -174,13 +181,14 @@ export interface FileRoutesByTo {
   '/near-miss': typeof AppNearMissRouteWithChildren
   '/settings': typeof AppSettingsRoute
   '/team': typeof AppTeamRoute
-  '/work-stop-records': typeof AppWorkStopRecordsRoute
+  '/work-stop-records': typeof AppWorkStopRecordsRouteWithChildren
   '/work-stop-right': typeof AppWorkStopRightRoute
   '/confirm/$id': typeof ConfirmIdRoute
   '/invite/$token': typeof InviteTokenRoute
   '/assessment/new': typeof AppAssessmentNewRoute
   '/near-miss/$id': typeof AppNearMissIdRoute
   '/near-miss/new': typeof AppNearMissNewRoute
+  '/work-stop-records/$id': typeof AppWorkStopRecordsIdRoute
   '/assessment/$id/hazards': typeof AppAssessmentIdHazardsRoute
   '/assessment/$id/measures': typeof AppAssessmentIdMeasuresRoute
   '/assessment/$id/report': typeof AppAssessmentIdReportRoute
@@ -199,13 +207,14 @@ export interface FileRoutesById {
   '/_app/near-miss': typeof AppNearMissRouteWithChildren
   '/_app/settings': typeof AppSettingsRoute
   '/_app/team': typeof AppTeamRoute
-  '/_app/work-stop-records': typeof AppWorkStopRecordsRoute
+  '/_app/work-stop-records': typeof AppWorkStopRecordsRouteWithChildren
   '/_app/work-stop-right': typeof AppWorkStopRightRoute
   '/confirm/$id': typeof ConfirmIdRoute
   '/invite/$token': typeof InviteTokenRoute
   '/_app/assessment/new': typeof AppAssessmentNewRoute
   '/_app/near-miss/$id': typeof AppNearMissIdRoute
   '/_app/near-miss/new': typeof AppNearMissNewRoute
+  '/_app/work-stop-records/$id': typeof AppWorkStopRecordsIdRoute
   '/_app/assessment/$id/hazards': typeof AppAssessmentIdHazardsRoute
   '/_app/assessment/$id/measures': typeof AppAssessmentIdMeasuresRoute
   '/_app/assessment/$id/report': typeof AppAssessmentIdReportRoute
@@ -231,6 +240,7 @@ export interface FileRouteTypes {
     | '/assessment/new'
     | '/near-miss/$id'
     | '/near-miss/new'
+    | '/work-stop-records/$id'
     | '/assessment/$id/hazards'
     | '/assessment/$id/measures'
     | '/assessment/$id/report'
@@ -254,6 +264,7 @@ export interface FileRouteTypes {
     | '/assessment/new'
     | '/near-miss/$id'
     | '/near-miss/new'
+    | '/work-stop-records/$id'
     | '/assessment/$id/hazards'
     | '/assessment/$id/measures'
     | '/assessment/$id/report'
@@ -278,6 +289,7 @@ export interface FileRouteTypes {
     | '/_app/assessment/new'
     | '/_app/near-miss/$id'
     | '/_app/near-miss/new'
+    | '/_app/work-stop-records/$id'
     | '/_app/assessment/$id/hazards'
     | '/_app/assessment/$id/measures'
     | '/_app/assessment/$id/report'
@@ -387,6 +399,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppConsoleRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/work-stop-records/$id': {
+      id: '/_app/work-stop-records/$id'
+      path: '/$id'
+      fullPath: '/work-stop-records/$id'
+      preLoaderRoute: typeof AppWorkStopRecordsIdRouteImport
+      parentRoute: typeof AppWorkStopRecordsRoute
+    }
     '/_app/near-miss/new': {
       id: '/_app/near-miss/new'
       path: '/new'
@@ -467,6 +486,17 @@ const AppNearMissRouteWithChildren = AppNearMissRoute._addFileChildren(
   AppNearMissRouteChildren,
 )
 
+interface AppWorkStopRecordsRouteChildren {
+  AppWorkStopRecordsIdRoute: typeof AppWorkStopRecordsIdRoute
+}
+
+const AppWorkStopRecordsRouteChildren: AppWorkStopRecordsRouteChildren = {
+  AppWorkStopRecordsIdRoute: AppWorkStopRecordsIdRoute,
+}
+
+const AppWorkStopRecordsRouteWithChildren =
+  AppWorkStopRecordsRoute._addFileChildren(AppWorkStopRecordsRouteChildren)
+
 interface AppRouteChildren {
   AppConsoleRoute: typeof AppConsoleRoute
   AppDashboardRoute: typeof AppDashboardRoute
@@ -474,7 +504,7 @@ interface AppRouteChildren {
   AppNearMissRoute: typeof AppNearMissRouteWithChildren
   AppSettingsRoute: typeof AppSettingsRoute
   AppTeamRoute: typeof AppTeamRoute
-  AppWorkStopRecordsRoute: typeof AppWorkStopRecordsRoute
+  AppWorkStopRecordsRoute: typeof AppWorkStopRecordsRouteWithChildren
   AppWorkStopRightRoute: typeof AppWorkStopRightRoute
   AppAssessmentNewRoute: typeof AppAssessmentNewRoute
   AppAssessmentIdHazardsRoute: typeof AppAssessmentIdHazardsRoute
@@ -492,7 +522,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppNearMissRoute: AppNearMissRouteWithChildren,
   AppSettingsRoute: AppSettingsRoute,
   AppTeamRoute: AppTeamRoute,
-  AppWorkStopRecordsRoute: AppWorkStopRecordsRoute,
+  AppWorkStopRecordsRoute: AppWorkStopRecordsRouteWithChildren,
   AppWorkStopRightRoute: AppWorkStopRightRoute,
   AppAssessmentNewRoute: AppAssessmentNewRoute,
   AppAssessmentIdHazardsRoute: AppAssessmentIdHazardsRoute,
