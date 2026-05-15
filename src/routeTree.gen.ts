@@ -9,9 +9,12 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SignupRouteImport } from './routes/signup'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as ConfirmIdRouteImport } from './routes/confirm.$id'
+import { Route as AppTeamRouteImport } from './routes/_app/team'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppHistoryRouteImport } from './routes/_app/history'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
@@ -24,6 +27,11 @@ import { Route as AppAssessmentIdReportRouteImport } from './routes/_app/assessm
 import { Route as AppAssessmentIdMeasuresRouteImport } from './routes/_app/assessment.$id.measures'
 import { Route as AppAssessmentIdHazardsRouteImport } from './routes/_app/assessment.$id.hazards'
 
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppRoute = AppRouteImport.update({
   id: '/_app',
   getParentRoute: () => rootRouteImport,
@@ -33,10 +41,20 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InviteTokenRoute = InviteTokenRouteImport.update({
+  id: '/invite/$token',
+  path: '/invite/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ConfirmIdRoute = ConfirmIdRouteImport.update({
   id: '/confirm/$id',
   path: '/confirm/$id',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppTeamRoute = AppTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
@@ -96,11 +114,14 @@ const AppAssessmentIdHazardsRoute = AppAssessmentIdHazardsRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/signup': typeof SignupRoute
   '/console': typeof AppConsoleRoute
   '/dashboard': typeof AppDashboardRoute
   '/history': typeof AppHistoryRoute
   '/settings': typeof AppSettingsRoute
+  '/team': typeof AppTeamRoute
   '/confirm/$id': typeof ConfirmIdRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/assessment/new': typeof AppAssessmentNewRoute
   '/assessment/$id/hazards': typeof AppAssessmentIdHazardsRoute
   '/assessment/$id/measures': typeof AppAssessmentIdMeasuresRoute
@@ -111,11 +132,14 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/signup': typeof SignupRoute
   '/console': typeof AppConsoleRoute
   '/dashboard': typeof AppDashboardRoute
   '/history': typeof AppHistoryRoute
   '/settings': typeof AppSettingsRoute
+  '/team': typeof AppTeamRoute
   '/confirm/$id': typeof ConfirmIdRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/assessment/new': typeof AppAssessmentNewRoute
   '/assessment/$id/hazards': typeof AppAssessmentIdHazardsRoute
   '/assessment/$id/measures': typeof AppAssessmentIdMeasuresRoute
@@ -128,11 +152,14 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
+  '/signup': typeof SignupRoute
   '/_app/console': typeof AppConsoleRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/history': typeof AppHistoryRoute
   '/_app/settings': typeof AppSettingsRoute
+  '/_app/team': typeof AppTeamRoute
   '/confirm/$id': typeof ConfirmIdRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/_app/assessment/new': typeof AppAssessmentNewRoute
   '/_app/assessment/$id/hazards': typeof AppAssessmentIdHazardsRoute
   '/_app/assessment/$id/measures': typeof AppAssessmentIdMeasuresRoute
@@ -145,11 +172,14 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/signup'
     | '/console'
     | '/dashboard'
     | '/history'
     | '/settings'
+    | '/team'
     | '/confirm/$id'
+    | '/invite/$token'
     | '/assessment/new'
     | '/assessment/$id/hazards'
     | '/assessment/$id/measures'
@@ -160,11 +190,14 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/signup'
     | '/console'
     | '/dashboard'
     | '/history'
     | '/settings'
+    | '/team'
     | '/confirm/$id'
+    | '/invite/$token'
     | '/assessment/new'
     | '/assessment/$id/hazards'
     | '/assessment/$id/measures'
@@ -176,11 +209,14 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_app'
+    | '/signup'
     | '/_app/console'
     | '/_app/dashboard'
     | '/_app/history'
     | '/_app/settings'
+    | '/_app/team'
     | '/confirm/$id'
+    | '/invite/$token'
     | '/_app/assessment/new'
     | '/_app/assessment/$id/hazards'
     | '/_app/assessment/$id/measures'
@@ -193,11 +229,20 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
+  SignupRoute: typeof SignupRoute
   ConfirmIdRoute: typeof ConfirmIdRoute
+  InviteTokenRoute: typeof InviteTokenRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_app': {
       id: '/_app'
       path: ''
@@ -212,12 +257,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/invite/$token': {
+      id: '/invite/$token'
+      path: '/invite/$token'
+      fullPath: '/invite/$token'
+      preLoaderRoute: typeof InviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/confirm/$id': {
       id: '/confirm/$id'
       path: '/confirm/$id'
       fullPath: '/confirm/$id'
       preLoaderRoute: typeof ConfirmIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_app/team': {
+      id: '/_app/team'
+      path: '/team'
+      fullPath: '/team'
+      preLoaderRoute: typeof AppTeamRouteImport
+      parentRoute: typeof AppRoute
     }
     '/_app/settings': {
       id: '/_app/settings'
@@ -304,6 +363,7 @@ interface AppRouteChildren {
   AppDashboardRoute: typeof AppDashboardRoute
   AppHistoryRoute: typeof AppHistoryRoute
   AppSettingsRoute: typeof AppSettingsRoute
+  AppTeamRoute: typeof AppTeamRoute
   AppAssessmentNewRoute: typeof AppAssessmentNewRoute
   AppAssessmentIdHazardsRoute: typeof AppAssessmentIdHazardsRoute
   AppAssessmentIdMeasuresRoute: typeof AppAssessmentIdMeasuresRoute
@@ -318,6 +378,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppDashboardRoute: AppDashboardRoute,
   AppHistoryRoute: AppHistoryRoute,
   AppSettingsRoute: AppSettingsRoute,
+  AppTeamRoute: AppTeamRoute,
   AppAssessmentNewRoute: AppAssessmentNewRoute,
   AppAssessmentIdHazardsRoute: AppAssessmentIdHazardsRoute,
   AppAssessmentIdMeasuresRoute: AppAssessmentIdMeasuresRoute,
@@ -332,18 +393,10 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
+  SignupRoute: SignupRoute,
   ConfirmIdRoute: ConfirmIdRoute,
+  InviteTokenRoute: InviteTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

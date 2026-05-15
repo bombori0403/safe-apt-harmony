@@ -1,19 +1,29 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, ClipboardList, FilePlus2, Building2, Settings, Shield } from "lucide-react";
+import { LayoutDashboard, ClipboardList, FilePlus2, Building2, Settings, Shield, Users } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 
 const NAV = [
-  { to: "/dashboard", label: "대시보드", icon: LayoutDashboard },
-  { to: "/assessment/new", label: "새 평가", icon: FilePlus2 },
-  { to: "/history", label: "평가 이력", icon: ClipboardList },
-  { to: "/console", label: "본사 콘솔", icon: Building2 },
-  { to: "/settings", label: "설정", icon: Settings },
+  { to: "/dashboard", label: "대시보드", icon: LayoutDashboard, adminOnly: false },
+  { to: "/assessment/new", label: "새 평가", icon: FilePlus2, adminOnly: false },
+  { to: "/history", label: "평가 이력", icon: ClipboardList, adminOnly: false },
+  { to: "/console", label: "본사 콘솔", icon: Building2, adminOnly: false },
+  { to: "/team", label: "직원 관리", icon: Users, adminOnly: true },
+  { to: "/settings", label: "설정", icon: Settings, adminOnly: false },
 ] as const;
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const path = useRouterState({ select: (r) => r.location.pathname });
   const { signOut, user } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("users").select("org_role").eq("auth_id", user.id).maybeSingle()
+      .then(({ data }) => setIsAdmin(data?.org_role === "admin"));
+  }, [user]);
+  const visibleNav = NAV.filter(n => !n.adminOnly || isAdmin);
   return (
     <div className="min-h-screen flex w-full bg-background">
       {/* Sidebar - desktop only */}
@@ -23,7 +33,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="font-bold text-lg tracking-tight">안전관리소</div>
         </div>
         <nav className="flex-1 p-3 space-y-1">
-          {NAV.map(({ to, label, icon: Icon }) => {
+          {visibleNav.map(({ to, label, icon: Icon }) => {
             const active = path === to || path.startsWith(to + "/");
             return (
               <Link
@@ -61,7 +71,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         {/* Bottom tabbar - mobile */}
         <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t flex">
-          {NAV.filter(n => n.to !== "/console").map(({ to, label, icon: Icon }) => {
+          {visibleNav.filter(n => n.to !== "/console").map(({ to, label, icon: Icon }) => {
             const active = path === to || path.startsWith(to + "/");
             return (
               <Link

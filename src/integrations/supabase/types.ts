@@ -27,6 +27,7 @@ export type Database = {
           judgment_criteria: Json | null
           location: string | null
           method: Database["public"]["Enums"]["assessment_method"]
+          organization_id: string | null
           shared_at: string | null
           status: Database["public"]["Enums"]["assessment_status"] | null
           updated_at: string | null
@@ -45,6 +46,7 @@ export type Database = {
           judgment_criteria?: Json | null
           location?: string | null
           method: Database["public"]["Enums"]["assessment_method"]
+          organization_id?: string | null
           shared_at?: string | null
           status?: Database["public"]["Enums"]["assessment_status"] | null
           updated_at?: string | null
@@ -63,6 +65,7 @@ export type Database = {
           judgment_criteria?: Json | null
           location?: string | null
           method?: Database["public"]["Enums"]["assessment_method"]
+          organization_id?: string | null
           shared_at?: string | null
           status?: Database["public"]["Enums"]["assessment_status"] | null
           updated_at?: string | null
@@ -89,6 +92,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -192,6 +202,7 @@ export type Database = {
           mgmt_type: Database["public"]["Enums"]["mgmt_type"]
           name: string
           next_assessment_date: string | null
+          organization_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -205,6 +216,7 @@ export type Database = {
           mgmt_type?: Database["public"]["Enums"]["mgmt_type"]
           name: string
           next_assessment_date?: string | null
+          organization_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -218,6 +230,7 @@ export type Database = {
           mgmt_type?: Database["public"]["Enums"]["mgmt_type"]
           name?: string
           next_assessment_date?: string | null
+          organization_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -234,6 +247,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_company_dashboard"
             referencedColumns: ["company_id"]
+          },
+          {
+            foreignKeyName: "complexes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -335,6 +355,60 @@ export type Database = {
           },
         ]
       }
+      invitations: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string | null
+          organization_id: string
+          role: Database["public"]["Enums"]["org_role"]
+          status: Database["public"]["Enums"]["invitation_status"]
+          token: string
+          used_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          organization_id: string
+          role?: Database["public"]["Enums"]["org_role"]
+          status?: Database["public"]["Enums"]["invitation_status"]
+          token?: string
+          used_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          organization_id?: string
+          role?: Database["public"]["Enums"]["org_role"]
+          status?: Database["public"]["Enums"]["invitation_status"]
+          token?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invitations_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invitations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       measures: {
         Row: {
           completed_at: string | null
@@ -406,6 +480,7 @@ export type Database = {
           created_at: string | null
           id: string
           occurred_at: string
+          organization_id: string | null
           photos: Json | null
           reported_by: string | null
           result: string | null
@@ -418,6 +493,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           occurred_at: string
+          organization_id?: string | null
           photos?: Json | null
           reported_by?: string | null
           result?: string | null
@@ -430,6 +506,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           occurred_at?: string
+          organization_id?: string | null
           photos?: Json | null
           reported_by?: string | null
           result?: string | null
@@ -458,6 +535,13 @@ export type Database = {
             referencedColumns: ["complex_id"]
           },
           {
+            foreignKeyName: "near_miss_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "near_miss_reported_by_fkey"
             columns: ["reported_by"]
             isOneToOne: false
@@ -465,6 +549,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      organizations: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          name: string
+          seat_limit: number
+          subscription_status: Database["public"]["Enums"]["subscription_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          name: string
+          seat_limit?: number
+          subscription_status?: Database["public"]["Enums"]["subscription_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          name?: string
+          seat_limit?: number
+          subscription_status?: Database["public"]["Enums"]["subscription_status"]
+          updated_at?: string
+        }
+        Relationships: []
       }
       participants: {
         Row: {
@@ -585,6 +702,8 @@ export type Database = {
           id: string
           job_title: string | null
           name: string
+          org_role: Database["public"]["Enums"]["org_role"]
+          organization_id: string | null
           phone: string | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string | null
@@ -596,6 +715,8 @@ export type Database = {
           id?: string
           job_title?: string | null
           name: string
+          org_role?: Database["public"]["Enums"]["org_role"]
+          organization_id?: string | null
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string | null
@@ -607,11 +728,21 @@ export type Database = {
           id?: string
           job_title?: string | null
           name?: string
+          org_role?: Database["public"]["Enums"]["org_role"]
+          organization_id?: string | null
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "users_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -640,9 +771,21 @@ export type Database = {
         Returns: string
       }
       current_user_id: { Args: never; Returns: string }
+      current_user_org: { Args: never; Returns: string }
+      is_org_admin: { Args: never; Returns: boolean }
       user_admin_company_ids: { Args: never; Returns: string[] }
       user_complex_ids: { Args: never; Returns: string[] }
       user_member_company_ids: { Args: never; Returns: string[] }
+      validate_invitation: {
+        Args: { _token: string }
+        Returns: {
+          email: string
+          organization_name: string
+          reason: string
+          role: Database["public"]["Enums"]["org_role"]
+          valid: boolean
+        }[]
+      }
     }
     Enums: {
       assessment_method:
@@ -653,9 +796,11 @@ export type Database = {
         | "OPS"
       assessment_status: "작성중" | "협의중" | "완료"
       assessment_type: "최초평가" | "정기평가" | "수시평가"
+      invitation_status: "pending" | "accepted" | "revoked" | "expired"
       measure_status: "대기" | "진행중" | "완료"
       measure_type: "본질적_대책" | "공학적_대책" | "관리적_대책" | "개인보호구"
       mgmt_type: "자가관리" | "위탁관리"
+      org_role: "admin" | "manager" | "member"
       participation_role: "책임자" | "평가자" | "근로자" | "검토자"
       risk_level:
         | "매우낮음"
@@ -668,6 +813,7 @@ export type Database = {
         | "하"
         | "적정"
         | "보완"
+      subscription_status: "trial" | "active" | "past_due" | "canceled"
       user_role:
         | "관리사무소장"
         | "안전보건관리책임자"
@@ -823,9 +969,11 @@ export const Constants = {
       ],
       assessment_status: ["작성중", "협의중", "완료"],
       assessment_type: ["최초평가", "정기평가", "수시평가"],
+      invitation_status: ["pending", "accepted", "revoked", "expired"],
       measure_status: ["대기", "진행중", "완료"],
       measure_type: ["본질적_대책", "공학적_대책", "관리적_대책", "개인보호구"],
       mgmt_type: ["자가관리", "위탁관리"],
+      org_role: ["admin", "manager", "member"],
       participation_role: ["책임자", "평가자", "근로자", "검토자"],
       risk_level: [
         "매우낮음",
@@ -839,6 +987,7 @@ export const Constants = {
         "적정",
         "보완",
       ],
+      subscription_status: ["trial", "active", "past_due", "canceled"],
       user_role: [
         "관리사무소장",
         "안전보건관리책임자",
