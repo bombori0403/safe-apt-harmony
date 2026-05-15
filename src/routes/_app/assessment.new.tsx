@@ -330,12 +330,32 @@ function NewAssessment() {
         </CardContent></Card>
       )}
 
+      {/* 작업중지권 안내 */}
+      <Card className="border-warning/40">
+        <CardContent className="p-5 space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded-md bg-warning/15 text-warning"><ShieldAlert className="h-4 w-4"/></div>
+            <h2 className="font-semibold">{WORK_STOP_LAW_TITLE}</h2>
+          </div>
+          <pre className="whitespace-pre-wrap text-xs leading-relaxed bg-muted/40 rounded-md p-3 font-sans max-h-40 overflow-y-auto">{WORK_STOP_LAW_TEXT}</pre>
+          <div className="text-xs">
+            <span className="text-muted-foreground">행사 시 비상연락:</span>{" "}
+            <span className="font-medium">{complexPhone || "관리사무소 비상연락망 (설정에서 등록)"}</span>
+          </div>
+          <label className="flex items-start gap-2 text-sm cursor-pointer">
+            <input type="checkbox" className="mt-0.5" checked={workStopConsent} onChange={e=>setWorkStopConsent(e.target.checked)} />
+            <span>본인은 위 작업중지권을 충분히 안내받았습니다. <span className="text-destructive">(필수)</span></span>
+          </label>
+          <Link to="/work-stop-right" className="text-xs text-primary underline">자세히 보기</Link>
+        </CardContent>
+      </Card>
+
       <div className="flex justify-between gap-2">
         <Button variant="outline" disabled={step===1} onClick={() => setStep(s => Math.max(1, s-1))}>이전</Button>
         {step < 6 ? (
           <Button onClick={() => setStep(s => s+1)} disabled={step===1 && !workName}>다음 단계로</Button>
         ) : (
-          <Button onClick={submit} disabled={!participantConsent || saving}>
+          <Button onClick={submit} disabled={!participantConsent || !workStopConsent || saving}>
             {saving ? "저장 중..." : "유해·위험요인 파악으로"}
           </Button>
         )}
