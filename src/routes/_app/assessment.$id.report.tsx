@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Printer, ArrowLeft } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { riskLevelClass, type RiskLevel } from "@/lib/types";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_app/assessment/$id/report")({
   component: Report,
@@ -12,11 +13,19 @@ export const Route = createFileRoute("/_app/assessment/$id/report")({
 
 function Report() {
   const { id } = Route.useParams();
+  const { user } = useAuth();
+  const [role, setRole] = useState<string | null>(null);
   const [a, setA] = useState<any>(null);
   const [complex, setComplex] = useState<any>(null);
   const [hazards, setHazards] = useState<any[]>([]);
   const [parts, setParts] = useState<any[]>([]);
   const [sigs, setSigs] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("users").select("org_role").eq("auth_id", user.id).maybeSingle()
+      .then(({ data }) => setRole(data?.org_role ?? null));
+  }, [user]);
 
   useEffect(() => {
     (async () => {
