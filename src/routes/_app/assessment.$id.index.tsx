@@ -67,6 +67,12 @@ function Detail() {
 
   useEffect(() => { load(); }, [id]);
 
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("users").select("org_role").eq("auth_id", user.id).maybeSingle()
+      .then(({ data }) => setRole(data?.org_role ?? null));
+  }, [user]);
+
   const handleSave = async () => {
     setSaving(true);
     try {
