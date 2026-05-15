@@ -12,8 +12,9 @@ export const Route = createFileRoute("/invite/$token")({ component: Invite });
 
 function Invite() {
   const { token } = Route.useParams();
-  const [info, setInfo] = useState<{ valid: boolean; email?: string; org?: string; role?: string; reason?: string } | null>(null);
+  const [info, setInfo] = useState<{ valid: boolean; email?: string | null; org?: string; role?: string; reason?: string; isLink?: boolean } | null>(null);
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -24,18 +25,20 @@ function Invite() {
         setInfo({ valid: false, reason: "초대 정보를 불러올 수 없습니다." });
         return;
       }
-      const r = data[0];
-      setInfo({ valid: r.valid, email: r.email, org: r.organization_name, role: r.role, reason: r.reason });
+      const r: any = data[0];
+      setInfo({ valid: r.valid, email: r.email, org: r.organization_name, role: r.role, reason: r.reason, isLink: r.is_link });
     })();
   }, [token]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!info?.valid || !info.email) return;
+    if (!info?.valid) return;
+    const useEmail = info.isLink ? email.trim() : info.email;
+    if (!useEmail) return;
     setLoading(true);
     try {
       const { error } = await supabase.auth.signUp({
-        email: info.email,
+        email: useEmail,
         password,
         options: {
           emailRedirectTo: window.location.origin,
@@ -77,12 +80,20 @@ function Invite() {
                 <div className="rounded-md bg-muted/50 p-3 text-sm space-y-1">
                   <div><span className="text-muted-foreground">조직:</span> <span className="font-medium">{info.org}</span></div>
                   <div><span className="text-muted-foreground">권한:</span> <span className="font-medium">{info.role}</span></div>
-                  <div><span className="text-muted-foreground">이메일:</span> <span className="font-medium">{info.email}</span></div>
+                  {info.email && !info.isLink && (
+                    <div><span className="text-muted-foreground">이메일:</span> <span className="font-medium">{info.email}</span></div>
+                  )}
                 </div>
                 <div>
                   <Label>이름</Label>
                   <Input value={name} onChange={(e) => setName(e.target.value)} required maxLength={100} />
                 </div>
+                {info.isLink && (
+                  <div>
+                    <Label>이메일</Label>
+                    <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                  </div>
+                )}
                 <div>
                   <Label>비밀번호</Label>
                   <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
