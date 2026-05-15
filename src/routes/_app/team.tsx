@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, useMemo } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { listTeam, createInvitation, revokeInvitation, updateMemberRole, removeMember, createInviteLink, assignMemberComplex } from "@/lib/team.functions";
+import { listTeam, createInvitation, revokeInvitation, deleteInvitation, updateMemberRole, removeMember, createInviteLink, assignMemberComplex } from "@/lib/team.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
