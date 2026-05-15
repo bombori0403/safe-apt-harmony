@@ -25,10 +25,41 @@ export const listTeam = createServerFn({ method: "GET" })
       .order("created_at", { ascending: true });
     const { data: invites } = await supabaseAdmin
       .from("invitations")
-      .select("id, email, role, status, expires_at, used_at, created_at, token")
+      .select("id, email, role, status, expires_at, used_at, created_at, token, is_link, max_uses, used_count, label")
       .eq("organization_id", admin.organization_id!)
       .order("created_at", { ascending: false });
     return { members: members ?? [], invitations: invites ?? [] };
+  });
+
+const createLinkSchema = z.object({
+  role: z.enum(["admin", "manager", "member"]),
+  label: z.string().trim().max(50).optional(),
+  maxUses: z.number().int().min(1).max(500).optional(),
+  expiresInDays: z.number().int().min(1).max(90).default(30),
+});
+
+export const createInviteLink = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => createLinkSchema.parse(i))
+  .handler(async ({ data, context }) => {
+    const admin = await requireAdmin(context.userId);
+    const expiresAt = new Date(Date.now() + data.expiresInDays * 86400000).toISOString();
+    const { data: inv, error } = await supabaseAdmin
+      .from("invitations")
+      .insert({
+        email: null,
+        role: data.role,
+        organization_id: admin.organization_id!,
+        invited_by: admin.id,
+        is_link: true,
+        max_uses: data.maxUses ?? null,
+        label: data.label ?? null,
+        expires_at: expiresAt,
+      })
+      .select("id, token")
+      .single();
+    if (error) throw error;
+    return { id: inv.id, token: inv.token };
   });
 
 const createInviteSchema = z.object({
