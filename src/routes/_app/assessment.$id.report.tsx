@@ -6,6 +6,7 @@ import { Printer, ArrowLeft } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { riskLevelClass, type RiskLevel } from "@/lib/types";
 import { useAuth } from "@/hooks/use-auth";
+import { WORK_STOP_LAW_TITLE, WORK_STOP_LAW_TEXT, WORK_STOP_PROCEDURE } from "@/lib/work-stop-law";
 
 export const Route = createFileRoute("/_app/assessment/$id/report")({
   component: Report,
@@ -167,6 +168,16 @@ function Report() {
               })}
             </tbody>
           </table>
+        </section>
+
+        <section className="mt-8 break-before-page">
+          <h2 className="font-bold border-b pb-1 mb-3">[부록] {WORK_STOP_LAW_TITLE}</h2>
+          <pre className="whitespace-pre-wrap text-xs leading-relaxed font-sans">{WORK_STOP_LAW_TEXT}</pre>
+          <h3 className="font-semibold mt-4 mb-2 text-sm">행사 절차</h3>
+          <ol className="text-xs space-y-1">
+            {WORK_STOP_PROCEDURE.map((p,i)=>(<li key={i}>{p}</li>))}
+          </ol>
+          <p className="text-[10px] text-muted-foreground mt-3">본 안내문은 산업안전보건법 제52조에 따라 위험성평가 결과서에 첨부되었습니다.</p>
         </section>
 
         <footer className="mt-10 pt-4 border-t text-[10px] text-muted-foreground text-center">
