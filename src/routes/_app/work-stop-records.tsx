@@ -296,8 +296,21 @@ function WorkStopRecords() {
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>작업 재개 처리</DialogTitle></DialogHeader>
           <div className="space-y-3">
+            {existingCausePhotos.length > 0 && (
+              <div>
+                <Label className="text-sm">기존 중지 원인 사진</Label>
+                <div className="flex flex-wrap gap-1.5 mt-1.5">
+                  {existingCausePhotos.map((u,i)=>(
+                    <div key={i} className="w-16 h-16 rounded border overflow-hidden bg-muted">
+                      <img src={u} alt="" className="w-full h-full object-cover" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            <PhotoPicker label="시정 전 사진 (추가)" photos={beforeFixPhotos} onChange={setBeforeFixPhotos} />
             <div><Label>시정 내용</Label><Textarea value={resumeDetail} onChange={e=>setResumeDetail(e.target.value)} rows={3} className="mt-1" placeholder="시정 조치 내용 및 안전 확인 사항" /></div>
-            <PhotoPicker label="시정 완료 / 작업 재개 사진" photos={resumePhotos} onChange={setResumePhotos} />
+            <PhotoPicker label="시정 후 / 작업 재개 사진" photos={resumePhotos} onChange={setResumePhotos} />
             <Button onClick={submitResume} disabled={resumeSaving} className="w-full">{resumeSaving?"처리 중...":"작업 재개 처리"}</Button>
           </div>
         </DialogContent>
