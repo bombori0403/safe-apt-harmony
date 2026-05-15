@@ -11,7 +11,9 @@ import { METHOD_INFO, recommendMethod } from "@/lib/method-recommend";
 import { ASSESSMENT_METHODS, METHOD_LABEL, type AssessmentMethod, type AssessmentType, type RiskLevel } from "@/lib/types";
 import { getCurrentUserContext } from "@/lib/user-context";
 import { toast } from "sonner";
-import { Star } from "lucide-react";
+import { Star, AlertTriangle, ShieldAlert, ChevronDown, ChevronUp } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { WORK_STOP_LAW_TITLE, WORK_STOP_LAW_TEXT } from "@/lib/work-stop-law";
 
 export const Route = createFileRoute("/_app/assessment/new")({
   component: NewAssessment,
@@ -31,6 +33,10 @@ function NewAssessment() {
   const [method, setMethod] = useState<AssessmentMethod>("5단계_판단법");
   const [allowable, setAllowable] = useState<RiskLevel>("낮음");
   const [participantConsent, setParticipantConsent] = useState(false);
+  const [workStopConsent, setWorkStopConsent] = useState(false);
+  const [nearMiss, setNearMiss] = useState<any[]>([]);
+  const [nmExpanded, setNmExpanded] = useState(false);
+  const [complexPhone, setComplexPhone] = useState<string>("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -53,10 +59,25 @@ function NewAssessment() {
     });
   }, [user]);
 
+  const [pickedNearMiss, setPickedNearMiss] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    if (!complexId) return;
+    const since = new Date(Date.now() - 365 * 86400_000).toISOString();
+    (supabase as any).from("near_miss").select("*")
+      .eq("complex_id", complexId)
+      .gte("occurred_at", since)
+      .order("occurred_at", { ascending: false })
+      .then(({ data }: any) => setNearMiss(data ?? []));
+    supabase.from("complexes").select("manager_phone").eq("id", complexId).maybeSingle()
+      .then(({ data }) => setComplexPhone(data?.manager_phone ?? ""));
+  }, [complexId]);
+
   const recommended = workName ? recommendMethod(workName) : null;
 
   async function submit() {
     if (!complexId) { toast.error("단지가 지정되지 않았습니다"); return; }
+    if (!workStopConsent) { toast.error("작업중지권 안내 동의가 필요합니다"); return; }
     setSaving(true);
     try {
       const { data, error } = await supabase
@@ -75,6 +96,19 @@ function NewAssessment() {
         .select()
         .single();
       if (error) throw error;
+
+      // 위험요인으로 등록한 아차사고를 hazards에 자동 추가
+      const pickedIds = Object.keys(pickedNearMiss).filter(k => pickedNearMiss[k]);
+      const picked = nearMiss.filter(n => pickedIds.includes(n.id));
+      if (picked.length) {
+        await supabase.from("hazards").insert(
+          picked.map(n => ({
+            assessment_id: data.id,
+            description: `[아차사고 반영] ${n.situation}${n.location_detail ? ` (${n.location_detail})` : ""}`,
+          }))
+        );
+      }
+
       toast.success("평가 생성 완료. 유해·위험요인 파악 단계로 이동합니다.");
       navigate({ to: "/assessment/$id/hazards", params: { id: data.id } });
     } catch (e) {
@@ -96,6 +130,41 @@ function NewAssessment() {
           <div key={n} className={`flex-1 h-1.5 rounded-full ${n <= step ? "bg-primary" : "bg-muted"}`} />
         ))}
       </div>
+
+      {/* 아차사고 반영 카드 */}
+      {complexId && (
+        <Card>
+          <CardContent className="p-4">
+            <button type="button" onClick={()=>setNmExpanded(v=>!v)} className="w-full flex items-center justify-between gap-2 text-left">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-md bg-warning/15 text-warning"><AlertTriangle className="h-4 w-4"/></div>
+                <div>
+                  <div className="text-sm font-semibold">지난 12개월 아차사고 {nearMiss.length}건</div>
+                  <div className="text-xs text-muted-foreground">위험요인으로 등록할 항목을 선택하세요</div>
+                </div>
+              </div>
+              {nmExpanded ? <ChevronUp className="h-4 w-4"/> : <ChevronDown className="h-4 w-4"/>}
+            </button>
+            {nmExpanded && (
+              <div className="mt-3 space-y-1.5 max-h-64 overflow-y-auto">
+                {nearMiss.length === 0 ? (
+                  <div className="text-xs text-muted-foreground py-2">등록된 아차사고가 없습니다.</div>
+                ) : nearMiss.map(n => (
+                  <label key={n.id} className="flex items-start gap-2 p-2 rounded-md hover:bg-muted/40 cursor-pointer text-sm">
+                    <input type="checkbox" className="mt-0.5"
+                      checked={!!pickedNearMiss[n.id]}
+                      onChange={e=>setPickedNearMiss({...pickedNearMiss, [n.id]: e.target.checked})} />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs text-muted-foreground">{new Date(n.occurred_at).toLocaleDateString("ko-KR")} · {n.location_category ?? "-"} · {n.incident_type ?? "-"}</div>
+                      <div className="line-clamp-2">{n.situation}</div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {step === 1 && (
         <Card><CardContent className="p-5 space-y-4">
@@ -261,12 +330,32 @@ function NewAssessment() {
         </CardContent></Card>
       )}
 
+      {/* 작업중지권 안내 */}
+      <Card className="border-warning/40">
+        <CardContent className="p-5 space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded-md bg-warning/15 text-warning"><ShieldAlert className="h-4 w-4"/></div>
+            <h2 className="font-semibold">{WORK_STOP_LAW_TITLE}</h2>
+          </div>
+          <pre className="whitespace-pre-wrap text-xs leading-relaxed bg-muted/40 rounded-md p-3 font-sans max-h-40 overflow-y-auto">{WORK_STOP_LAW_TEXT}</pre>
+          <div className="text-xs">
+            <span className="text-muted-foreground">행사 시 비상연락:</span>{" "}
+            <span className="font-medium">{complexPhone || "관리사무소 비상연락망 (설정에서 등록)"}</span>
+          </div>
+          <label className="flex items-start gap-2 text-sm cursor-pointer">
+            <input type="checkbox" className="mt-0.5" checked={workStopConsent} onChange={e=>setWorkStopConsent(e.target.checked)} />
+            <span>본인은 위 작업중지권을 충분히 안내받았습니다. <span className="text-destructive">(필수)</span></span>
+          </label>
+          <Link to="/work-stop-right" className="text-xs text-primary underline">자세히 보기</Link>
+        </CardContent>
+      </Card>
+
       <div className="flex justify-between gap-2">
         <Button variant="outline" disabled={step===1} onClick={() => setStep(s => Math.max(1, s-1))}>이전</Button>
         {step < 6 ? (
           <Button onClick={() => setStep(s => s+1)} disabled={step===1 && !workName}>다음 단계로</Button>
         ) : (
-          <Button onClick={submit} disabled={!participantConsent || saving}>
+          <Button onClick={submit} disabled={!participantConsent || !workStopConsent || saving}>
             {saving ? "저장 중..." : "유해·위험요인 파악으로"}
           </Button>
         )}

@@ -492,40 +492,61 @@ export type Database = {
           assessment_id: string | null
           cause: string | null
           complex_id: string
+          countermeasure: string | null
+          countermeasure_completed: boolean
           created_at: string | null
           id: string
+          incident_type: string | null
+          location_category: string | null
+          location_detail: string | null
           occurred_at: string
           organization_id: string | null
           photos: Json | null
+          potential_severity: string | null
           reported_by: string | null
           result: string | null
           situation: string
+          updated_at: string
         }
         Insert: {
           assessment_id?: string | null
           cause?: string | null
           complex_id: string
+          countermeasure?: string | null
+          countermeasure_completed?: boolean
           created_at?: string | null
           id?: string
+          incident_type?: string | null
+          location_category?: string | null
+          location_detail?: string | null
           occurred_at: string
           organization_id?: string | null
           photos?: Json | null
+          potential_severity?: string | null
           reported_by?: string | null
           result?: string | null
           situation: string
+          updated_at?: string
         }
         Update: {
           assessment_id?: string | null
           cause?: string | null
           complex_id?: string
+          countermeasure?: string | null
+          countermeasure_completed?: boolean
           created_at?: string | null
           id?: string
+          incident_type?: string | null
+          location_category?: string | null
+          location_detail?: string | null
           occurred_at?: string
           organization_id?: string | null
           photos?: Json | null
+          potential_severity?: string | null
           reported_by?: string | null
           result?: string | null
           situation?: string
+          updated_at?: string
         }
         Relationships: [
           {
@@ -770,6 +791,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      work_stop_records: {
+        Row: {
+          assessment_id: string | null
+          complex_id: string
+          created_at: string
+          exercised_at: string
+          exerciser_name: string
+          exerciser_position: string | null
+          id: string
+          organization_id: string | null
+          reflected_in_assessment: boolean
+          reported_by: string | null
+          result: string
+          result_detail: string | null
+          stop_reason: string
+          updated_at: string
+          work_description: string
+        }
+        Insert: {
+          assessment_id?: string | null
+          complex_id: string
+          created_at?: string
+          exercised_at?: string
+          exerciser_name: string
+          exerciser_position?: string | null
+          id?: string
+          organization_id?: string | null
+          reflected_in_assessment?: boolean
+          reported_by?: string | null
+          result?: string
+          result_detail?: string | null
+          stop_reason: string
+          updated_at?: string
+          work_description: string
+        }
+        Update: {
+          assessment_id?: string | null
+          complex_id?: string
+          created_at?: string
+          exercised_at?: string
+          exerciser_name?: string
+          exerciser_position?: string | null
+          id?: string
+          organization_id?: string | null
+          reflected_in_assessment?: boolean
+          reported_by?: string | null
+          result?: string
+          result_detail?: string | null
+          stop_reason?: string
+          updated_at?: string
+          work_description?: string
+        }
+        Relationships: []
       }
     }
     Views: {

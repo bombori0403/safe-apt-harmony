@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, ClipboardList, FilePlus2, Building2, Settings, Shield, Users } from "lucide-react";
+import { LayoutDashboard, ClipboardList, FilePlus2, Building2, Settings, Shield, Users, AlertTriangle, ShieldAlert } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,8 @@ const NAV = [
   { to: "/dashboard", label: "대시보드", icon: LayoutDashboard, adminOnly: false },
   { to: "/assessment/new", label: "새 평가", icon: FilePlus2, adminOnly: false },
   { to: "/history", label: "평가 이력", icon: ClipboardList, adminOnly: false },
+  { to: "/near-miss", label: "아차사고", icon: AlertTriangle, adminOnly: false },
+  { to: "/work-stop-right", label: "작업중지권", icon: ShieldAlert, adminOnly: false },
   { to: "/console", label: "본사 콘솔", icon: Building2, adminOnly: false },
   { to: "/team", label: "직원 관리", icon: Users, adminOnly: false, managerOrAdmin: true },
   { to: "/settings", label: "설정", icon: Settings, adminOnly: false },
@@ -88,7 +90,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         {/* Bottom tabbar - mobile */}
         <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t flex">
-          {visibleNav.filter(n => n.to !== "/console").map(({ to, label, icon: Icon }) => {
+          {visibleNav.filter(n => ["/dashboard","/assessment/new","/history","/near-miss","/settings"].includes(n.to)).map(({ to, label, icon: Icon }) => {
             const active = path === to || path.startsWith(to + "/");
             return (
               <Link
