@@ -264,7 +264,7 @@ function WorkStopRecords() {
                     </div>
                   )}
                   <div className="flex flex-wrap gap-2 pt-1">
-                    <Link to="/work-stop-records_/$id" params={{ id: it.id }}>
+                    <Link to="/work-stop-records/$id" params={{ id: it.id }}>
                       <Button size="sm" variant="outline" className="gap-1.5"><Printer className="h-4 w-4"/>기록서 보기 / 출력</Button>
                     </Link>
                     {it.result !== "작업재개" && (
