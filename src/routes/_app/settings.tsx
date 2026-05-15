@@ -295,31 +295,33 @@ function Settings() {
               } catch (e: any) { toast.error(e?.message ?? "실패"); }
             }}
           >조직에서 나가기</Button>
-          <Button
-            variant="destructive"
-            onClick={async () => {
-              if (!confirm("계정을 완전히 삭제합니다. 되돌릴 수 없습니다. 진행할까요?")) return;
-              if (!confirm("정말 계정을 삭제하시겠습니까?")) return;
-              try {
-                await deleteAccount();
-                toast.success("계정이 삭제되었습니다.");
-                await signOut();
-              } catch (e: any) { toast.error(e?.message ?? "실패"); }
-            }}
-          >계정 삭제</Button>
           {userRow?.org_role === "admin" && (
-            <Button
-              variant="destructive"
-              onClick={async () => {
-                const name = prompt("조직과 모든 데이터(단지/평가/멤버)를 영구 삭제합니다.\n확인을 위해 '삭제'를 입력하세요.");
-                if (name !== "삭제") return;
-                try {
-                  await deleteOrganization();
-                  toast.success("조직이 삭제되었습니다.");
-                  await signOut();
-                } catch (e: any) { toast.error(e?.message ?? "실패"); }
-              }}
-            >조직 삭제 (관리자)</Button>
+            <>
+              <Button
+                variant="destructive"
+                onClick={async () => {
+                  if (!confirm("계정을 완전히 삭제합니다. 되돌릴 수 없습니다. 진행할까요?")) return;
+                  if (!confirm("정말 계정을 삭제하시겠습니까?")) return;
+                  try {
+                    await deleteAccount();
+                    toast.success("계정이 삭제되었습니다.");
+                    await signOut();
+                  } catch (e: any) { toast.error(e?.message ?? "실패"); }
+                }}
+              >계정 삭제 (관리자)</Button>
+              <Button
+                variant="destructive"
+                onClick={async () => {
+                  const name = prompt("조직과 모든 데이터(단지/평가/멤버)를 영구 삭제합니다.\n확인을 위해 '삭제'를 입력하세요.");
+                  if (name !== "삭제") return;
+                  try {
+                    await deleteOrganization();
+                    toast.success("조직이 삭제되었습니다.");
+                    await signOut();
+                  } catch (e: any) { toast.error(e?.message ?? "실패"); }
+                }}
+              >조직 삭제 (관리자)</Button>
+            </>
           )}
         </div>
         <p className="text-xs text-muted-foreground">
