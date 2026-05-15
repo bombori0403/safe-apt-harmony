@@ -58,14 +58,15 @@ export const updateAssessment = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const me = await getMe(context.userId);
     await ensureAccess(data.assessmentId, me.organization_id!);
-    const patch: Record<string, unknown> = {
-      work_name: data.work_name,
-      assessment_date: data.assessment_date,
-      location: data.location ?? null,
-    };
-    if (data.status) patch.status = data.status;
     const { error } = await supabaseAdmin
-      .from("assessments").update(patch).eq("id", data.assessmentId);
+      .from("assessments")
+      .update({
+        work_name: data.work_name,
+        assessment_date: data.assessment_date,
+        location: data.location ?? null,
+        ...(data.status ? { status: data.status } : {}),
+      })
+      .eq("id", data.assessmentId);
     if (error) throw error;
     return { ok: true };
   });
