@@ -257,20 +257,9 @@ function TeamPage() {
                   <div key={m.id} className="p-4 flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <div className="font-medium">{m.name} <Badge variant="outline" className="ml-1 text-xs">{m.org_role}</Badge></div>
-                      <div className="text-xs text-muted-foreground">{m.email} · 단지: {cx?.name ?? "미지정"}</div>
+                      <div className="text-xs text-muted-foreground">{m.email} · 단지: {m.org_role === "admin" ? "본사" : (cx?.name ?? "미지정")}</div>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <select
-                        value={cx?.id ?? ""}
-                        onChange={async (e) => {
-                          try { await assignComplex({ data: { userId: m.id, complexId: e.target.value || null } }); toast.success("단지 변경됨"); load(); }
-                          catch (err) { toast.error(err instanceof Error ? err.message : "실패"); }
-                        }}
-                        className="h-9 px-2 rounded border bg-background text-sm"
-                      >
-                        <option value="">단지 미지정</option>
-                        {data.complexes.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                      </select>
                       <select
                         value={m.org_role}
                         onChange={async (e) => {
