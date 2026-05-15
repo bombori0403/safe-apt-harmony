@@ -280,7 +280,7 @@ function WorkStopRecords() {
                       <Button size="sm" variant="outline" className="gap-1.5"><Printer className="h-4 w-4"/>기록서 보기 / 출력</Button>
                     </Link>
                     {it.result !== "작업재개" && (
-                      <Button size="sm" variant="outline" className="gap-1.5" onClick={()=>{ setResumeId(it.id); setResumeDetail(""); setResumePhotos([]); }}>
+                      <Button size="sm" variant="outline" className="gap-1.5" onClick={()=>openResume(it)}>
                         <CheckCircle2 className="h-4 w-4"/>시정 완료 · 작업 재개 처리
                       </Button>
                     )}
