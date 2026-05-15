@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { SignaturePad } from "@/components/signature-pad";
 import { Shield, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
-import { submitParticipantConfirmation } from "@/lib/confirm.functions";
+
 
 export const Route = createFileRoute("/confirm/$id")({
   component: Confirm,
