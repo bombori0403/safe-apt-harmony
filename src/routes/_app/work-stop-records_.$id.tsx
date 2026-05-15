@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Printer, ArrowLeft } from "lucide-react";
 
-export const Route = createFileRoute("/_app/work-stop-records/$id")({
+export const Route = createFileRoute("/_app/work-stop-records_/$id")({
   component: WorkStopRecordDetail,
 });
 
