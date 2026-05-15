@@ -10,7 +10,7 @@ const NAV = [
   { to: "/assessment/new", label: "새 평가", icon: FilePlus2, adminOnly: false },
   { to: "/history", label: "평가 이력", icon: ClipboardList, adminOnly: false },
   { to: "/console", label: "본사 콘솔", icon: Building2, adminOnly: false },
-  { to: "/team", label: "직원 관리", icon: Users, adminOnly: true },
+  { to: "/team", label: "직원 관리", icon: Users, adminOnly: false, managerOrAdmin: true },
   { to: "/settings", label: "설정", icon: Settings, adminOnly: false },
 ] as const;
 
@@ -18,19 +18,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const path = useRouterState({ select: (r) => r.location.pathname });
   const { signOut, user } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isManager, setIsManager] = useState(false);
   const [orgName, setOrgName] = useState<string>("");
   useEffect(() => {
     if (!user) return;
     supabase.from("users").select("org_role, organization_id").eq("auth_id", user.id).maybeSingle()
       .then(async ({ data }) => {
         setIsAdmin(data?.org_role === "admin");
+        setIsManager(data?.org_role === "manager");
         if (data?.organization_id) {
           const { data: org } = await supabase.from("organizations").select("name").eq("id", data.organization_id).maybeSingle();
           if (org?.name) setOrgName(org.name);
         }
       });
   }, [user]);
-  const visibleNav = NAV.filter(n => !n.adminOnly || isAdmin);
+  const visibleNav = NAV.filter(n => {
+    if (n.adminOnly) return isAdmin;
+    if ((n as any).managerOrAdmin) return isAdmin || isManager;
+    return true;
+  });
   return (
     <div className="min-h-screen flex w-full bg-background">
       {/* Sidebar - desktop only */}

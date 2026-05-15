@@ -357,6 +357,7 @@ export type Database = {
       }
       invitations: {
         Row: {
+          complex_id: string | null
           created_at: string
           email: string | null
           expires_at: string
@@ -373,6 +374,7 @@ export type Database = {
           used_count: number
         }
         Insert: {
+          complex_id?: string | null
           created_at?: string
           email?: string | null
           expires_at?: string
@@ -389,6 +391,7 @@ export type Database = {
           used_count?: number
         }
         Update: {
+          complex_id?: string | null
           created_at?: string
           email?: string | null
           expires_at?: string
@@ -786,9 +789,11 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: string
       }
+      current_user_complex: { Args: never; Returns: string }
       current_user_id: { Args: never; Returns: string }
       current_user_org: { Args: never; Returns: string }
       is_org_admin: { Args: never; Returns: boolean }
+      is_org_manager: { Args: never; Returns: boolean }
       org_can_write: { Args: never; Returns: boolean }
       user_admin_company_ids: { Args: never; Returns: string[] }
       user_complex_ids: { Args: never; Returns: string[] }
