@@ -49,10 +49,9 @@ export const deleteAccount = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const me = await getMe(context.userId);
-    if (me.org_role === "admin" && me.organization_id) {
-      if (await isLastAdmin(me.organization_id, me.id)) {
-        throw new Error("마지막 관리자입니다. 조직을 먼저 삭제하거나 다른 관리자를 지정하세요.");
-      }
+    if (me.org_role !== "admin") throw new Error("관리자만 계정을 삭제할 수 있습니다.");
+    if (me.organization_id && (await isLastAdmin(me.organization_id, me.id))) {
+      throw new Error("마지막 관리자입니다. 조직을 먼저 삭제하거나 다른 관리자를 지정하세요.");
     }
     await supabaseAdmin.from("complex_members").delete().eq("user_id", me.id);
     await supabaseAdmin.from("users").delete().eq("id", me.id);
