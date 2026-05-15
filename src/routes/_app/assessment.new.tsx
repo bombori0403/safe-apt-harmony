@@ -131,6 +131,41 @@ function NewAssessment() {
         ))}
       </div>
 
+      {/* 아차사고 반영 카드 */}
+      {complexId && (
+        <Card>
+          <CardContent className="p-4">
+            <button type="button" onClick={()=>setNmExpanded(v=>!v)} className="w-full flex items-center justify-between gap-2 text-left">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-md bg-warning/15 text-warning"><AlertTriangle className="h-4 w-4"/></div>
+                <div>
+                  <div className="text-sm font-semibold">지난 12개월 아차사고 {nearMiss.length}건</div>
+                  <div className="text-xs text-muted-foreground">위험요인으로 등록할 항목을 선택하세요</div>
+                </div>
+              </div>
+              {nmExpanded ? <ChevronUp className="h-4 w-4"/> : <ChevronDown className="h-4 w-4"/>}
+            </button>
+            {nmExpanded && (
+              <div className="mt-3 space-y-1.5 max-h-64 overflow-y-auto">
+                {nearMiss.length === 0 ? (
+                  <div className="text-xs text-muted-foreground py-2">등록된 아차사고가 없습니다.</div>
+                ) : nearMiss.map(n => (
+                  <label key={n.id} className="flex items-start gap-2 p-2 rounded-md hover:bg-muted/40 cursor-pointer text-sm">
+                    <input type="checkbox" className="mt-0.5"
+                      checked={!!pickedNearMiss[n.id]}
+                      onChange={e=>setPickedNearMiss({...pickedNearMiss, [n.id]: e.target.checked})} />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs text-muted-foreground">{new Date(n.occurred_at).toLocaleDateString("ko-KR")} · {n.location_category ?? "-"} · {n.incident_type ?? "-"}</div>
+                      <div className="line-clamp-2">{n.situation}</div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {step === 1 && (
         <Card><CardContent className="p-5 space-y-4">
           <h2 className="font-semibold text-lg">Step 1. 평가 기본정보</h2>
