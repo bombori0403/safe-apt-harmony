@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { Copy, Trash2, UserPlus, QrCode } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { QRCodeSVG } from "qrcode.react";
+import { buildInviteLink } from "@/lib/app-url";
 
 export const Route = createFileRoute("/_app/team")({ component: TeamPage });
 
