@@ -117,6 +117,21 @@ function Settings() {
     if (error) toast.error(error.message); else toast.success("프로필이 저장되었습니다");
   }
 
+  async function saveOrg() {
+    if (!org) return;
+    if (!org.name?.trim()) { toast.error("본사명을 입력하세요"); return; }
+    setSavingOrg(true);
+    const { error } = await supabase.from("organizations").update({
+      name: org.name.trim(),
+      address: org.address?.trim() || null,
+      phone: org.phone?.trim() || null,
+      business_number: org.business_number?.trim() || null,
+      representative_name: org.representative_name?.trim() || null,
+    }).eq("id", org.id);
+    setSavingOrg(false);
+    if (error) toast.error(error.message); else toast.success("본사 정보가 저장되었습니다");
+  }
+
   async function handleDelete(c: any) {
     if (!confirm(`'${c.name}' 단지를 삭제하시겠습니까?\n평가 기록이 있는 단지는 삭제할 수 없습니다.`)) return;
     setDeletingId(c.id);
