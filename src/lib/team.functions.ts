@@ -136,7 +136,7 @@ export const removeMember = createServerFn({ method: "POST" })
     const targetAuthId: string | null = target.auth_id ?? null;
     await supabaseAdmin.from("users").delete().eq("id", data.userId);
     if (targetAuthId) {
-      await supabaseAdmin.auth.admin.deleteUser(target.auth_id).catch(() => {});
+      await supabaseAdmin.auth.admin.deleteUser(targetAuthId).catch(() => {});
     }
     return { ok: true };
   });
