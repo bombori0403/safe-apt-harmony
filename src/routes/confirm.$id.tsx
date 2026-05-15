@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { submitParticipantConfirmation, getConfirmInfo } from "@/lib/confirm.functions";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { SignaturePad } from "@/components/signature-pad";
 import { Shield, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/confirm/$id")({
   component: Confirm,
@@ -25,33 +26,30 @@ function Confirm() {
 
   useEffect(() => {
     (async () => {
-      const { data: ass } = await supabase.from("assessments").select("work_name,assessment_date,method").eq("id", id).maybeSingle();
-      setA(ass);
-      const { data: p } = await supabase.from("participants").select("id,name,role").eq("assessment_id", id);
-      setParts(p ?? []);
+      try {
+        const res = await getConfirmInfo({ data: { assessmentId: id } });
+        setA(res.assessment);
+        setParts(res.participants);
+      } catch (e: any) {
+        toast.error(e.message ?? "평가 정보를 불러오지 못했습니다.");
+      }
     })();
   }, [id]);
 
   async function submit() {
     setSaving(true);
     try {
-      let participantId = pid;
-      if (!participantId) {
-        if (!name.trim()) { toast.error("이름을 입력하거나 명단에서 선택하세요"); return; }
-        const { data, error } = await supabase.from("participants").insert({
-          assessment_id: id, name, participation_role: "근로자",
-        }).select().single();
-        if (error) throw error;
-        participantId = data.id;
-      }
       if (!sig) { toast.error("서명을 입력하세요"); return; }
-      const { error } = await supabase.from("signatures").insert({
-        assessment_id: id,
-        participant_id: participantId,
-        signature_image: sig,
-        user_agent: navigator.userAgent,
+      if (!pid && !name.trim()) { toast.error("이름을 입력하거나 명단에서 선택하세요"); return; }
+      await submitParticipantConfirmation({
+        data: {
+          assessmentId: id,
+          participantId: pid || null,
+          name: pid ? null : name.trim(),
+          signatureImage: sig,
+          userAgent: navigator.userAgent,
+        },
       });
-      if (error) throw error;
       setDone(true);
     } catch (e: any) {
       toast.error(e.message ?? "오류");
@@ -59,6 +57,7 @@ function Confirm() {
       setSaving(false);
     }
   }
+
 
   if (done) {
     return (
