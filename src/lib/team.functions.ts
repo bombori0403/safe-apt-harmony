@@ -211,6 +211,18 @@ export const revokeInvitation = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const deleteInvitation = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => z.object({ id: z.string().uuid() }).parse(i))
+  .handler(async ({ data, context }) => {
+    const me = await getMe(context.userId);
+    let q = supabaseAdmin.from("invitations").delete().eq("id", data.id).eq("organization_id", me.organization_id!);
+    if (me.org_role === "manager") q = q.eq("invited_by", me.id);
+    const { error } = await q;
+    if (error) throw error;
+    return { ok: true };
+  });
+
 async function requireAdmin(authUid: string) {
   const me = await getMe(authUid);
   if (me.org_role !== "admin") throw new Error("관리자만 가능합니다.");
