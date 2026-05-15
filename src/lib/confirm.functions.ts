@@ -2,6 +2,24 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
+const infoSchema = z.object({ assessmentId: z.string().uuid() });
+
+export const getConfirmInfo = createServerFn({ method: "POST" })
+  .inputValidator((i) => infoSchema.parse(i))
+  .handler(async ({ data }) => {
+    const { data: a } = await supabaseAdmin
+      .from("assessments")
+      .select("work_name, assessment_date, method")
+      .eq("id", data.assessmentId)
+      .maybeSingle();
+    if (!a) throw new Error("존재하지 않는 평가입니다.");
+    const { data: parts } = await supabaseAdmin
+      .from("participants")
+      .select("id, name, role")
+      .eq("assessment_id", data.assessmentId);
+    return { assessment: a, participants: parts ?? [] };
+  });
+
 const schema = z.object({
   assessmentId: z.string().uuid(),
   participantId: z.string().uuid().optional().nullable(),
