@@ -253,11 +253,15 @@ function TeamPage() {
             <div className="divide-y">
               {data.members.map((m: any) => {
                 const cx = userComplexMap.get(m.id);
+                const roleLabel = m.org_role === "admin" ? "관리자" : m.org_role === "manager" ? "매니저" : "일반";
+                const complexLabel = m.org_role === "admin"
+                  ? (data.organization?.name ?? "본사")
+                  : (cx?.name ?? "미지정");
                 return (
                   <div key={m.id} className="p-4 flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <div className="font-medium">{m.name} <Badge variant="outline" className="ml-1 text-xs">{m.org_role}</Badge></div>
-                      <div className="text-xs text-muted-foreground">{m.email} · 단지: {m.org_role === "admin" ? "본사" : (cx?.name ?? "미지정")}</div>
+                      <div className="font-medium">{m.name} <Badge variant="outline" className="ml-1 text-xs">{roleLabel}</Badge></div>
+                      <div className="text-xs text-muted-foreground">{m.email} · 단지: {complexLabel}</div>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <select
@@ -296,7 +300,7 @@ function TeamPage() {
               {data.members.filter((m: any) => userComplexMap.get(m.id)?.id === data.me.complexId).map((m: any) => (
                 <div key={m.id} className="p-4 flex items-center justify-between gap-3">
                   <div>
-                    <div className="font-medium">{m.name} <Badge variant="outline" className="ml-1 text-xs">{m.org_role}</Badge></div>
+                    <div className="font-medium">{m.name} <Badge variant="outline" className="ml-1 text-xs">{m.org_role === "admin" ? "관리자" : m.org_role === "manager" ? "매니저" : "일반"}</Badge></div>
                     <div className="text-xs text-muted-foreground">{m.email}</div>
                   </div>
                 </div>

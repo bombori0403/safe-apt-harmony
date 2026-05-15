@@ -36,6 +36,8 @@ function Settings() {
   const deleteComplexFn = useServerFn(deleteComplex);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [userRow, setUserRow] = useState<any>(null);
+  const [org, setOrg] = useState<any>(null);
+  const [savingOrg, setSavingOrg] = useState(false);
   const [complexes, setComplexes] = useState<any[]>([]);
   const [newComplex, setNewComplex] = useState<any>(EMPTY_COMPLEX);
   const [loading, setLoading] = useState(true);
@@ -49,6 +51,10 @@ function Settings() {
     setLoading(true);
     const { data: u } = await supabase.from("users").select("*").eq("auth_id", user.id).maybeSingle();
     setUserRow(u);
+    if (u?.organization_id) {
+      const { data: o } = await supabase.from("organizations").select("*").eq("id", u.organization_id).maybeSingle();
+      setOrg(o);
+    }
     if (u) {
       const { data: members } = await supabase
         .from("complex_members")
@@ -109,6 +115,21 @@ function Settings() {
     }).eq("id", userRow.id);
     setSavingUser(false);
     if (error) toast.error(error.message); else toast.success("프로필이 저장되었습니다");
+  }
+
+  async function saveOrg() {
+    if (!org) return;
+    if (!org.name?.trim()) { toast.error("본사명을 입력하세요"); return; }
+    setSavingOrg(true);
+    const { error } = await supabase.from("organizations").update({
+      name: org.name.trim(),
+      address: org.address?.trim() || null,
+      phone: org.phone?.trim() || null,
+      business_number: org.business_number?.trim() || null,
+      representative_name: org.representative_name?.trim() || null,
+    }).eq("id", org.id);
+    setSavingOrg(false);
+    if (error) toast.error(error.message); else toast.success("본사 정보가 저장되었습니다");
   }
 
   async function handleDelete(c: any) {
@@ -174,6 +195,54 @@ function Settings() {
           <div className="rounded-md bg-muted p-3 text-sm text-muted-foreground">사용자 정보를 불러오는 중...</div>
         )}
       </CardContent></Card>
+
+      {org && (
+        <Card><CardContent className="p-5 space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="font-semibold">본사 정보</h2>
+            {userRow?.org_role !== "admin" && (
+              <span className="text-xs text-muted-foreground">관리자만 수정 가능</span>
+            )}
+          </div>
+          {(() => {
+            const readOnly = userRow?.org_role !== "admin";
+            return (
+              <>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>본사명 *</Label>
+                    <Input value={org.name ?? ""} disabled={readOnly}
+                      onChange={e=>setOrg({...org, name:e.target.value})} />
+                  </div>
+                  <div>
+                    <Label>대표자명</Label>
+                    <Input value={org.representative_name ?? ""} disabled={readOnly}
+                      onChange={e=>setOrg({...org, representative_name:e.target.value})} />
+                  </div>
+                  <div className="col-span-2">
+                    <Label>주소</Label>
+                    <Input value={org.address ?? ""} disabled={readOnly}
+                      onChange={e=>setOrg({...org, address:e.target.value})} />
+                  </div>
+                  <div>
+                    <Label>대표 연락처</Label>
+                    <Input value={org.phone ?? ""} placeholder="02-0000-0000" disabled={readOnly}
+                      onChange={e=>setOrg({...org, phone:e.target.value})} />
+                  </div>
+                  <div>
+                    <Label>사업자번호</Label>
+                    <Input value={org.business_number ?? ""} placeholder="000-00-00000" disabled={readOnly}
+                      onChange={e=>setOrg({...org, business_number:e.target.value})} />
+                  </div>
+                </div>
+                {!readOnly && (
+                  <Button onClick={saveOrg} disabled={savingOrg}>{savingOrg?"저장 중...":"본사 정보 저장"}</Button>
+                )}
+              </>
+            );
+          })()}
+        </CardContent></Card>
+      )}
 
       <Card><CardContent className="p-5 space-y-4">
         <div className="flex items-center justify-between">

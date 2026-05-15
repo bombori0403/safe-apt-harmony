@@ -567,31 +567,43 @@ export type Database = {
       }
       organizations: {
         Row: {
+          address: string | null
+          business_number: string | null
           created_at: string
           created_by: string | null
           expires_at: string | null
           id: string
           name: string
+          phone: string | null
+          representative_name: string | null
           seat_limit: number
           subscription_status: Database["public"]["Enums"]["subscription_status"]
           updated_at: string
         }
         Insert: {
+          address?: string | null
+          business_number?: string | null
           created_at?: string
           created_by?: string | null
           expires_at?: string | null
           id?: string
           name: string
+          phone?: string | null
+          representative_name?: string | null
           seat_limit?: number
           subscription_status?: Database["public"]["Enums"]["subscription_status"]
           updated_at?: string
         }
         Update: {
+          address?: string | null
+          business_number?: string | null
           created_at?: string
           created_by?: string | null
           expires_at?: string | null
           id?: string
           name?: string
+          phone?: string | null
+          representative_name?: string | null
           seat_limit?: number
           subscription_status?: Database["public"]["Enums"]["subscription_status"]
           updated_at?: string

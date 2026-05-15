@@ -59,6 +59,12 @@ export const listTeam = createServerFn({ method: "GET" })
       .eq("organization_id", orgId)
       .order("name");
 
+    const { data: org } = await supabaseAdmin
+      .from("organizations")
+      .select("id, name")
+      .eq("id", orgId)
+      .maybeSingle();
+
     const myComplexId = me.org_role === "manager" ? await getMyComplexId(me.id) : null;
 
     return {
@@ -67,6 +73,7 @@ export const listTeam = createServerFn({ method: "GET" })
       memberComplexes: cmRows ?? [],
       invitations: invites ?? [],
       complexes: complexes ?? [],
+      organization: org ?? null,
     };
   });
 
