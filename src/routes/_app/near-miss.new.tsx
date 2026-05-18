@@ -25,6 +25,7 @@ function NewNearMiss() {
   const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
   const [userRowId, setUserRowId] = useState<string>("");
+  const [orgId, setOrgId] = useState<string>("");
   const [complexes, setComplexes] = useState<{id:string;name:string}[]>([]);
   const [complexId, setComplexId] = useState("");
   const [occurredAt, setOccurredAt] = useState(new Date().toISOString().slice(0,16));
@@ -40,8 +41,9 @@ function NewNearMiss() {
 
   useEffect(() => {
     if (!user) return;
-    getCurrentUserContext(user.id).then(async ({ userId, complexId: ctxComplex }) => {
+    getCurrentUserContext(user.id).then(async ({ userId, complexId: ctxComplex, userRow }) => {
       if (userId) setUserRowId(userId);
+      if (userRow?.organization_id) setOrgId(userRow.organization_id);
       const { data: members } = await supabase.from("complex_members").select("complex_id").eq("user_id", userId ?? "");
       const ids = [...new Set((members ?? []).map((m:any)=>m.complex_id).filter(Boolean))];
       const { data: list } = ids.length
@@ -79,6 +81,7 @@ function NewNearMiss() {
     setSaving(true);
     const { error } = await (supabase as any).from("near_miss").insert({
       complex_id: complexId,
+      organization_id: orgId || null,
       reported_by: userRowId || null,
       occurred_at: new Date(occurredAt).toISOString(),
       situation: desc,
