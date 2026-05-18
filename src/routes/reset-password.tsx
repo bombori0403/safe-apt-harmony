@@ -68,7 +68,8 @@ function ResetPassword() {
             {!ready ? (
               <div className="space-y-4 text-center">
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  재설정 메일의 링크로 다시 접속해 주세요. 링크가 만료됐다면 로그인 화면에서 재설정 메일을 다시 요청할 수 있습니다.
+                  재설정 메일의 링크로 다시 접속해 주세요. 링크가 만료됐다면 로그인 화면에서 재설정
+                  메일을 다시 요청할 수 있습니다.
                 </p>
                 <Button asChild className="w-full">
                   <Link to="/">로그인 화면으로</Link>

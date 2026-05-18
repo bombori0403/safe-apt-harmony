@@ -32,9 +32,12 @@ function Index() {
       if (error) throw error;
       window.location.href = "/dashboard";
     } catch (err) {
-      const message = err instanceof Error && err.message === "Invalid login credentials"
-        ? "이메일 또는 비밀번호가 맞지 않습니다. 데스크탑 저장 비밀번호를 지우고 직접 입력하거나, 아래에서 비밀번호를 재설정해 주세요."
-        : err instanceof Error ? err.message : "오류가 발생했습니다";
+      const message =
+        err instanceof Error && err.message === "Invalid login credentials"
+          ? "이메일 또는 비밀번호가 맞지 않습니다. 데스크탑 저장 비밀번호를 지우고 직접 입력하거나, 아래에서 비밀번호를 재설정해 주세요."
+          : err instanceof Error
+            ? err.message
+            : "오류가 발생했습니다";
       toast.error(message);
     } finally {
       setLoading(false);
@@ -80,18 +83,39 @@ function Index() {
             <form onSubmit={submit} className="space-y-3">
               <div>
                 <Label htmlFor="email">이메일</Label>
-                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoComplete="email"
+                />
               </div>
               <div>
                 <Label htmlFor="pw">비밀번호</Label>
-                <Input id="pw" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} autoComplete="current-password" />
+                <Input
+                  id="pw"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  autoComplete="current-password"
+                />
               </div>
               <Button type="submit" disabled={loading} className="w-full h-11 text-base">
                 {loading ? "처리 중..." : "로그인"}
               </Button>
             </form>
 
-            <Button type="button" variant="link" disabled={resetLoading} onClick={sendPasswordReset} className="mt-2 w-full">
+            <Button
+              type="button"
+              variant="link"
+              disabled={resetLoading}
+              onClick={sendPasswordReset}
+              className="mt-2 w-full"
+            >
               {resetLoading ? "메일 발송 중..." : "비밀번호 재설정 메일 받기"}
             </Button>
 
@@ -108,7 +132,8 @@ function Index() {
         </Card>
 
         <p className="text-[11px] text-center text-muted-foreground mt-6 leading-relaxed">
-          본 서비스는 산업안전보건법 제36조, 고용노동부 고시 제2024-76호,<br />
+          본 서비스는 산업안전보건법 제36조, 고용노동부 고시 제2024-76호,
+          <br />
           공동주택관리법 제32조에 근거한 위험성평가 절차를 지원합니다.
         </p>
       </div>
