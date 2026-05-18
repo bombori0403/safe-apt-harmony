@@ -27,12 +27,25 @@ function Ledger() {
 
   useEffect(() => {
     (async () => {
-      const { data: c } = await supabase.from("complexes").select("id,name");
+      const { data: auth } = await supabase.auth.getUser();
+      const authId = auth.user?.id;
+      let allowedComplexIds: string[] | null = null;
+      if (authId) {
+        const { data: me } = await supabase.from("users").select("id,org_role").eq("auth_id", authId).maybeSingle();
+        if (me && me.org_role !== "admin") {
+          const { data: cm } = await supabase.from("complex_members").select("complex_id").eq("user_id", me.id);
+          allowedComplexIds = (cm ?? []).map((r: any) => r.complex_id);
+        }
+      }
+
+      let cq = supabase.from("complexes").select("id,name");
+      if (allowedComplexIds) cq = cq.in("id", allowedComplexIds.length ? allowedComplexIds : ["00000000-0000-0000-0000-000000000000"]);
+      const { data: c } = await cq;
       setComplexes(c ?? []);
-      const { data } = await (supabase as any)
-        .from("work_stop_records")
-        .select("*")
-        .order("exercised_at", { ascending: true });
+
+      let q: any = (supabase as any).from("work_stop_records").select("*").order("exercised_at", { ascending: true });
+      if (allowedComplexIds) q = q.in("complex_id", allowedComplexIds.length ? allowedComplexIds : ["00000000-0000-0000-0000-000000000000"]);
+      const { data } = await q;
       setItems(data ?? []);
     })();
   }, []);
