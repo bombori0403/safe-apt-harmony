@@ -25,6 +25,7 @@ function NewNearMiss() {
   const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
   const [userRowId, setUserRowId] = useState<string>("");
+  const [orgId, setOrgId] = useState<string>("");
   const [complexes, setComplexes] = useState<{id:string;name:string}[]>([]);
   const [complexId, setComplexId] = useState("");
   const [occurredAt, setOccurredAt] = useState(new Date().toISOString().slice(0,16));
