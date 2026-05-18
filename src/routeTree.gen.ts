@@ -22,6 +22,7 @@ import { Route as AppNearMissRouteImport } from './routes/_app/near-miss'
 import { Route as AppHistoryRouteImport } from './routes/_app/history'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppConsoleRouteImport } from './routes/_app/console'
+import { Route as AppWorkStopRecordsLedgerRouteImport } from './routes/_app/work-stop-records_.ledger'
 import { Route as AppWorkStopRecordsIdRouteImport } from './routes/_app/work-stop-records_.$id'
 import { Route as AppNearMissNewRouteImport } from './routes/_app/near-miss.new'
 import { Route as AppNearMissIdRouteImport } from './routes/_app/near-miss.$id'
@@ -97,6 +98,12 @@ const AppConsoleRoute = AppConsoleRouteImport.update({
   path: '/console',
   getParentRoute: () => AppRoute,
 } as any)
+const AppWorkStopRecordsLedgerRoute =
+  AppWorkStopRecordsLedgerRouteImport.update({
+    id: '/work-stop-records_/ledger',
+    path: '/work-stop-records/ledger',
+    getParentRoute: () => AppRoute,
+  } as any)
 const AppWorkStopRecordsIdRoute = AppWorkStopRecordsIdRouteImport.update({
   id: '/work-stop-records_/$id',
   path: '/work-stop-records/$id',
@@ -165,6 +172,7 @@ export interface FileRoutesByFullPath {
   '/near-miss/$id': typeof AppNearMissIdRoute
   '/near-miss/new': typeof AppNearMissNewRoute
   '/work-stop-records/$id': typeof AppWorkStopRecordsIdRoute
+  '/work-stop-records/ledger': typeof AppWorkStopRecordsLedgerRoute
   '/assessment/$id/hazards': typeof AppAssessmentIdHazardsRoute
   '/assessment/$id/measures': typeof AppAssessmentIdMeasuresRoute
   '/assessment/$id/report': typeof AppAssessmentIdReportRoute
@@ -189,6 +197,7 @@ export interface FileRoutesByTo {
   '/near-miss/$id': typeof AppNearMissIdRoute
   '/near-miss/new': typeof AppNearMissNewRoute
   '/work-stop-records/$id': typeof AppWorkStopRecordsIdRoute
+  '/work-stop-records/ledger': typeof AppWorkStopRecordsLedgerRoute
   '/assessment/$id/hazards': typeof AppAssessmentIdHazardsRoute
   '/assessment/$id/measures': typeof AppAssessmentIdMeasuresRoute
   '/assessment/$id/report': typeof AppAssessmentIdReportRoute
@@ -215,6 +224,7 @@ export interface FileRoutesById {
   '/_app/near-miss/$id': typeof AppNearMissIdRoute
   '/_app/near-miss/new': typeof AppNearMissNewRoute
   '/_app/work-stop-records_/$id': typeof AppWorkStopRecordsIdRoute
+  '/_app/work-stop-records_/ledger': typeof AppWorkStopRecordsLedgerRoute
   '/_app/assessment/$id/hazards': typeof AppAssessmentIdHazardsRoute
   '/_app/assessment/$id/measures': typeof AppAssessmentIdMeasuresRoute
   '/_app/assessment/$id/report': typeof AppAssessmentIdReportRoute
@@ -241,6 +251,7 @@ export interface FileRouteTypes {
     | '/near-miss/$id'
     | '/near-miss/new'
     | '/work-stop-records/$id'
+    | '/work-stop-records/ledger'
     | '/assessment/$id/hazards'
     | '/assessment/$id/measures'
     | '/assessment/$id/report'
@@ -265,6 +276,7 @@ export interface FileRouteTypes {
     | '/near-miss/$id'
     | '/near-miss/new'
     | '/work-stop-records/$id'
+    | '/work-stop-records/ledger'
     | '/assessment/$id/hazards'
     | '/assessment/$id/measures'
     | '/assessment/$id/report'
@@ -290,6 +302,7 @@ export interface FileRouteTypes {
     | '/_app/near-miss/$id'
     | '/_app/near-miss/new'
     | '/_app/work-stop-records_/$id'
+    | '/_app/work-stop-records_/ledger'
     | '/_app/assessment/$id/hazards'
     | '/_app/assessment/$id/measures'
     | '/_app/assessment/$id/report'
@@ -399,6 +412,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppConsoleRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/work-stop-records_/ledger': {
+      id: '/_app/work-stop-records_/ledger'
+      path: '/work-stop-records/ledger'
+      fullPath: '/work-stop-records/ledger'
+      preLoaderRoute: typeof AppWorkStopRecordsLedgerRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/work-stop-records_/$id': {
       id: '/_app/work-stop-records_/$id'
       path: '/work-stop-records/$id'
@@ -497,6 +517,7 @@ interface AppRouteChildren {
   AppWorkStopRightRoute: typeof AppWorkStopRightRoute
   AppAssessmentNewRoute: typeof AppAssessmentNewRoute
   AppWorkStopRecordsIdRoute: typeof AppWorkStopRecordsIdRoute
+  AppWorkStopRecordsLedgerRoute: typeof AppWorkStopRecordsLedgerRoute
   AppAssessmentIdHazardsRoute: typeof AppAssessmentIdHazardsRoute
   AppAssessmentIdMeasuresRoute: typeof AppAssessmentIdMeasuresRoute
   AppAssessmentIdReportRoute: typeof AppAssessmentIdReportRoute
@@ -516,6 +537,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppWorkStopRightRoute: AppWorkStopRightRoute,
   AppAssessmentNewRoute: AppAssessmentNewRoute,
   AppWorkStopRecordsIdRoute: AppWorkStopRecordsIdRoute,
+  AppWorkStopRecordsLedgerRoute: AppWorkStopRecordsLedgerRoute,
   AppAssessmentIdHazardsRoute: AppAssessmentIdHazardsRoute,
   AppAssessmentIdMeasuresRoute: AppAssessmentIdMeasuresRoute,
   AppAssessmentIdReportRoute: AppAssessmentIdReportRoute,
@@ -536,13 +558,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
