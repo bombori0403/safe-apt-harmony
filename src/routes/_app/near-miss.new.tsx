@@ -41,8 +41,9 @@ function NewNearMiss() {
 
   useEffect(() => {
     if (!user) return;
-    getCurrentUserContext(user.id).then(async ({ userId, complexId: ctxComplex }) => {
+    getCurrentUserContext(user.id).then(async ({ userId, complexId: ctxComplex, userRow }) => {
       if (userId) setUserRowId(userId);
+      if (userRow?.organization_id) setOrgId(userRow.organization_id);
       const { data: members } = await supabase.from("complex_members").select("complex_id").eq("user_id", userId ?? "");
       const ids = [...new Set((members ?? []).map((m:any)=>m.complex_id).filter(Boolean))];
       const { data: list } = ids.length
