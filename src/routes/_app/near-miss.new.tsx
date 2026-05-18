@@ -81,6 +81,7 @@ function NewNearMiss() {
     setSaving(true);
     const { error } = await (supabase as any).from("near_miss").insert({
       complex_id: complexId,
+      organization_id: orgId || null,
       reported_by: userRowId || null,
       occurred_at: new Date(occurredAt).toISOString(),
       situation: desc,
