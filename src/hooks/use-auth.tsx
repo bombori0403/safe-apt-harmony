@@ -16,15 +16,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+      if (!mounted) return;
       setSession(s);
       setLoading(false);
     });
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (!mounted) return;
+      if (!data.session) {
+        setSession(null);
+        setLoading(false);
+        return;
+      }
+
+      const { data: userData, error } = await supabase.auth.getUser();
+      if (!mounted) return;
+      if (error || !userData.user) {
+        await supabase.auth.signOut({ scope: "local" });
+        setSession(null);
+      } else {
+        setSession(data.session);
+      }
       setLoading(false);
     });
-    return () => sub.subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   return (
@@ -33,7 +52,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user: session?.user ?? null,
         session,
         loading,
-        signOut: async () => { await supabase.auth.signOut(); },
+        signOut: async () => {
+          const { error } = await supabase.auth.signOut();
+          if (error) await supabase.auth.signOut({ scope: "local" });
+        },
       }}
     >
       {children}
