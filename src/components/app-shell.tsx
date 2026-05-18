@@ -9,7 +9,7 @@ const NAV = [
   { to: "/dashboard", label: "대시보드", icon: LayoutDashboard, adminOnly: false },
   { to: "/assessment/new", label: "새 평가", icon: FilePlus2, adminOnly: false },
   { to: "/history", label: "평가 이력", icon: ClipboardList, adminOnly: false },
-  { to: "/near-miss", label: "아차사고", icon: AlertTriangle, adminOnly: false },
+  { to: "/near-miss", label: "아차사고", icon: AlertTriangle, adminOnly: false, managerOrAdmin: true },
   { to: "/work-stop-right", label: "작업중지권", icon: ShieldAlert, adminOnly: false, managerOrAdmin: true },
   { to: "/console", label: "본사 콘솔", icon: Building2, adminOnly: false },
   { to: "/team", label: "직원 관리", icon: Users, adminOnly: false, managerOrAdmin: true },
