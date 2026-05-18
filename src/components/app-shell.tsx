@@ -90,7 +90,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         {/* Bottom tabbar - mobile */}
         <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t flex">
-          {visibleNav.filter(n => ["/dashboard","/assessment/new","/history","/near-miss","/settings"].includes(n.to)).map(({ to, label, icon: Icon }) => {
+          {visibleNav.filter(n => ["/dashboard","/history","/near-miss","/work-stop-right","/settings"].includes(n.to)).map(({ to, label, icon: Icon }) => {
             const active = path === to || path.startsWith(to + "/");
             return (
               <Link
