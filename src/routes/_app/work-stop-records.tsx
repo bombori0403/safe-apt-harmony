@@ -194,7 +194,7 @@ function WorkStopRecords() {
         </div>
         <div className="flex gap-2">
           <Link to="/work-stop-right"><Button variant="outline" size="sm">법령 안내</Button></Link>
-          <Link to="/work-stop-records_/ledger"><Button variant="outline" size="sm" className="gap-1.5"><Printer className="h-4 w-4"/>실적 관리대장</Button></Link>
+          <Link to="/work-stop-records/ledger"><Button variant="outline" size="sm" className="gap-1.5"><Printer className="h-4 w-4"/>실적 관리대장</Button></Link>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4"/>신규 등록</Button></DialogTrigger>
             <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
