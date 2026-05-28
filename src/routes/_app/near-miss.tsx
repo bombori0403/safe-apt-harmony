@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,11 +13,14 @@ const LOC_OPTIONS = ["전체","지하주차장","옥상","기계실","저수조"
 const TYPE_OPTIONS = ["전체","전도","추락","끼임","감전","화재","중독","기타"];
 
 function NearMissList() {
+  const path = useRouterState({ select: (state) => state.location.pathname });
   const [items, setItems] = useState<any[]>([]);
   const [loc, setLoc] = useState("전체");
   const [type, setType] = useState("전체");
   const [days, setDays] = useState(365);
   const [loading, setLoading] = useState(true);
+
+  if (path !== "/near-miss") return <Outlet />;
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [loc, type, days]);
 
