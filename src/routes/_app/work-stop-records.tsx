@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, ShieldAlert, Camera, X, Loader2, CheckCircle2, Printer } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Plus, ShieldAlert, Camera, X, Loader2, CheckCircle2, Printer, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { getCurrentUserContext } from "@/lib/user-context";
 import { compressImage } from "@/lib/image-compress";
@@ -97,6 +98,9 @@ function WorkStopRecords() {
   const [causePhotos, setCausePhotos] = useState<string[]>([]);
   const [resolutionPhotos, setResolutionPhotos] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Resume dialog state
   const [resumeId, setResumeId] = useState<string | null>(null);
@@ -126,6 +130,30 @@ function WorkStopRecords() {
     setItems(data ?? []);
   }
 
+  function resetForm() {
+    setEditId(null);
+    setExercisedAt(new Date().toISOString().slice(0,16));
+    setName(""); setPosition(""); setWorkDesc(""); setReason(""); setResultDetail(""); setSupName(""); setSupPhone("");
+    setCausePhotos([]); setResolutionPhotos([]); setResult("작업중단");
+  }
+
+  function openEdit(it: any) {
+    setEditId(it.id);
+    setComplexId(it.complex_id ?? "");
+    setExercisedAt(new Date(it.exercised_at).toISOString().slice(0,16));
+    setName(it.exerciser_name ?? "");
+    setPosition(it.exerciser_position ?? "");
+    setSupName(it.supervisor_name ?? "");
+    setSupPhone(it.supervisor_phone ?? "");
+    setWorkDesc(it.work_description ?? "");
+    setReason(it.stop_reason ?? "");
+    setResult(it.result ?? "작업중단");
+    setResultDetail(it.result_detail ?? "");
+    setCausePhotos(Array.isArray(it.cause_photos) ? it.cause_photos : []);
+    setResolutionPhotos(Array.isArray(it.resolution_photos) ? it.resolution_photos : []);
+    setOpen(true);
+  }
+
   async function submit() {
     if (!complexId) { toast.error("단지를 선택해주세요"); return; }
     if (!name || !workDesc || !reason) { toast.error("필수 항목을 입력해주세요"); return; }
@@ -134,9 +162,8 @@ function WorkStopRecords() {
       toast.error(`시정 완료 사진을 최소 ${MIN_PHOTOS}장 첨부해주세요`); return;
     }
     setSaving(true);
-    const { error } = await (supabase as any).from("work_stop_records").insert({
+    const payload = {
       complex_id: complexId,
-      reported_by: userRowId || null,
       exercised_at: new Date(exercisedAt).toISOString(),
       exerciser_name: name,
       exerciser_position: position || null,
@@ -144,18 +171,30 @@ function WorkStopRecords() {
       stop_reason: reason,
       result,
       result_detail: resultDetail || null,
-      reflected_in_assessment: false,
       cause_photos: causePhotos,
       resolution_photos: resolutionPhotos,
       supervisor_name: supName || null,
       supervisor_phone: supPhone || null,
-    });
+    };
+    const { error } = editId
+      ? await (supabase as any).from("work_stop_records").update(payload).eq("id", editId)
+      : await (supabase as any).from("work_stop_records").insert({ ...payload, reported_by: userRowId || null, reflected_in_assessment: false });
     setSaving(false);
     if (error) { toast.error(error.message); return; }
-    toast.success("등록되었습니다");
+    toast.success(editId ? "수정되었습니다" : "등록되었습니다");
     setOpen(false);
-    setName(""); setPosition(""); setWorkDesc(""); setReason(""); setResultDetail(""); setSupName(""); setSupPhone("");
-    setCausePhotos([]); setResolutionPhotos([]); setResult("작업중단");
+    resetForm();
+    load();
+  }
+
+  async function confirmDelete() {
+    if (!deleteId) return;
+    setDeleting(true);
+    const { error } = await (supabase as any).from("work_stop_records").delete().eq("id", deleteId);
+    setDeleting(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("삭제되었습니다");
+    setDeleteId(null);
     load();
   }
 
@@ -195,10 +234,10 @@ function WorkStopRecords() {
         <div className="flex gap-2">
           <Link to="/work-stop-right"><Button variant="outline" size="sm">법령 안내</Button></Link>
           <Link to="/work-stop-records/ledger"><Button variant="outline" size="sm" className="gap-1.5"><Printer className="h-4 w-4"/>실적 관리대장</Button></Link>
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4"/>신규 등록</Button></DialogTrigger>
+          <Dialog open={open} onOpenChange={(o)=>{ setOpen(o); if(!o) resetForm(); }}>
+            <DialogTrigger asChild><Button className="gap-1.5" onClick={()=>resetForm()}><Plus className="h-4 w-4"/>신규 등록</Button></DialogTrigger>
             <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-              <DialogHeader><DialogTitle>작업중지권 행사 등록</DialogTitle></DialogHeader>
+              <DialogHeader><DialogTitle>{editId ? "작업중지권 행사 수정" : "작업중지권 행사 등록"}</DialogTitle></DialogHeader>
               <div className="space-y-3">
                 {complexes.length > 1 && (
                   <div>
@@ -236,7 +275,7 @@ function WorkStopRecords() {
                 {result === "작업재개" && (
                   <PhotoPicker label="시정 완료 / 작업 재개 사진" photos={resolutionPhotos} onChange={setResolutionPhotos} />
                 )}
-                <Button onClick={submit} disabled={saving} className="w-full">{saving?"등록 중...":"등록"}</Button>
+                <Button onClick={submit} disabled={saving} className="w-full">{saving?(editId?"수정 중...":"등록 중..."):(editId?"수정":"등록")}</Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -293,6 +332,12 @@ function WorkStopRecords() {
                         <CheckCircle2 className="h-4 w-4"/>시정 완료 · 작업 재개 처리
                       </Button>
                     )}
+                    <Button size="sm" variant="outline" className="gap-1.5" onClick={()=>openEdit(it)}>
+                      <Pencil className="h-4 w-4"/>수정
+                    </Button>
+                    <Button size="sm" variant="outline" className="gap-1.5 text-destructive hover:text-destructive" onClick={()=>setDeleteId(it.id)}>
+                      <Trash2 className="h-4 w-4"/>삭제
+                    </Button>
                   </div>
                 </div>
               </CardContent>
