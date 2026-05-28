@@ -494,6 +494,7 @@ export type Database = {
           complex_id: string
           countermeasure: string | null
           countermeasure_completed: boolean
+          countermeasure_photos: Json
           created_at: string | null
           id: string
           incident_type: string | null
@@ -514,6 +515,7 @@ export type Database = {
           complex_id: string
           countermeasure?: string | null
           countermeasure_completed?: boolean
+          countermeasure_photos?: Json
           created_at?: string | null
           id?: string
           incident_type?: string | null
@@ -534,6 +536,7 @@ export type Database = {
           complex_id?: string
           countermeasure?: string | null
           countermeasure_completed?: boolean
+          countermeasure_photos?: Json
           created_at?: string | null
           id?: string
           incident_type?: string | null

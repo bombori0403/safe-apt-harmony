@@ -1,0 +1,1 @@
+ALTER TABLE public.near_miss ADD COLUMN IF NOT EXISTS countermeasure_photos jsonb NOT NULL DEFAULT '[]'::jsonb;
