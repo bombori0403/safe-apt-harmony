@@ -20,9 +20,9 @@ function NearMissList() {
   const [days, setDays] = useState(365);
   const [loading, setLoading] = useState(true);
 
-  if (path !== "/near-miss") return <Outlet />;
-
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [loc, type, days]);
+
+  if (path !== "/near-miss") return <Outlet />;
 
   async function load() {
     setLoading(true);
