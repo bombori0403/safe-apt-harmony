@@ -29,6 +29,7 @@ function NewNearMiss() {
   const [complexes, setComplexes] = useState<{id:string;name:string}[]>([]);
   const [complexId, setComplexId] = useState("");
   const [occurredAt, setOccurredAt] = useState(new Date().toISOString().slice(0,16));
+  const [incidentName, setIncidentName] = useState("");
   const [locCat, setLocCat] = useState(LOC_OPTIONS[0]);
   const [locDetail, setLocDetail] = useState("");
   const [type, setType] = useState(TYPE_OPTIONS[0]);
@@ -84,6 +85,7 @@ function NewNearMiss() {
       organization_id: orgId || null,
       reported_by: userRowId || null,
       occurred_at: new Date(occurredAt).toISOString(),
+      incident_name: incidentName || null,
       situation: desc,
       location_category: locCat,
       location_detail: locDetail || null,
@@ -113,6 +115,10 @@ function NewNearMiss() {
             </select>
           </div>
         )}
+        <div>
+          <Label>사건/사고명</Label>
+          <Input value={incidentName} onChange={e=>setIncidentName(e.target.value)} placeholder="예: 지하주차장 미끄러짐 아차사고" className="h-11 mt-1" />
+        </div>
         <div>
           <Label>발생 일시</Label>
           <Input type="datetime-local" value={occurredAt} onChange={e=>setOccurredAt(e.target.value)} className="h-11 mt-1" />
