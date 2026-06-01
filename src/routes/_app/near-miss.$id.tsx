@@ -120,7 +120,10 @@ function NearMissDetail() {
       .select("*")
       .maybeSingle();
     setSaving(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     if (updated) setItem(updated);
     toast.success("저장되었습니다");
     setEditing(false);
@@ -140,17 +143,35 @@ function NearMissDetail() {
   return (
     <div className="p-4 md:p-8 max-w-3xl mx-auto space-y-4">
       <div className="flex items-center justify-between print:hidden">
-        <Link to="/near-miss"><Button variant="ghost" size="sm" className="gap-1"><ArrowLeft className="h-4 w-4"/>목록</Button></Link>
+        <Link to="/near-miss">
+          <Button variant="ghost" size="sm" className="gap-1">
+            <ArrowLeft className="h-4 w-4" />목록
+          </Button>
+        </Link>
         <div className="flex gap-2">
           {editing ? (
             <>
-              <Button onClick={save} disabled={saving}>{saving ? "저장 중..." : "수정 내용 저장"}</Button>
-              <Button variant="outline" onClick={()=>{ setEditing(false); load(); }}>취소</Button>
+              <Button onClick={save} disabled={saving}>
+                {saving ? "저장 중..." : "수정 내용 저장"}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setEditing(false);
+                  load();
+                }}
+              >
+                취소
+              </Button>
             </>
           ) : (
-            <Button variant="outline" onClick={()=>setEditing(true)} className="gap-1.5"><Pencil className="h-4 w-4"/>수정</Button>
+            <Button variant="outline" onClick={() => setEditing(true)} className="gap-1.5">
+              <Pencil className="h-4 w-4" />수정
+            </Button>
           )}
-          <Button onClick={() => window.print()} className="gap-1.5"><Printer className="h-4 w-4"/>인쇄 / PDF 저장</Button>
+          <Button onClick={() => window.print()} className="gap-1.5">
+            <Printer className="h-4 w-4" />인쇄 / PDF 저장
+          </Button>
         </div>
       </div>
 
