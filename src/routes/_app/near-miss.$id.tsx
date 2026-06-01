@@ -19,6 +19,11 @@ const LOC_OPTIONS = ["지하주차장", "옥상", "기계실", "저수조", "공
 const TYPE_OPTIONS = ["전도", "추락", "끼임", "감전", "화재", "중독", "기타"];
 const SEV_OPTIONS = ["인적", "물적", "없음"];
 
+function toDateTimeLocal(value: string) {
+  const date = new Date(value);
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+}
+
 function NearMissDetail() {
   const { id } = Route.useParams();
   const { user } = useAuth();
@@ -59,7 +64,7 @@ function NearMissDetail() {
     setItem(data);
     if (data) {
       setIncidentName(data.incident_name ?? "");
-      setOccurredAt(data.occurred_at ? new Date(data.occurred_at).toISOString().slice(0, 16) : "");
+      setOccurredAt(data.occurred_at ? toDateTimeLocal(data.occurred_at) : "");
       setLocCat(data.location_category ?? LOC_OPTIONS[0]);
       setLocDetail(data.location_detail ?? "");
       setType(data.incident_type ?? TYPE_OPTIONS[0]);
@@ -134,6 +139,10 @@ function NearMissDetail() {
     setSaving(false);
     if (error) {
       toast.error(error.message);
+      return;
+    }
+    if (!updated) {
+      toast.error("저장 권한 또는 기간 문제로 변경사항이 반영되지 않았습니다.");
       return;
     }
     if (updated) setItem(updated);
