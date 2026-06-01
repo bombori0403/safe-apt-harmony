@@ -116,6 +116,10 @@ function NewNearMiss() {
           </div>
         )}
         <div>
+          <Label>사건/사고명</Label>
+          <Input value={incidentName} onChange={e=>setIncidentName(e.target.value)} placeholder="예: 지하주차장 미끄러짐 아차사고" className="h-11 mt-1" />
+        </div>
+        <div>
           <Label>발생 일시</Label>
           <Input type="datetime-local" value={occurredAt} onChange={e=>setOccurredAt(e.target.value)} className="h-11 mt-1" />
         </div>
