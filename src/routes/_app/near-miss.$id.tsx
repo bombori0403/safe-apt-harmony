@@ -113,9 +113,15 @@ function NearMissDetail() {
       payload.situation = situation;
       payload.photos = incPhotos;
     }
-    const { error } = await (supabase as any).from("near_miss").update(payload).eq("id", id);
+    const { data: updated, error } = await (supabase as any)
+      .from("near_miss")
+      .update(payload)
+      .eq("id", id)
+      .select("*")
+      .maybeSingle();
     setSaving(false);
     if (error) { toast.error(error.message); return; }
+    if (updated) setItem(updated);
     toast.success("저장되었습니다");
     setEditing(false);
     load();
@@ -136,7 +142,14 @@ function NearMissDetail() {
       <div className="flex items-center justify-between print:hidden">
         <Link to="/near-miss"><Button variant="ghost" size="sm" className="gap-1"><ArrowLeft className="h-4 w-4"/>목록</Button></Link>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={()=>setEditing(v=>!v)} className="gap-1.5"><Pencil className="h-4 w-4"/>{editing ? "편집 취소" : "수정"}</Button>
+          {editing ? (
+            <>
+              <Button onClick={save} disabled={saving}>{saving ? "저장 중..." : "수정 내용 저장"}</Button>
+              <Button variant="outline" onClick={()=>{ setEditing(false); load(); }}>취소</Button>
+            </>
+          ) : (
+            <Button variant="outline" onClick={()=>setEditing(true)} className="gap-1.5"><Pencil className="h-4 w-4"/>수정</Button>
+          )}
           <Button onClick={() => window.print()} className="gap-1.5"><Printer className="h-4 w-4"/>인쇄 / PDF 저장</Button>
         </div>
       </div>
