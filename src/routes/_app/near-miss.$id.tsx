@@ -4,8 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Camera, Loader2, Printer, X } from "lucide-react";
+import { ArrowLeft, Camera, Loader2, Pencil, Printer, X } from "lucide-react";
 import { toast } from "sonner";
 import { compressImage } from "@/lib/image-compress";
 import { useAuth } from "@/hooks/use-auth";
@@ -14,63 +15,109 @@ export const Route = createFileRoute("/_app/near-miss/$id")({
   component: NearMissDetail,
 });
 
+const LOC_OPTIONS = ["지하주차장","옥상","기계실","저수조","공용계단","엘리베이터","기타"];
+const TYPE_OPTIONS = ["전도","추락","끼임","감전","화재","중독","기타"];
+const SEV_OPTIONS = ["인적","물적","없음"];
+
 function NearMissDetail() {
   const { id } = Route.useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
+  const incFileRef = useRef<HTMLInputElement>(null);
   const [item, setItem] = useState<any>(null);
   const [complex, setComplex] = useState<any>(null);
+
+  // editable fields
+  const [editing, setEditing] = useState(false);
+  const [incidentName, setIncidentName] = useState("");
+  const [occurredAt, setOccurredAt] = useState("");
+  const [locCat, setLocCat] = useState(LOC_OPTIONS[0]);
+  const [locDetail, setLocDetail] = useState("");
+  const [type, setType] = useState(TYPE_OPTIONS[0]);
+  const [severity, setSeverity] = useState(SEV_OPTIONS[2]);
+  const [situation, setSituation] = useState("");
+  const [incPhotos, setIncPhotos] = useState<string[]>([]);
+
+  // countermeasure
   const [countermeasure, setCountermeasure] = useState("");
   const [completed, setCompleted] = useState(false);
   const [cmPhotos, setCmPhotos] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
+  const [incBusy, setIncBusy] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [id]);
   async function load() {
     const { data } = await (supabase as any).from("near_miss").select("*").eq("id", id).maybeSingle();
     setItem(data);
-    setCountermeasure(data?.countermeasure ?? "");
-    setCompleted(!!data?.countermeasure_completed);
-    setCmPhotos(Array.isArray(data?.countermeasure_photos) ? data.countermeasure_photos : []);
+    if (data) {
+      setIncidentName(data.incident_name ?? "");
+      setOccurredAt(data.occurred_at ? new Date(data.occurred_at).toISOString().slice(0,16) : "");
+      setLocCat(data.location_category ?? LOC_OPTIONS[0]);
+      setLocDetail(data.location_detail ?? "");
+      setType(data.incident_type ?? TYPE_OPTIONS[0]);
+      setSeverity(data.potential_severity ?? SEV_OPTIONS[2]);
+      setSituation(data.situation ?? "");
+      setIncPhotos(Array.isArray(data.photos) ? data.photos : []);
+      setCountermeasure(data.countermeasure ?? "");
+      setCompleted(!!data.countermeasure_completed);
+      setCmPhotos(Array.isArray(data.countermeasure_photos) ? data.countermeasure_photos : []);
+    }
     if (data?.complex_id) {
       const { data: c } = await supabase.from("complexes").select("name,address,manager_name,manager_phone").eq("id", data.complex_id).maybeSingle();
       setComplex(c);
     }
   }
 
-  async function uploadPhotos(files: FileList) {
-    setBusy(true);
-    const urls = [...cmPhotos];
+  async function uploadTo(bucketKey: "cm" | "inc", files: FileList) {
+    const setBusyFn = bucketKey === "cm" ? setBusy : setIncBusy;
+    const prefix = bucketKey === "cm" ? "cm" : "inc";
+    const list = bucketKey === "cm" ? cmPhotos : incPhotos;
+    const setList = bucketKey === "cm" ? setCmPhotos : setIncPhotos;
+    setBusyFn(true);
+    const urls = [...list];
     try {
       for (const f of Array.from(files)) {
         const blob = await compressImage(f);
-        const path = `${user?.id ?? "anon"}/cm-${Date.now()}-${Math.random().toString(36).slice(2,8)}.jpg`;
+        const path = `${user?.id ?? "anon"}/${prefix}-${Date.now()}-${Math.random().toString(36).slice(2,8)}.jpg`;
         const { error } = await supabase.storage.from("near-miss-photos").upload(path, blob, { contentType: "image/jpeg" });
         if (error) throw error;
         const { data } = supabase.storage.from("near-miss-photos").getPublicUrl(path);
         urls.push(data.publicUrl);
       }
-      setCmPhotos(urls);
+      setList(urls);
     } catch (e:any) {
       toast.error(e.message ?? "업로드 실패");
     } finally {
-      setBusy(false);
-      if (fileRef.current) fileRef.current.value = "";
+      setBusyFn(false);
+      if (bucketKey === "cm" && fileRef.current) fileRef.current.value = "";
+      if (bucketKey === "inc" && incFileRef.current) incFileRef.current.value = "";
     }
   }
 
   async function save() {
     setSaving(true);
-    const { error } = await (supabase as any).from("near_miss").update({
+    const payload: any = {
       countermeasure: countermeasure || null,
       countermeasure_completed: completed,
       countermeasure_photos: cmPhotos,
-    }).eq("id", id);
+    };
+    if (editing) {
+      payload.incident_name = incidentName || null;
+      payload.occurred_at = occurredAt ? new Date(occurredAt).toISOString() : item.occurred_at;
+      payload.location_category = locCat;
+      payload.location_detail = locDetail || null;
+      payload.incident_type = type;
+      payload.potential_severity = severity;
+      payload.situation = situation;
+      payload.photos = incPhotos;
+    }
+    const { error } = await (supabase as any).from("near_miss").update(payload).eq("id", id);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
     toast.success("저장되었습니다");
+    setEditing(false);
     load();
   }
 
@@ -84,36 +131,107 @@ function NearMissDetail() {
 
   if (!item) return <div className="p-8 text-muted-foreground">불러오는 중...</div>;
 
-  const incPhotos: string[] = Array.isArray(item.photos) ? item.photos : [];
-
   return (
     <div className="p-4 md:p-8 max-w-3xl mx-auto space-y-4">
       <div className="flex items-center justify-between print:hidden">
         <Link to="/near-miss"><Button variant="ghost" size="sm" className="gap-1"><ArrowLeft className="h-4 w-4"/>목록</Button></Link>
-        <Button onClick={() => window.print()} className="gap-1.5"><Printer className="h-4 w-4"/>인쇄 / PDF 저장</Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={()=>setEditing(v=>!v)} className="gap-1.5"><Pencil className="h-4 w-4"/>{editing ? "편집 취소" : "수정"}</Button>
+          <Button onClick={() => window.print()} className="gap-1.5"><Printer className="h-4 w-4"/>인쇄 / PDF 저장</Button>
+        </div>
       </div>
 
       <Card className="print:hidden"><CardContent className="p-5 space-y-3 text-sm">
-        <h1 className="text-xl font-bold">아차사고 상세</h1>
-        <Row label="발생 일시" value={new Date(item.occurred_at).toLocaleString("ko-KR")} />
-        <Row label="장소" value={`${item.location_category ?? "-"}${item.location_detail ? " · "+item.location_detail : ""}`} />
-        <Row label="유형" value={item.incident_type ?? "-"} />
-        <Row label="예상 피해" value={item.potential_severity ?? "-"} />
-        <div>
-          <div className="text-xs text-muted-foreground">사고 경위</div>
-          <p className="mt-1 whitespace-pre-wrap">{item.situation}</p>
-        </div>
-        {incPhotos.length > 0 && (
-          <div>
-            <div className="text-xs text-muted-foreground mb-1">사고 사진</div>
-            <div className="flex flex-wrap gap-2">
-              {incPhotos.map((u,i)=>(
-                <a key={i} href={u} target="_blank" rel="noreferrer">
-                  <img src={u} alt="" className="w-24 h-24 object-cover rounded border" />
-                </a>
-              ))}
+        <h1 className="text-xl font-bold">아차사고 {editing ? "수정" : "상세"}</h1>
+
+        {editing ? (
+          <div className="space-y-3">
+            <div>
+              <Label>사건/사고명</Label>
+              <Input value={incidentName} onChange={e=>setIncidentName(e.target.value)} className="h-11 mt-1" />
+            </div>
+            <div>
+              <Label>발생 일시</Label>
+              <Input type="datetime-local" value={occurredAt} onChange={e=>setOccurredAt(e.target.value)} className="h-11 mt-1" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>발생 장소</Label>
+                <select value={locCat} onChange={e=>setLocCat(e.target.value)} className="w-full h-11 px-3 rounded-md border bg-background text-sm mt-1">
+                  {LOC_OPTIONS.map(o=> <option key={o}>{o}</option>)}
+                </select>
+              </div>
+              <div>
+                <Label>사고 유형</Label>
+                <select value={type} onChange={e=>setType(e.target.value)} className="w-full h-11 px-3 rounded-md border bg-background text-sm mt-1">
+                  {TYPE_OPTIONS.map(o=> <option key={o}>{o}</option>)}
+                </select>
+              </div>
+            </div>
+            <div>
+              <Label>상세 위치</Label>
+              <Input value={locDetail} onChange={e=>setLocDetail(e.target.value)} className="h-11 mt-1" />
+            </div>
+            <div>
+              <Label>사고 경위</Label>
+              <Textarea value={situation} onChange={e=>setSituation(e.target.value)} rows={4} className="mt-1" />
+            </div>
+            <div>
+              <Label>예상 피해 정도</Label>
+              <div className="flex gap-2 mt-1">
+                {SEV_OPTIONS.map(s=>(
+                  <button key={s} type="button" onClick={()=>setSeverity(s)}
+                    className={`flex-1 py-2.5 rounded-md border text-sm font-medium ${severity===s?"bg-primary text-primary-foreground border-primary":"bg-background"}`}>
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <Label>사고 사진</Label>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {incPhotos.map((url,i)=>(
+                  <div key={i} className="relative w-20 h-20 rounded-md overflow-hidden border">
+                    <img src={url} alt="" className="w-full h-full object-cover" />
+                    <button onClick={()=>setIncPhotos(incPhotos.filter((_,j)=>j!==i))} type="button" className="absolute top-0.5 right-0.5 bg-black/60 text-white rounded-full p-0.5">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+                <button type="button" onClick={()=>incFileRef.current?.click()} disabled={incBusy}
+                  className="w-20 h-20 rounded-md border-2 border-dashed flex flex-col items-center justify-center text-muted-foreground hover:border-primary text-[10px] gap-1">
+                  {incBusy ? <Loader2 className="h-5 w-5 animate-spin"/> : <Camera className="h-5 w-5"/>}
+                  {incBusy ? "업로드" : "사진 추가"}
+                </button>
+              </div>
+              <input ref={incFileRef} type="file" accept="image/*" capture="environment" multiple className="hidden"
+                onChange={e=>e.target.files && uploadTo("inc", e.target.files)} />
             </div>
           </div>
+        ) : (
+          <>
+            <Row label="사건/사고명" value={item.incident_name || "-"} />
+            <Row label="발생 일시" value={new Date(item.occurred_at).toLocaleString("ko-KR")} />
+            <Row label="장소" value={`${item.location_category ?? "-"}${item.location_detail ? " · "+item.location_detail : ""}`} />
+            <Row label="유형" value={item.incident_type ?? "-"} />
+            <Row label="예상 피해" value={item.potential_severity ?? "-"} />
+            <div>
+              <div className="text-xs text-muted-foreground">사고 경위</div>
+              <p className="mt-1 whitespace-pre-wrap">{item.situation}</p>
+            </div>
+            {incPhotos.length > 0 && (
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">사고 사진</div>
+                <div className="flex flex-wrap gap-2">
+                  {incPhotos.map((u,i)=>(
+                    <a key={i} href={u} target="_blank" rel="noreferrer">
+                      <img src={u} alt="" className="w-24 h-24 object-cover rounded border" />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </CardContent></Card>
 
@@ -141,7 +259,7 @@ function NearMissDetail() {
             </button>
           </div>
           <input ref={fileRef} type="file" accept="image/*" capture="environment" multiple className="hidden"
-            onChange={e=>e.target.files && uploadPhotos(e.target.files)} />
+            onChange={e=>e.target.files && uploadTo("cm", e.target.files)} />
         </div>
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={completed} onChange={e=>setCompleted(e.target.checked)} />
@@ -164,11 +282,11 @@ function NearMissDetail() {
           <tbody>
             <tr className="border border-black/70">
               <th className="bg-gray-100 px-2 py-1.5 w-28 text-left border-r border-black/70">단지명</th>
-              <td className="px-2 py-1.5 border-r border-black/70" colSpan={3}>{complex?.name ?? "-"}</td>
+              <td className="px-2 py-1.5" colSpan={3}>{complex?.name ?? "-"}</td>
             </tr>
             <tr className="border border-black/70">
-              <th className="bg-gray-100 px-2 py-1.5 text-left border-r border-black/70">소재지</th>
-              <td className="px-2 py-1.5" colSpan={3}>{complex?.address ?? "-"}</td>
+              <th className="bg-gray-100 px-2 py-1.5 text-left border-r border-black/70">사건/사고명</th>
+              <td className="px-2 py-1.5" colSpan={3}>{item.incident_name || "-"}</td>
             </tr>
             <tr className="border border-black/70">
               <th className="bg-gray-100 px-2 py-1.5 text-left border-r border-black/70">발생 일시</th>
