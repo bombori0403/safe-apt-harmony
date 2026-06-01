@@ -497,6 +497,7 @@ export type Database = {
           countermeasure_photos: Json
           created_at: string | null
           id: string
+          incident_name: string | null
           incident_type: string | null
           location_category: string | null
           location_detail: string | null
@@ -518,6 +519,7 @@ export type Database = {
           countermeasure_photos?: Json
           created_at?: string | null
           id?: string
+          incident_name?: string | null
           incident_type?: string | null
           location_category?: string | null
           location_detail?: string | null
@@ -539,6 +541,7 @@ export type Database = {
           countermeasure_photos?: Json
           created_at?: string | null
           id?: string
+          incident_name?: string | null
           incident_type?: string | null
           location_category?: string | null
           location_detail?: string | null
