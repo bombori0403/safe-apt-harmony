@@ -85,6 +85,7 @@ function NewNearMiss() {
       organization_id: orgId || null,
       reported_by: userRowId || null,
       occurred_at: new Date(occurredAt).toISOString(),
+      incident_name: incidentName || null,
       situation: desc,
       location_category: locCat,
       location_detail: locDetail || null,
