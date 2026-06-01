@@ -207,6 +207,10 @@ function NearMissDetail() {
               <input ref={incFileRef} type="file" accept="image/*" capture="environment" multiple className="hidden"
                 onChange={e=>e.target.files && uploadTo("inc", e.target.files)} />
             </div>
+            <div className="flex gap-2 pt-2 border-t">
+              <Button onClick={save} disabled={saving}>{saving?"저장 중...":"수정 내용 저장"}</Button>
+              <Button variant="outline" onClick={()=>{ setEditing(false); load(); }}>취소</Button>
+            </div>
           </div>
         ) : (
           <>
