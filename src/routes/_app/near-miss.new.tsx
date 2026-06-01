@@ -29,6 +29,7 @@ function NewNearMiss() {
   const [complexes, setComplexes] = useState<{id:string;name:string}[]>([]);
   const [complexId, setComplexId] = useState("");
   const [occurredAt, setOccurredAt] = useState(new Date().toISOString().slice(0,16));
+  const [incidentName, setIncidentName] = useState("");
   const [locCat, setLocCat] = useState(LOC_OPTIONS[0]);
   const [locDetail, setLocDetail] = useState("");
   const [type, setType] = useState(TYPE_OPTIONS[0]);
