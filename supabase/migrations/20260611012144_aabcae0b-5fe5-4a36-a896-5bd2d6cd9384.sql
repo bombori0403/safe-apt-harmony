@@ -1,0 +1,1 @@
+ALTER TABLE public.work_stop_records ADD COLUMN IF NOT EXISTS contractor_name text, ADD COLUMN IF NOT EXISTS worker_name text;
