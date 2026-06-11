@@ -88,6 +88,16 @@ function Dashboard() {
       const { data: a } = await aQ;
       setAssessments((a ?? []) as Assessment[]);
 
+      let nmQ = supabase.from("near_miss").select("id, incident_name, situation, occurred_at, complex_id").order("occurred_at", { ascending: false }).limit(5);
+      if (scoped) nmQ = nmQ.eq("complex_id", selectedComplexId);
+      const { data: nm } = await nmQ;
+      setNearMisses(nm ?? []);
+
+      let wsQ = supabase.from("work_stop_records").select("id, work_description, exercised_at, exerciser_name, result, complex_id").order("exercised_at", { ascending: false }).limit(5);
+      if (scoped) wsQ = wsQ.eq("complex_id", selectedComplexId);
+      const { data: ws } = await wsQ;
+      setWorkStops(ws ?? []);
+
       const startMonth = new Date(); startMonth.setDate(1); startMonth.setHours(0,0,0,0);
       let mQ = supabase.from("assessments").select("*", { count: "exact", head: true }).gte("created_at", startMonth.toISOString());
       if (scoped) mQ = mQ.eq("complex_id", selectedComplexId);
