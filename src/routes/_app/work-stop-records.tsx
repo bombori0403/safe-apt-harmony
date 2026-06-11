@@ -89,6 +89,8 @@ function WorkStopRecords() {
   const [exercisedAt, setExercisedAt] = useState(new Date().toISOString().slice(0,16));
   const [name, setName] = useState("");
   const [position, setPosition] = useState("");
+  const [contractorName, setContractorName] = useState("");
+  const [workerName, setWorkerName] = useState("");
   const [supName, setSupName] = useState("");
   const [supPhone, setSupPhone] = useState("");
   const [workDesc, setWorkDesc] = useState("");
@@ -133,7 +135,7 @@ function WorkStopRecords() {
   function resetForm() {
     setEditId(null);
     setExercisedAt(new Date().toISOString().slice(0,16));
-    setName(""); setPosition(""); setWorkDesc(""); setReason(""); setResultDetail(""); setSupName(""); setSupPhone("");
+    setName(""); setPosition(""); setContractorName(""); setWorkerName(""); setWorkDesc(""); setReason(""); setResultDetail(""); setSupName(""); setSupPhone("");
     setCausePhotos([]); setResolutionPhotos([]); setResult("작업중단");
   }
 
@@ -143,6 +145,8 @@ function WorkStopRecords() {
     setExercisedAt(new Date(it.exercised_at).toISOString().slice(0,16));
     setName(it.exerciser_name ?? "");
     setPosition(it.exerciser_position ?? "");
+    setContractorName(it.contractor_name ?? "");
+    setWorkerName(it.worker_name ?? "");
     setSupName(it.supervisor_name ?? "");
     setSupPhone(it.supervisor_phone ?? "");
     setWorkDesc(it.work_description ?? "");
@@ -167,6 +171,8 @@ function WorkStopRecords() {
       exercised_at: new Date(exercisedAt).toISOString(),
       exerciser_name: name,
       exerciser_position: position || null,
+      contractor_name: contractorName || null,
+      worker_name: workerName || null,
       work_description: workDesc,
       stop_reason: reason,
       result,
@@ -254,6 +260,10 @@ function WorkStopRecords() {
                 <div className="grid grid-cols-2 gap-2">
                   <div><Label>행사자 성명</Label><Input value={name} onChange={e=>setName(e.target.value)} className="mt-1" /></div>
                   <div><Label>직책</Label><Input value={position} onChange={e=>setPosition(e.target.value)} className="mt-1" /></div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div><Label>업체명</Label><Input value={contractorName} onChange={e=>setContractorName(e.target.value)} placeholder="예: ○○건설" className="mt-1" /></div>
+                  <div><Label>작업자</Label><Input value={workerName} onChange={e=>setWorkerName(e.target.value)} placeholder="작업자 성명" className="mt-1" /></div>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div><Label>관리감독자 성명</Label><Input value={supName} onChange={e=>setSupName(e.target.value)} placeholder="예: 관리사무소장" className="mt-1" /></div>
