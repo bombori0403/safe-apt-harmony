@@ -41,6 +41,8 @@ function Dashboard() {
   const [complexes, setComplexes] = useState<ComplexRow[]>([]);
   const [selectedComplexId, setSelectedComplexId] = useState<string>("all");
   const [assessments, setAssessments] = useState<Assessment[]>([]);
+  const [nearMisses, setNearMisses] = useState<any[]>([]);
+  const [workStops, setWorkStops] = useState<any[]>([]);
   const [unresolvedHigh, setUnresolvedHigh] = useState(0);
   const [monthCount, setMonthCount] = useState(0);
   const [nextDate, setNextDate] = useState<Date | undefined>(undefined);
