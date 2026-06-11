@@ -39,8 +39,8 @@ function WorkStopRecordDetail() {
 
       <div id="print-area" className="bg-white text-black border rounded-md p-6 print:border-0 print:p-0 print:shadow-none">
         <div className="text-center border-b-2 border-black pb-3 mb-4">
-          <h1 className="text-xl font-bold">작업중지권 행사 기록서</h1>
-          <p className="text-xs mt-1">산업안전보건법 제52조에 따른 작업중지권 행사 사실 기록</p>
+          <h1 className="text-xl font-bold">작업중지 개선완료 확인서</h1>
+          <p className="text-xs mt-1">산업안전보건법 제52조에 따른 작업중지권 행사 및 개선완료 사실 확인</p>
         </div>
 
         <table className="w-full text-sm border-collapse mb-4">
@@ -50,8 +50,8 @@ function WorkStopRecordDetail() {
               <td className="px-2 py-1.5 border-r border-black/70" colSpan={3}>{complex?.name ?? "-"}</td>
             </tr>
             <tr className="border border-black/70">
-              <th className="bg-gray-100 px-2 py-1.5 text-left border-r border-black/70">소재지</th>
-              <td className="px-2 py-1.5" colSpan={3}>{complex?.address ?? "-"}</td>
+              <th className="bg-gray-100 px-2 py-1.5 text-left border-r border-black/70">업체명/작업자</th>
+              <td className="px-2 py-1.5" colSpan={3}>{[rec.contractor_name, rec.worker_name].filter(Boolean).join(" / ") || "-"}</td>
             </tr>
             <tr className="border border-black/70">
               <th className="bg-gray-100 px-2 py-1.5 text-left border-r border-black/70">행사 일시</th>
