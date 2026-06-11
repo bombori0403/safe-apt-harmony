@@ -803,6 +803,7 @@ export type Database = {
           assessment_id: string | null
           cause_photos: Json
           complex_id: string
+          contractor_name: string | null
           created_at: string
           exercised_at: string
           exerciser_name: string
@@ -819,11 +820,13 @@ export type Database = {
           supervisor_phone: string | null
           updated_at: string
           work_description: string
+          worker_name: string | null
         }
         Insert: {
           assessment_id?: string | null
           cause_photos?: Json
           complex_id: string
+          contractor_name?: string | null
           created_at?: string
           exercised_at?: string
           exerciser_name: string
@@ -840,11 +843,13 @@ export type Database = {
           supervisor_phone?: string | null
           updated_at?: string
           work_description: string
+          worker_name?: string | null
         }
         Update: {
           assessment_id?: string | null
           cause_photos?: Json
           complex_id?: string
+          contractor_name?: string | null
           created_at?: string
           exercised_at?: string
           exerciser_name?: string
@@ -861,6 +866,7 @@ export type Database = {
           supervisor_phone?: string | null
           updated_at?: string
           work_description?: string
+          worker_name?: string | null
         }
         Relationships: []
       }
