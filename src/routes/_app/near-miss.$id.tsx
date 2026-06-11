@@ -573,6 +573,9 @@ function NearMissDetail() {
           #print-area, #print-area * { visibility: visible; }
           #print-area { position: absolute; left: 0; top: 0; width: 100%; }
           .print\\:hidden { display: none !important; }
+          #print-area img { break-inside: avoid; page-break-inside: avoid; max-height: 80mm; object-fit: contain; }
+          #print-area section, #print-area .grid > * { break-inside: avoid; page-break-inside: avoid; }
+          #print-area section { break-inside: auto; }
         }
       `}</style>
     </div>
