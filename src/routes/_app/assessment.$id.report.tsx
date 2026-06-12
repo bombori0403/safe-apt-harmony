@@ -21,6 +21,7 @@ function Report() {
   const [hazards, setHazards] = useState<any[]>([]);
   const [parts, setParts] = useState<any[]>([]);
   const [sigs, setSigs] = useState<any[]>([]);
+  const [inputs, setInputs] = useState<any[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -42,6 +43,8 @@ function Report() {
       setParts(p ?? []);
       const { data: s } = await supabase.from("signatures").select("*").eq("assessment_id", id);
       setSigs(s ?? []);
+      const { data: ei } = await supabase.from("employee_inputs").select("*").eq("assessment_id", id).order("occurred_at", { ascending: false });
+      setInputs(ei ?? []);
     })();
   }, [id]);
 
@@ -137,8 +140,36 @@ function Report() {
           )}
         </section>
 
+        <section className="mb-6">
+          <h2 className="font-bold border-b pb-1 mb-3">3. 직원 참여 의견 (청취조사 · 오픈채팅 이력)</h2>
+          {inputs.length === 0 ? (
+            <p className="text-sm text-muted-foreground">등록된 직원 의견이 없습니다.</p>
+          ) : (
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="border-b-2 border-foreground">
+                  <th className="py-2 text-left w-20">구분</th>
+                  <th className="py-2 text-left w-28">일시</th>
+                  <th className="py-2 text-left w-28">응답자/채팅방</th>
+                  <th className="py-2 text-left">내용</th>
+                </tr>
+              </thead>
+              <tbody>
+                {inputs.map(it => (
+                  <tr key={it.id} className="border-b align-top">
+                    <td className="py-2">{it.input_type === "hearing" ? "청취조사" : "오픈채팅"}</td>
+                    <td className="py-2 text-xs">{new Date(it.occurred_at).toLocaleString("ko-KR")}</td>
+                    <td className="py-2">{[it.respondent_name, it.respondent_role].filter(Boolean).join(" / ") || "-"}</td>
+                    <td className="py-2 whitespace-pre-wrap">{it.content}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </section>
+
         <section>
-          <h2 className="font-bold border-b pb-1 mb-3">3. 참여자 확인</h2>
+          <h2 className="font-bold border-b pb-1 mb-3">4. 참여자 확인</h2>
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr className="border-b-2 border-foreground">

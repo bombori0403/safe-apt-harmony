@@ -257,6 +257,90 @@ export type Database = {
           },
         ]
       }
+      employee_inputs: {
+        Row: {
+          assessment_id: string
+          attachments: string[]
+          complex_id: string | null
+          content: string
+          created_at: string
+          created_by: string | null
+          id: string
+          input_type: string
+          occurred_at: string
+          organization_id: string | null
+          respondent_name: string | null
+          respondent_role: string | null
+          updated_at: string
+        }
+        Insert: {
+          assessment_id: string
+          attachments?: string[]
+          complex_id?: string | null
+          content: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          input_type: string
+          occurred_at?: string
+          organization_id?: string | null
+          respondent_name?: string | null
+          respondent_role?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assessment_id?: string
+          attachments?: string[]
+          complex_id?: string | null
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          input_type?: string
+          occurred_at?: string
+          organization_id?: string | null
+          respondent_name?: string | null
+          respondent_role?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_inputs_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_inputs_complex_id_fkey"
+            columns: ["complex_id"]
+            isOneToOne: false
+            referencedRelation: "complexes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_inputs_complex_id_fkey"
+            columns: ["complex_id"]
+            isOneToOne: false
+            referencedRelation: "v_company_dashboard"
+            referencedColumns: ["complex_id"]
+          },
+          {
+            foreignKeyName: "employee_inputs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_inputs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hazard_library: {
         Row: {
           category: Database["public"]["Enums"]["work_category"]
