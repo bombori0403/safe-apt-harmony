@@ -247,7 +247,7 @@ function Inputs() {
                 placeholder="오픈채팅에서 공유된 안전 관련 대화 내용을 입력하거나 캡처를 첨부하세요" />
             </div>
             <AttachmentPicker files={chatFiles} setFiles={setChatFiles} uploading={uploading}
-              onPick={(f) => uploadFiles(f, setChatFiles, chatFiles)} />
+              onPick={(f: FileList) => uploadFiles(f, setChatFiles, chatFiles)} />
             <div className="flex justify-end">
               <Button onClick={submitChat} disabled={saving || uploading || !chat.summary.trim()}>{saving ? "저장 중..." : "등록"}</Button>
             </div>
