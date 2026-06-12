@@ -21,6 +21,7 @@ function Report() {
   const [hazards, setHazards] = useState<any[]>([]);
   const [parts, setParts] = useState<any[]>([]);
   const [sigs, setSigs] = useState<any[]>([]);
+  const [inputs, setInputs] = useState<any[]>([]);
 
   useEffect(() => {
     if (!user) return;
