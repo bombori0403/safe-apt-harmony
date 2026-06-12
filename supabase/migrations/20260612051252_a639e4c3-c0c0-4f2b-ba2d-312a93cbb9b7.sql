@@ -1,0 +1,1 @@
+ALTER TABLE public.employee_inputs ADD COLUMN IF NOT EXISTS meta jsonb NOT NULL DEFAULT '{}'::jsonb;

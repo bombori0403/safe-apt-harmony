@@ -267,6 +267,7 @@ export type Database = {
           created_by: string | null
           id: string
           input_type: string
+          meta: Json
           occurred_at: string
           organization_id: string | null
           respondent_name: string | null
@@ -282,6 +283,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           input_type: string
+          meta?: Json
           occurred_at?: string
           organization_id?: string | null
           respondent_name?: string | null
@@ -297,6 +299,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           input_type?: string
+          meta?: Json
           occurred_at?: string
           organization_id?: string | null
           respondent_name?: string | null
