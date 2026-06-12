@@ -43,6 +43,8 @@ function Report() {
       setParts(p ?? []);
       const { data: s } = await supabase.from("signatures").select("*").eq("assessment_id", id);
       setSigs(s ?? []);
+      const { data: ei } = await supabase.from("employee_inputs").select("*").eq("assessment_id", id).order("occurred_at", { ascending: false });
+      setInputs(ei ?? []);
     })();
   }, [id]);
 
