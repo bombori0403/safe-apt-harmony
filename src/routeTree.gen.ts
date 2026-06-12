@@ -33,6 +33,7 @@ import { Route as AppAssessmentIdShareRouteImport } from './routes/_app/assessme
 import { Route as AppAssessmentIdResultsRouteImport } from './routes/_app/assessment.$id.results'
 import { Route as AppAssessmentIdReportRouteImport } from './routes/_app/assessment.$id.report'
 import { Route as AppAssessmentIdMeasuresRouteImport } from './routes/_app/assessment.$id.measures'
+import { Route as AppAssessmentIdInputsRouteImport } from './routes/_app/assessment.$id.inputs'
 import { Route as AppAssessmentIdHazardsRouteImport } from './routes/_app/assessment.$id.hazards'
 
 const SignupRoute = SignupRouteImport.update({
@@ -155,6 +156,11 @@ const AppAssessmentIdMeasuresRoute = AppAssessmentIdMeasuresRouteImport.update({
   path: '/assessment/$id/measures',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAssessmentIdInputsRoute = AppAssessmentIdInputsRouteImport.update({
+  id: '/assessment/$id/inputs',
+  path: '/assessment/$id/inputs',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAssessmentIdHazardsRoute = AppAssessmentIdHazardsRouteImport.update({
   id: '/assessment/$id/hazards',
   path: '/assessment/$id/hazards',
@@ -181,6 +187,7 @@ export interface FileRoutesByFullPath {
   '/work-stop-records/$id': typeof AppWorkStopRecordsIdRoute
   '/work-stop-records/ledger': typeof AppWorkStopRecordsLedgerRoute
   '/assessment/$id/hazards': typeof AppAssessmentIdHazardsRoute
+  '/assessment/$id/inputs': typeof AppAssessmentIdInputsRoute
   '/assessment/$id/measures': typeof AppAssessmentIdMeasuresRoute
   '/assessment/$id/report': typeof AppAssessmentIdReportRoute
   '/assessment/$id/results': typeof AppAssessmentIdResultsRoute
@@ -207,6 +214,7 @@ export interface FileRoutesByTo {
   '/work-stop-records/$id': typeof AppWorkStopRecordsIdRoute
   '/work-stop-records/ledger': typeof AppWorkStopRecordsLedgerRoute
   '/assessment/$id/hazards': typeof AppAssessmentIdHazardsRoute
+  '/assessment/$id/inputs': typeof AppAssessmentIdInputsRoute
   '/assessment/$id/measures': typeof AppAssessmentIdMeasuresRoute
   '/assessment/$id/report': typeof AppAssessmentIdReportRoute
   '/assessment/$id/results': typeof AppAssessmentIdResultsRoute
@@ -235,6 +243,7 @@ export interface FileRoutesById {
   '/_app/work-stop-records_/$id': typeof AppWorkStopRecordsIdRoute
   '/_app/work-stop-records_/ledger': typeof AppWorkStopRecordsLedgerRoute
   '/_app/assessment/$id/hazards': typeof AppAssessmentIdHazardsRoute
+  '/_app/assessment/$id/inputs': typeof AppAssessmentIdInputsRoute
   '/_app/assessment/$id/measures': typeof AppAssessmentIdMeasuresRoute
   '/_app/assessment/$id/report': typeof AppAssessmentIdReportRoute
   '/_app/assessment/$id/results': typeof AppAssessmentIdResultsRoute
@@ -263,6 +272,7 @@ export interface FileRouteTypes {
     | '/work-stop-records/$id'
     | '/work-stop-records/ledger'
     | '/assessment/$id/hazards'
+    | '/assessment/$id/inputs'
     | '/assessment/$id/measures'
     | '/assessment/$id/report'
     | '/assessment/$id/results'
@@ -289,6 +299,7 @@ export interface FileRouteTypes {
     | '/work-stop-records/$id'
     | '/work-stop-records/ledger'
     | '/assessment/$id/hazards'
+    | '/assessment/$id/inputs'
     | '/assessment/$id/measures'
     | '/assessment/$id/report'
     | '/assessment/$id/results'
@@ -316,6 +327,7 @@ export interface FileRouteTypes {
     | '/_app/work-stop-records_/$id'
     | '/_app/work-stop-records_/ledger'
     | '/_app/assessment/$id/hazards'
+    | '/_app/assessment/$id/inputs'
     | '/_app/assessment/$id/measures'
     | '/_app/assessment/$id/report'
     | '/_app/assessment/$id/results'
@@ -502,6 +514,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAssessmentIdMeasuresRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/assessment/$id/inputs': {
+      id: '/_app/assessment/$id/inputs'
+      path: '/assessment/$id/inputs'
+      fullPath: '/assessment/$id/inputs'
+      preLoaderRoute: typeof AppAssessmentIdInputsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/assessment/$id/hazards': {
       id: '/_app/assessment/$id/hazards'
       path: '/assessment/$id/hazards'
@@ -539,6 +558,7 @@ interface AppRouteChildren {
   AppWorkStopRecordsIdRoute: typeof AppWorkStopRecordsIdRoute
   AppWorkStopRecordsLedgerRoute: typeof AppWorkStopRecordsLedgerRoute
   AppAssessmentIdHazardsRoute: typeof AppAssessmentIdHazardsRoute
+  AppAssessmentIdInputsRoute: typeof AppAssessmentIdInputsRoute
   AppAssessmentIdMeasuresRoute: typeof AppAssessmentIdMeasuresRoute
   AppAssessmentIdReportRoute: typeof AppAssessmentIdReportRoute
   AppAssessmentIdResultsRoute: typeof AppAssessmentIdResultsRoute
@@ -559,6 +579,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppWorkStopRecordsIdRoute: AppWorkStopRecordsIdRoute,
   AppWorkStopRecordsLedgerRoute: AppWorkStopRecordsLedgerRoute,
   AppAssessmentIdHazardsRoute: AppAssessmentIdHazardsRoute,
+  AppAssessmentIdInputsRoute: AppAssessmentIdInputsRoute,
   AppAssessmentIdMeasuresRoute: AppAssessmentIdMeasuresRoute,
   AppAssessmentIdReportRoute: AppAssessmentIdReportRoute,
   AppAssessmentIdResultsRoute: AppAssessmentIdResultsRoute,
