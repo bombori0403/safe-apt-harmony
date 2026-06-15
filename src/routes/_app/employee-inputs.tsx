@@ -451,7 +451,13 @@ function EmployeeInputs() {
                 uploading={uploading}
                 onPick={(f: FileList) => uploadFiles(f,
                   (urls) => setEditing((cur: any) => ({ ...cur, attachments: urls })),
-                  editing.attachments ?? [])}
+                  editing.attachments ?? [],
+                  editing.complex_id)}
+              />
+
+              <ApprovalLineEditor
+                value={editing.meta?.approval ?? { ...EMPTY_APPROVAL }}
+                onChange={(a: any) => setEditing({ ...editing, meta: { ...editing.meta, approval: a } })}
               />
             </div>
           )}
