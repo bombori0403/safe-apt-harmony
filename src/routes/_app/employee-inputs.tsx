@@ -250,24 +250,38 @@ function EmployeeInputs() {
     ? `청취조사 기록 — ${complexNameById[printItem.complex_id] ?? ""}${printItem.respondent_name ? ` / ${printItem.respondent_name}` : ""}`
     : `직원참여 기록 — ${filterComplex === "all" ? "전체 단지" : (complexNameById[filterComplex] ?? "")}`;
 
+  function preloadImages(urls: string[]) {
+    return Promise.all(urls.map(url => new Promise<void>((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve();
+      img.onerror = () => resolve();
+      img.src = url;
+    })));
+  }
+
   function printOne(rowId: string) {
+    const target = items.find(i => i.id === rowId);
     setPrintItemId(rowId);
-    window.setTimeout(() => window.print(), 80);
+    window.setTimeout(async () => {
+      await preloadImages(target?.attachments ?? []);
+      window.print();
+    }, 180);
   }
 
   return (
     <div className={`employee-print-root p-4 md:p-8 max-w-5xl mx-auto space-y-5 ${printItemId ? "printing-single" : ""}`}>
       <style>{`
         @media print {
-          @page { size: A4 portrait; margin: 12mm; }
+          @page { size: A4 portrait; margin: 8mm; }
           .no-print { display: none !important; }
           .print-only { display: block !important; }
-          body { background: white !important; }
+          html, body { width: 210mm; min-height: 297mm; background: white !important; }
           .employee-print-root { max-width: none !important; padding: 0 !important; }
           .print-card { break-inside: avoid; page-break-inside: avoid; }
           .printing-single > *:not(.print-sheet) { display: none !important; }
           .printing-single .print-sheet { display: block !important; }
           .print-attachment-img { width: 150px !important; height: 110px !important; object-fit: cover; }
+          * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
         .print-only { display: none; }
         .print-sheet { display: none; }
