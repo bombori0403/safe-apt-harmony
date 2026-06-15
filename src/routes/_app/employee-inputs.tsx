@@ -614,10 +614,10 @@ function List({ items, me, onDelete, onEdit, onPrint, printItemId, complexNameBy
                 <ApprovalLineView approval={m.approval} />
 
               </div>
-              {(canMutate || (onPrint && it.input_type === "hearing")) && (
+              {(canMutate || onPrint) && (
                 <div className="flex items-center gap-1 no-print">
-                  {onPrint && it.input_type === "hearing" && (
-                    <button onClick={() => onPrint(it.id)} className="text-muted-foreground hover:text-primary p-1" title="이 청취조사 출력">
+                  {onPrint && (
+                    <button onClick={() => onPrint(it.id)} className="text-muted-foreground hover:text-primary p-1" title="이 기록 출력">
                       <Printer className="h-4 w-4" />
                     </button>
                   )}
