@@ -259,7 +259,7 @@ export type Database = {
       }
       employee_inputs: {
         Row: {
-          assessment_id: string
+          assessment_id: string | null
           attachments: string[]
           complex_id: string | null
           content: string
@@ -275,7 +275,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          assessment_id: string
+          assessment_id?: string | null
           attachments?: string[]
           complex_id?: string | null
           content: string
@@ -291,7 +291,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          assessment_id?: string
+          assessment_id?: string | null
           attachments?: string[]
           complex_id?: string | null
           content?: string
