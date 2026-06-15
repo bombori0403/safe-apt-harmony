@@ -328,6 +328,8 @@ function EmployeeInputs() {
             <AttachmentPicker files={hearingFiles} setFiles={setHearingFiles} uploading={uploading}
               onPick={(f: FileList) => uploadFiles(f, setHearingFiles, hearingFiles)} />
 
+            <ApprovalLineEditor value={hearing.approval} onChange={(a) => setHearing({ ...hearing, approval: a })} />
+
             <div className="flex justify-end">
               <Button onClick={submitHearing} disabled={saving || uploading}>{saving ? "저장 중..." : "청취조사 등록"}</Button>
             </div>
