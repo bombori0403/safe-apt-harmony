@@ -694,6 +694,14 @@ function ApprovalLineView({ approval }: { approval?: Approval }) {
   );
 }
 
+function ReportText({ value, height }: { value?: string; height: string }) {
+  return (
+    <div style={{ height, overflow: "hidden", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+      {value || ""}
+    </div>
+  );
+}
+
 function HearingReportSheet({ item, complexName }: { item: any; complexName: string }) {
   const m = item.meta ?? {};
   const a: Approval | undefined = m.approval;
@@ -722,15 +730,15 @@ function HearingReportSheet({ item, complexName }: { item: any; complexName: str
         .hr-title { text-align: center; font-size: 17pt; font-weight: 800; margin: 0; letter-spacing: 0; }
         .hr-subtitle { text-align: center; font-size: 8.2pt; margin: 1.5mm 0 0; color: #333; }
         .hr-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        .hr-table th, .hr-table td { border: 1px solid #111; padding: 1.8mm 2mm; vertical-align: middle; box-sizing: border-box; }
+        .hr-table th, .hr-table td { border: 1px solid #111; padding: 1.5mm 2mm; vertical-align: middle; box-sizing: border-box; }
         .hr-label { background: #f1f1f1; text-align: center; font-weight: 700; }
         .hr-content { white-space: pre-wrap; word-break: break-word; overflow: hidden; vertical-align: top !important; }
         .hr-small { font-size: 8pt; color: #444; }
-        .hr-photo { width: 42mm; height: 31mm; object-fit: contain; border: 1px solid #555; background: #fff; }
-        .hr-photo-box { display: inline-flex; align-items: center; justify-content: center; width: 44mm; height: 33mm; margin-right: 1.5mm; vertical-align: top; }
+        .hr-photo { width: 41mm; height: 29mm; object-fit: contain; border: 1px solid #555; background: #fff; }
+        .hr-photo-box { display: inline-flex; align-items: center; justify-content: center; width: 42.5mm; height: 30.5mm; margin-right: 1.5mm; vertical-align: top; }
       `}</style>
 
-      <table className="hr-table" style={{ height: "28mm", marginBottom: "3mm" }}>
+      <table className="hr-table" style={{ height: "28mm", marginBottom: "2mm" }}>
         <tbody>
           <tr>
             <td style={{ border: "none", padding: 0 }}>
@@ -761,7 +769,7 @@ function HearingReportSheet({ item, complexName }: { item: any; complexName: str
         </tbody>
       </table>
 
-      <table className="hr-table" style={{ height: "29mm" }}>
+      <table className="hr-table" style={{ height: "28mm" }}>
         <tbody>
           <tr style={{ height: "9mm" }}>
             <th className="hr-label" style={{ width: "24mm" }}>단지</th>
@@ -782,26 +790,26 @@ function HearingReportSheet({ item, complexName }: { item: any; complexName: str
         </tbody>
       </table>
 
-      <table className="hr-table" style={{ height: "178mm", marginTop: "3mm" }}>
+      <table className="hr-table" style={{ height: "179mm", marginTop: "2mm" }}>
         <tbody>
           {[1, 2, 3].map(n => (
             <tr key={n} style={{ height: "31mm" }}>
               <th className="hr-label" style={{ width: "24mm" }}>경험담 {n}</th>
-              <td className="hr-content">{m[`experience_${n}`] || ""}</td>
+              <td className="hr-content"><ReportText value={m[`experience_${n}`]} height="26mm" /></td>
             </tr>
           ))}
           <tr style={{ height: "39mm" }}>
             <th className="hr-label">근로자 의견<br/><span className="hr-small">(원인·반성)</span></th>
-            <td className="hr-content">{m.worker_opinion || ""}</td>
+            <td className="hr-content"><ReportText value={m.worker_opinion} height="34mm" /></td>
           </tr>
           <tr style={{ height: "46mm" }}>
             <th className="hr-label">수행자 의견<br/><span className="hr-small">(조언)</span></th>
-            <td className="hr-content">{m.conductor_opinion || ""}</td>
+            <td className="hr-content"><ReportText value={m.conductor_opinion} height="40mm" /></td>
           </tr>
         </tbody>
       </table>
 
-      <table className="hr-table" style={{ height: "38mm", marginTop: "3mm" }}>
+      <table className="hr-table" style={{ height: "36mm", marginTop: "2mm" }}>
         <tbody>
           <tr>
             <th className="hr-label" style={{ width: "24mm" }}>첨부사진</th>
@@ -816,7 +824,7 @@ function HearingReportSheet({ item, complexName }: { item: any; complexName: str
         </tbody>
       </table>
 
-      <div style={{ textAlign: "right", fontSize: "8pt", color: "#555", marginTop: "2mm" }}>
+      <div style={{ textAlign: "right", fontSize: "8pt", color: "#555", marginTop: "1mm" }}>
         출력일: {new Date().toLocaleString("ko-KR")}
       </div>
     </div>
