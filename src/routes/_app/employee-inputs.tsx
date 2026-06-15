@@ -679,3 +679,117 @@ function ApprovalLineView({ approval }: { approval?: Approval }) {
     </div>
   );
 }
+
+function HearingReportSheet({ item, complexName }: { item: any; complexName: string }) {
+  const m = item.meta ?? {};
+  const a: Approval | undefined = m.approval;
+  const occurred = new Date(item.occurred_at);
+  const dateStr = occurred.toLocaleDateString("ko-KR");
+  const timeStr = occurred.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+  const photos: string[] = item.attachments ?? [];
+
+  return (
+    <div className="print-sheet text-black" style={{ fontFamily: "'Malgun Gothic', system-ui, sans-serif", fontSize: "11pt", lineHeight: 1.4 }}>
+      <style>{`
+        .rpt-table { width: 100%; border-collapse: collapse; }
+        .rpt-table th, .rpt-table td { border: 1px solid #333; padding: 4px 6px; vertical-align: top; }
+        .rpt-table th { background: #f1f1f1; font-weight: 600; text-align: center; width: 90px; font-size: 10pt; }
+        .rpt-cell { min-height: 36px; white-space: pre-wrap; word-break: break-word; }
+        .rpt-approval { float: right; margin-bottom: 6px; }
+        .rpt-approval td { width: 70px; height: 28px; text-align: center; font-size: 9pt; }
+        .rpt-approval td.sig { height: 44px; }
+        .rpt-photos { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+        .rpt-photos img { width: 130px; height: 95px; object-fit: cover; border: 1px solid #999; }
+      `}</style>
+
+      <table className="rpt-table rpt-approval">
+        <tbody>
+          <tr>
+            <th>결재</th>
+            {APPROVAL_ROLES.map(r => <th key={r.label}>{r.label}</th>)}
+          </tr>
+          <tr>
+            <td rowSpan={2} style={{ width: 28, writingMode: "vertical-rl", textAlign: "center" }}> </td>
+            {APPROVAL_ROLES.map(({ nameKey }) => (
+              <td key={String(nameKey)} className="sig">{(a?.[nameKey] as string) || ""}</td>
+            ))}
+          </tr>
+          <tr>
+            {APPROVAL_ROLES.map(({ key }) => (
+              <td key={String(key)}>
+                {a?.[key] ? new Date(a[key] as string).toLocaleDateString("ko-KR") : ""}
+              </td>
+            ))}
+          </tr>
+        </tbody>
+      </table>
+
+      <h1 style={{ textAlign: "center", fontSize: "18pt", fontWeight: 700, margin: "0 0 4px", letterSpacing: "0.05em" }}>
+        청취조사에 의한 유해·위험요인 조사표
+      </h1>
+      <p style={{ textAlign: "center", fontSize: "9pt", color: "#555", margin: "0 0 10px" }}>
+        산업안전보건법 제36조 제2항 · 근로자 의견 청취 기록
+      </p>
+
+      <table className="rpt-table" style={{ marginBottom: 6 }}>
+        <tbody>
+          <tr>
+            <th>단지</th><td>{complexName || "-"}</td>
+            <th>수행일시</th><td>{dateStr} {timeStr}</td>
+          </tr>
+          <tr>
+            <th>수행자</th><td>{m.conductor_name || "-"}</td>
+            <th>근로자</th><td>{m.worker_name || "-"}</td>
+          </tr>
+          <tr>
+            <th>실시방법</th>
+            <td colSpan={3} style={{ fontSize: "9.5pt" }}>
+              위험성평가 수행자가 현장 근로자와 면담을 통해 직접 경험한 유해·위험요인을 조사 (육하원칙에 따라 작성)
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table className="rpt-table" style={{ marginBottom: 6 }}>
+        <tbody>
+          {[1, 2, 3].map(n => (
+            <tr key={n}>
+              <th>경험담 {n}</th>
+              <td><div className="rpt-cell">{m[`experience_${n}`] || ""}</div></td>
+            </tr>
+          ))}
+          <tr>
+            <th>근로자 의견<br/><span style={{ fontWeight: 400, fontSize: "8.5pt" }}>(원인·반성)</span></th>
+            <td><div className="rpt-cell">{m.worker_opinion || ""}</div></td>
+          </tr>
+          <tr>
+            <th>수행자 의견<br/><span style={{ fontWeight: 400, fontSize: "8.5pt" }}>(조언)</span></th>
+            <td><div className="rpt-cell">{m.conductor_opinion || ""}</div></td>
+          </tr>
+        </tbody>
+      </table>
+
+      {photos.length > 0 && (
+        <table className="rpt-table">
+          <tbody>
+            <tr>
+              <th>첨부<br/>사진</th>
+              <td>
+                <div className="rpt-photos">
+                  {photos.slice(0, 6).map((url, i) => (
+                    <img key={i} src={url} alt={`첨부 ${i + 1}`} />
+                  ))}
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      )}
+
+      <p style={{ textAlign: "right", fontSize: "9pt", color: "#666", marginTop: 8 }}>
+        출력일: {new Date().toLocaleString("ko-KR")}
+      </p>
+    </div>
+  );
+}
+
