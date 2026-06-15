@@ -10,8 +10,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Trash2, MessageCircle, Mic, Camera, Loader2, X, Users } from "lucide-react";
+import { Trash2, MessageCircle, Mic, Camera, Loader2, X, Users, Pencil, Printer } from "lucide-react";
 
 export const Route = createFileRoute("/_app/employee-inputs")({
   component: EmployeeInputs,
@@ -39,6 +40,11 @@ function nowLocal() {
   return new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 }
 
+function toLocalInput(iso: string) {
+  const d = new Date(iso);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+}
+
 function EmployeeInputs() {
   const { user } = useAuth();
   const [me, setMe] = useState<{ id: string; org_role: string; organization_id: string } | null>(null);
@@ -58,6 +64,7 @@ function EmployeeInputs() {
 
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [editing, setEditing] = useState<any | null>(null);
 
   const isAdmin = me?.org_role === "admin";
 
@@ -68,7 +75,6 @@ function EmployeeInputs() {
         .select("id, org_role, organization_id").eq("auth_id", user.id).maybeSingle();
       if (!u) return;
       setMe(u as any);
-      // Load complexes
       if (!u.organization_id) return;
       let q = supabase.from("complexes").select("id, name").eq("organization_id", u.organization_id).order("name");
       if (u.org_role !== "admin") {
@@ -185,16 +191,59 @@ function EmployeeInputs() {
     if (error) toast.error(error.message); else { toast.success("삭제됨"); load(); }
   }
 
+  async function saveEdit() {
+    if (!editing) return;
+    setSaving(true);
+    const meta = editing.meta ?? {};
+    const patch: any = {
+      complex_id: editing.complex_id,
+      occurred_at: new Date(editing.occurred_at).toISOString(),
+      attachments: editing.attachments ?? [],
+      meta,
+    };
+    if (editing.input_type === "hearing") {
+      patch.respondent_name = meta.worker_name?.trim() || null;
+      patch.content = [meta.experience_1, meta.experience_2, meta.experience_3]
+        .filter(Boolean).map((e: string, i: number) => `[경험담 ${i+1}] ${e}`).join("\n\n");
+    } else {
+      patch.respondent_name = meta.room_name?.trim() || null;
+      patch.respondent_role = meta.author_name?.trim() || null;
+      patch.content = (meta.summary ?? "").trim();
+    }
+    const { error } = await supabase.from("employee_inputs").update(patch).eq("id", editing.id);
+    setSaving(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("수정되었습니다");
+    setEditing(null);
+    load();
+  }
+
   const hearings = items.filter(i => i.input_type === "hearing");
   const chats = items.filter(i => i.input_type === "open_chat");
 
+  const printTitle = `직원참여 기록 — ${filterComplex === "all" ? "전체 단지" : (complexNameById[filterComplex] ?? "")}`;
+
   return (
     <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-5">
-      <div className="flex items-start justify-between gap-3 flex-wrap">
+      <style>{`
+        @media print {
+          .no-print { display: none !important; }
+          .print-only { display: block !important; }
+          body { background: white !important; }
+        }
+        .print-only { display: none; }
+      `}</style>
+
+      <div className="print-only mb-4">
+        <h1 className="text-xl font-bold">{printTitle}</h1>
+        <p className="text-xs text-muted-foreground">출력일: {new Date().toLocaleString("ko-KR")}</p>
+      </div>
+
+      <div className="flex items-start justify-between gap-3 flex-wrap no-print">
         <div>
           <h1 className="text-2xl font-bold inline-flex items-center gap-2"><Users className="h-6 w-6 text-primary" />직원 참여</h1>
           <p className="text-xs text-muted-foreground mt-1">
-            청취조사 응답과 단지 오픈채팅 이력을 단지 단위로 기록·조회합니다.
+            청취조사 응답과 단지 오픈채팅 이력을 단지 단위로 기록·조회·출력합니다.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -206,17 +255,20 @@ function EmployeeInputs() {
               {complexes.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
             </SelectContent>
           </Select>
+          <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-1">
+            <Printer className="h-4 w-4" />출력
+          </Button>
         </div>
       </div>
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as InputType)}>
-        <TabsList>
+        <TabsList className="no-print">
           <TabsTrigger value="hearing" className="gap-1"><Mic className="h-4 w-4" />청취조사 ({hearings.length})</TabsTrigger>
           <TabsTrigger value="open_chat" className="gap-1"><MessageCircle className="h-4 w-4" />오픈채팅 이력 ({chats.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="hearing" className="space-y-4 mt-4">
-          <Card><CardContent className="p-5 space-y-3">
+          <Card className="no-print"><CardContent className="p-5 space-y-3">
             <div className="space-y-1">
               <div className="font-semibold">청취조사에 의한 유해·위험요인 조사표</div>
               <p className="text-[11px] text-muted-foreground">현장 근로자와 면담을 통해 경험한 유해·위험요인을 기록합니다.</p>
@@ -268,11 +320,11 @@ function EmployeeInputs() {
             </div>
           </CardContent></Card>
 
-          <List items={hearings} me={me} onDelete={del} complexNameById={complexNameById} />
+          <List items={hearings} me={me} onDelete={del} onEdit={setEditing} complexNameById={complexNameById} />
         </TabsContent>
 
         <TabsContent value="open_chat" className="space-y-4 mt-4">
-          <Card><CardContent className="p-5 space-y-3">
+          <Card className="no-print"><CardContent className="p-5 space-y-3">
             <div className="font-semibold">오픈채팅 이력 추가</div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
               <div>
@@ -302,9 +354,97 @@ function EmployeeInputs() {
               <Button onClick={submitChat} disabled={saving || uploading || !chat.summary.trim()}>{saving ? "저장 중..." : "등록"}</Button>
             </div>
           </CardContent></Card>
-          <List items={chats} me={me} onDelete={del} complexNameById={complexNameById} />
+          <List items={chats} me={me} onDelete={del} onEdit={setEditing} complexNameById={complexNameById} />
         </TabsContent>
       </Tabs>
+
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editing?.input_type === "hearing" ? "청취조사 수정" : "오픈채팅 이력 수정"}</DialogTitle>
+          </DialogHeader>
+          {editing && (
+            <div className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-xs">단지</Label>
+                  <Select value={editing.complex_id ?? ""} onValueChange={(v) => setEditing({ ...editing, complex_id: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>{complexes.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs">일시</Label>
+                  <Input type="datetime-local" value={toLocalInput(editing.occurred_at)}
+                    onChange={(e) => setEditing({ ...editing, occurred_at: new Date(e.target.value).toISOString() })} />
+                </div>
+              </div>
+
+              {editing.input_type === "hearing" ? (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div><Label className="text-xs">수행자 성명</Label>
+                      <Input value={editing.meta?.conductor_name ?? ""}
+                        onChange={e => setEditing({ ...editing, meta: { ...editing.meta, conductor_name: e.target.value } })} /></div>
+                    <div><Label className="text-xs">근로자 성명</Label>
+                      <Input value={editing.meta?.worker_name ?? ""}
+                        onChange={e => setEditing({ ...editing, meta: { ...editing.meta, worker_name: e.target.value } })} /></div>
+                  </div>
+                  {[1,2,3].map(n => {
+                    const key = `experience_${n}`;
+                    return (
+                      <div key={n}>
+                        <Label className="text-xs">경험담 {n}</Label>
+                        <Textarea rows={3} value={editing.meta?.[key] ?? ""}
+                          onChange={e => setEditing({ ...editing, meta: { ...editing.meta, [key]: e.target.value } })} />
+                      </div>
+                    );
+                  })}
+                  <div>
+                    <Label className="text-xs">근로자 의견</Label>
+                    <Textarea rows={3} value={editing.meta?.worker_opinion ?? ""}
+                      onChange={e => setEditing({ ...editing, meta: { ...editing.meta, worker_opinion: e.target.value } })} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">수행자 의견</Label>
+                    <Textarea rows={3} value={editing.meta?.conductor_opinion ?? ""}
+                      onChange={e => setEditing({ ...editing, meta: { ...editing.meta, conductor_opinion: e.target.value } })} />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div><Label className="text-xs">채팅방명</Label>
+                      <Input value={editing.meta?.room_name ?? ""}
+                        onChange={e => setEditing({ ...editing, meta: { ...editing.meta, room_name: e.target.value } })} /></div>
+                    <div><Label className="text-xs">작성자</Label>
+                      <Input value={editing.meta?.author_name ?? ""}
+                        onChange={e => setEditing({ ...editing, meta: { ...editing.meta, author_name: e.target.value } })} /></div>
+                  </div>
+                  <div>
+                    <Label className="text-xs">대화 내용 / 요약</Label>
+                    <Textarea rows={5} value={editing.meta?.summary ?? ""}
+                      onChange={e => setEditing({ ...editing, meta: { ...editing.meta, summary: e.target.value } })} />
+                  </div>
+                </>
+              )}
+
+              <AttachmentPicker
+                files={editing.attachments ?? []}
+                setFiles={(urls: string[]) => setEditing({ ...editing, attachments: urls })}
+                uploading={uploading}
+                onPick={(f: FileList) => uploadFiles(f,
+                  (urls) => setEditing((cur: any) => ({ ...cur, attachments: urls })),
+                  editing.attachments ?? [])}
+              />
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditing(null)}>취소</Button>
+            <Button onClick={saveEdit} disabled={saving || uploading}>{saving ? "저장 중..." : "저장"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -334,14 +474,14 @@ function AttachmentPicker({ files, setFiles, uploading, onPick }: any) {
   );
 }
 
-function List({ items, me, onDelete, complexNameById }: { items: any[]; me: any; onDelete: (id: string) => void; complexNameById: Record<string,string> }) {
+function List({ items, me, onDelete, onEdit, complexNameById }: { items: any[]; me: any; onDelete: (id: string) => void; onEdit: (it: any) => void; complexNameById: Record<string,string> }) {
   if (items.length === 0) {
     return <div className="text-center text-sm text-muted-foreground py-8 border rounded-md">등록된 항목이 없습니다.</div>;
   }
   return (
     <div className="space-y-2">
       {items.map(it => {
-        const canDel = me && (it.created_by === me.id || me.org_role === "admin" || me.org_role === "manager");
+        const canMutate = me && (it.created_by === me.id || me.org_role === "admin" || me.org_role === "manager");
         const m = it.meta ?? {};
         return (
           <Card key={it.id}><CardContent className="p-4 space-y-2">
@@ -385,10 +525,15 @@ function List({ items, me, onDelete, complexNameById }: { items: any[]; me: any;
                   </div>
                 )}
               </div>
-              {canDel && (
-                <button onClick={() => onDelete(it.id)} className="text-muted-foreground hover:text-destructive">
-                  <Trash2 className="h-4 w-4" />
-                </button>
+              {canMutate && (
+                <div className="flex items-center gap-1 no-print">
+                  <button onClick={() => onEdit(it)} className="text-muted-foreground hover:text-primary p-1" title="수정">
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                  <button onClick={() => onDelete(it.id)} className="text-muted-foreground hover:text-destructive p-1" title="삭제">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               )}
             </div>
           </CardContent></Card>
