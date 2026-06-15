@@ -265,13 +265,14 @@ function EmployeeInputs() {
           body { background: white !important; }
           .employee-print-root { max-width: none !important; padding: 0 !important; }
           .print-card { break-inside: avoid; page-break-inside: avoid; }
-          .printing-single .screen-only { display: none !important; }
+          .printing-single > *:not(.print-sheet) { display: none !important; }
           .printing-single .print-sheet { display: block !important; }
           .print-attachment-img { width: 150px !important; height: 110px !important; object-fit: cover; }
         }
         .print-only { display: none; }
         .print-sheet { display: none; }
       `}</style>
+
 
       {printItem && printItem.input_type === "hearing" && (
         <HearingReportSheet item={printItem} complexName={complexNameById[printItem.complex_id] ?? ""} />
