@@ -259,22 +259,29 @@ function EmployeeInputs() {
     <div className={`employee-print-root p-4 md:p-8 max-w-5xl mx-auto space-y-5 ${printItemId ? "printing-single" : ""}`}>
       <style>{`
         @media print {
+          @page { size: A4 portrait; margin: 12mm; }
           .no-print { display: none !important; }
           .print-only { display: block !important; }
           body { background: white !important; }
           .employee-print-root { max-width: none !important; padding: 0 !important; }
           .print-card { break-inside: avoid; page-break-inside: avoid; }
-          .printing-single .print-card:not(.print-target) { display: none !important; }
-          .print-target { box-shadow: none !important; border: 1px solid hsl(var(--border)) !important; }
-          .print-attachment-img { width: 160px !important; height: 120px !important; }
+          .printing-single .screen-only { display: none !important; }
+          .printing-single .print-sheet { display: block !important; }
+          .print-attachment-img { width: 150px !important; height: 110px !important; object-fit: cover; }
         }
         .print-only { display: none; }
+        .print-sheet { display: none; }
       `}</style>
 
-      <div className="print-only mb-4">
+      {printItem && printItem.input_type === "hearing" && (
+        <HearingReportSheet item={printItem} complexName={complexNameById[printItem.complex_id] ?? ""} />
+      )}
+
+      <div className="print-only screen-only mb-4">
         <h1 className="text-xl font-bold">{printTitle}</h1>
         <p className="text-xs text-muted-foreground">출력일: {new Date().toLocaleString("ko-KR")}</p>
       </div>
+
 
       <div className="flex items-start justify-between gap-3 flex-wrap no-print">
         <div>
