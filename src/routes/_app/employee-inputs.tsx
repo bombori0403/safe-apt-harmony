@@ -434,7 +434,7 @@ function EmployeeInputs() {
               <Button onClick={submitChat} disabled={saving || uploading || !chat.summary.trim()}>{saving ? "저장 중..." : "등록"}</Button>
             </div>
           </CardContent></Card>
-          <List items={chats} me={me} onDelete={del} onEdit={setEditing} printItemId={printItemId} complexNameById={complexNameById} />
+          <List items={chats} me={me} onDelete={del} onEdit={setEditing} onPrint={printOne} printItemId={printItemId} complexNameById={complexNameById} />
         </TabsContent>
       </Tabs>
 
