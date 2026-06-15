@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, ClipboardList, FilePlus2, Building2, Settings, Shield, Users, AlertTriangle, ShieldAlert } from "lucide-react";
+import { LayoutDashboard, ClipboardList, FilePlus2, Building2, Settings, Shield, Users, AlertTriangle, ShieldAlert, MessageCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
