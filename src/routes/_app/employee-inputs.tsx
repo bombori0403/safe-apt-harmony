@@ -306,6 +306,9 @@ function EmployeeInputs() {
       {printItem && printItem.input_type === "hearing" && (
         <HearingReportSheet item={printItem} complexName={complexNameById[printItem.complex_id] ?? ""} />
       )}
+      {printItem && printItem.input_type === "open_chat" && (
+        <OpenChatReportSheet item={printItem} complexName={complexNameById[printItem.complex_id] ?? ""} />
+      )}
 
       <div className="print-only mb-4">
         <h1 className="text-xl font-bold">{printTitle}</h1>
