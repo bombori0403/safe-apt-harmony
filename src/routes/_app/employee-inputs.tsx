@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Trash2, MessageCircle, Mic, Camera, Loader2, X, Users, Pencil, Printer } from "lucide-react";
+import { compressImage } from "@/lib/image-compress";
 
 export const Route = createFileRoute("/_app/employee-inputs")({
   component: EmployeeInputs,
@@ -76,6 +77,7 @@ function EmployeeInputs() {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState<any | null>(null);
+  const [printItemId, setPrintItemId] = useState<string | null>(null);
 
   const isAdmin = me?.org_role === "admin";
 
@@ -112,6 +114,12 @@ function EmployeeInputs() {
   }
   useEffect(() => { load(); }, [me, filterComplex]);
 
+  useEffect(() => {
+    const resetPrintTarget = () => setPrintItemId(null);
+    window.addEventListener("afterprint", resetPrintTarget);
+    return () => window.removeEventListener("afterprint", resetPrintTarget);
+  }, []);
+
   const complexNameById = useMemo(() => {
     const m: Record<string, string> = {};
     complexes.forEach(c => { m[c.id] = c.name; });
@@ -125,10 +133,13 @@ function EmployeeInputs() {
     const urls = [...existing];
     try {
       for (const file of Array.from(files)) {
-        const ext = file.name.split(".").pop() || "jpg";
+        const isImage = file.type.startsWith("image/");
+        const uploadBody = isImage ? await compressImage(file, 1_200_000, 1600) : file;
+        const ext = isImage ? "jpg" : (file.name.split(".").pop() || "bin");
+        const contentType = isImage ? "image/jpeg" : (file.type || "application/octet-stream");
         const path = `employee/${cx}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
-        const { error } = await supabase.storage.from("assessment-photos").upload(path, file, {
-          contentType: file.type, upsert: false,
+        const { error } = await supabase.storage.from("assessment-photos").upload(path, uploadBody, {
+          contentType, upsert: false,
         });
         if (error) throw error;
         const { data } = supabase.storage.from("assessment-photos").getPublicUrl(path);
@@ -136,7 +147,7 @@ function EmployeeInputs() {
       }
       setter(urls);
     } catch (e: any) {
-      toast.error(e.message ?? "업로드 실패");
+      toast.error(`사진 업로드 실패: ${e.message ?? "권한 또는 파일 형식을 확인하세요"}`);
     } finally {
       setUploading(false);
     }
@@ -234,15 +245,28 @@ function EmployeeInputs() {
   const hearings = items.filter(i => i.input_type === "hearing");
   const chats = items.filter(i => i.input_type === "open_chat");
 
-  const printTitle = `직원참여 기록 — ${filterComplex === "all" ? "전체 단지" : (complexNameById[filterComplex] ?? "")}`;
+  const printItem = printItemId ? items.find(i => i.id === printItemId) : null;
+  const printTitle = printItem
+    ? `청취조사 기록 — ${complexNameById[printItem.complex_id] ?? ""}${printItem.respondent_name ? ` / ${printItem.respondent_name}` : ""}`
+    : `직원참여 기록 — ${filterComplex === "all" ? "전체 단지" : (complexNameById[filterComplex] ?? "")}`;
+
+  function printOne(rowId: string) {
+    setPrintItemId(rowId);
+    window.setTimeout(() => window.print(), 80);
+  }
 
   return (
-    <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-5">
+    <div className={`employee-print-root p-4 md:p-8 max-w-5xl mx-auto space-y-5 ${printItemId ? "printing-single" : ""}`}>
       <style>{`
         @media print {
           .no-print { display: none !important; }
           .print-only { display: block !important; }
           body { background: white !important; }
+          .employee-print-root { max-width: none !important; padding: 0 !important; }
+          .print-card { break-inside: avoid; page-break-inside: avoid; }
+          .printing-single .print-card:not(.print-target) { display: none !important; }
+          .print-target { box-shadow: none !important; border: 1px solid hsl(var(--border)) !important; }
+          .print-attachment-img { width: 160px !important; height: 120px !important; }
         }
         .print-only { display: none; }
       `}</style>
@@ -335,7 +359,7 @@ function EmployeeInputs() {
             </div>
           </CardContent></Card>
 
-          <List items={hearings} me={me} onDelete={del} onEdit={setEditing} complexNameById={complexNameById} />
+          <List items={hearings} me={me} onDelete={del} onEdit={setEditing} onPrint={printOne} printItemId={printItemId} complexNameById={complexNameById} />
         </TabsContent>
 
         <TabsContent value="open_chat" className="space-y-4 mt-4">
@@ -370,7 +394,7 @@ function EmployeeInputs() {
               <Button onClick={submitChat} disabled={saving || uploading || !chat.summary.trim()}>{saving ? "저장 중..." : "등록"}</Button>
             </div>
           </CardContent></Card>
-          <List items={chats} me={me} onDelete={del} onEdit={setEditing} complexNameById={complexNameById} />
+          <List items={chats} me={me} onDelete={del} onEdit={setEditing} printItemId={printItemId} complexNameById={complexNameById} />
         </TabsContent>
       </Tabs>
 
@@ -496,7 +520,7 @@ function AttachmentPicker({ files, setFiles, uploading, onPick }: any) {
   );
 }
 
-function List({ items, me, onDelete, onEdit, complexNameById }: { items: any[]; me: any; onDelete: (id: string) => void; onEdit: (it: any) => void; complexNameById: Record<string,string> }) {
+function List({ items, me, onDelete, onEdit, onPrint, printItemId, complexNameById }: { items: any[]; me: any; onDelete: (id: string) => void; onEdit: (it: any) => void; onPrint?: (id: string) => void; printItemId?: string | null; complexNameById: Record<string,string> }) {
   if (items.length === 0) {
     return <div className="text-center text-sm text-muted-foreground py-8 border rounded-md">등록된 항목이 없습니다.</div>;
   }
@@ -506,7 +530,7 @@ function List({ items, me, onDelete, onEdit, complexNameById }: { items: any[]; 
         const canMutate = me && (it.created_by === me.id || me.org_role === "admin" || me.org_role === "manager");
         const m = it.meta ?? {};
         return (
-          <Card key={it.id}><CardContent className="p-4 space-y-2">
+          <Card key={it.id} className={`print-card ${printItemId === it.id ? "print-target" : ""}`}><CardContent className="p-4 space-y-2">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1 space-y-1.5">
                 <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -541,7 +565,7 @@ function List({ items, me, onDelete, onEdit, complexNameById }: { items: any[]; 
                   <div className="flex flex-wrap gap-2 pt-1">
                     {it.attachments.map((url: string, i: number) => (
                       <a key={i} href={url} target="_blank" rel="noreferrer">
-                        <img src={url} alt="" className="w-20 h-20 object-cover rounded-md border" />
+                        <img src={url} alt="" className="print-attachment-img w-20 h-20 object-cover rounded-md border" />
                       </a>
                     ))}
                   </div>
@@ -550,14 +574,21 @@ function List({ items, me, onDelete, onEdit, complexNameById }: { items: any[]; 
                 <ApprovalLineView approval={m.approval} />
 
               </div>
-              {canMutate && (
+              {(canMutate || (onPrint && it.input_type === "hearing")) && (
                 <div className="flex items-center gap-1 no-print">
+                  {onPrint && it.input_type === "hearing" && (
+                    <button onClick={() => onPrint(it.id)} className="text-muted-foreground hover:text-primary p-1" title="이 청취조사 출력">
+                      <Printer className="h-4 w-4" />
+                    </button>
+                  )}
+                  {canMutate && <>
                   <button onClick={() => onEdit(it)} className="text-muted-foreground hover:text-primary p-1" title="수정">
                     <Pencil className="h-4 w-4" />
                   </button>
                   <button onClick={() => onDelete(it.id)} className="text-muted-foreground hover:text-destructive p-1" title="삭제">
                     <Trash2 className="h-4 w-4" />
                   </button>
+                  </>}
                 </div>
               )}
             </div>
