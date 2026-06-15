@@ -365,6 +365,7 @@ function EmployeeInputs() {
             </div>
             <AttachmentPicker files={chatFiles} setFiles={setChatFiles} uploading={uploading}
               onPick={(f: FileList) => uploadFiles(f, setChatFiles, chatFiles)} />
+            <ApprovalLineEditor value={chat.approval} onChange={(a) => setChat({ ...chat, approval: a })} />
             <div className="flex justify-end">
               <Button onClick={submitChat} disabled={saving || uploading || !chat.summary.trim()}>{saving ? "저장 중..." : "등록"}</Button>
             </div>
