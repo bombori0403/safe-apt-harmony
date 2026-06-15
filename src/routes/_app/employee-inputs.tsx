@@ -118,13 +118,15 @@ function EmployeeInputs() {
     return m;
   }, [complexes]);
 
-  async function uploadFiles(files: FileList, setter: (urls: string[]) => void, existing: string[]) {
+  async function uploadFiles(files: FileList, setter: (urls: string[]) => void, existing: string[], complexId?: string) {
+    const cx = complexId || formComplex;
+    if (!cx) { toast.error("단지를 먼저 선택하세요"); return; }
     setUploading(true);
     const urls = [...existing];
     try {
       for (const file of Array.from(files)) {
         const ext = file.name.split(".").pop() || "jpg";
-        const path = `employee-inputs/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+        const path = `employee/${cx}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
         const { error } = await supabase.storage.from("assessment-photos").upload(path, file, {
           contentType: file.type, upsert: false,
         });
