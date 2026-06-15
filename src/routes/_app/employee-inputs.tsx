@@ -264,9 +264,12 @@ function EmployeeInputs() {
     setPrintItemId(rowId);
     window.setTimeout(async () => {
       await preloadImages(target?.attachments ?? []);
+      document.body.classList.add("printing-single-active");
       window.print();
-    }, 180);
+      document.body.classList.remove("printing-single-active");
+    }, 200);
   }
+
 
   return (
     <div className={`employee-print-root p-4 md:p-8 max-w-5xl mx-auto space-y-5 ${printItemId ? "printing-single" : ""}`}>
