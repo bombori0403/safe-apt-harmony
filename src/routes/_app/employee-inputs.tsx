@@ -854,4 +854,129 @@ function HearingReportSheet({ item, complexName }: { item: any; complexName: str
   );
 }
 
+function OpenChatReportSheet({ item, complexName }: { item: any; complexName: string }) {
+  const m = item.meta ?? {};
+  const a: Approval | undefined = m.approval;
+  const occurred = new Date(item.occurred_at);
+  const dateStr = occurred.toLocaleDateString("ko-KR");
+  const timeStr = occurred.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+  const photos: string[] = item.attachments ?? [];
+
+  return (
+    <div className="print-sheet" style={{ fontFamily: "'Malgun Gothic', system-ui, sans-serif", color: "#000" }}>
+      <style>{`
+        @media print {
+          .print-sheet {
+            display: block !important;
+            width: 194mm;
+            height: 281mm;
+            box-sizing: border-box;
+            font-size: 9pt;
+            line-height: 1.2;
+            overflow: hidden;
+            page-break-after: avoid;
+            break-after: avoid;
+          }
+          .print-sheet table { page-break-inside: avoid; break-inside: avoid; }
+        }
+        .hr-title { text-align: center; font-size: 16pt; font-weight: 800; margin: 0; letter-spacing: 0; }
+        .hr-subtitle { text-align: center; font-size: 8pt; margin: 1mm 0 0; color: #333; }
+        .hr-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        .hr-table th, .hr-table td { border: 1px solid #111; padding: 1.2mm 2mm; vertical-align: middle; box-sizing: border-box; }
+        .hr-label { background: #f1f1f1; text-align: center; font-weight: 700; }
+        .hr-content { white-space: pre-wrap; word-break: break-word; overflow: hidden; vertical-align: top !important; }
+        .hr-small { font-size: 7.5pt; color: #444; }
+        .hr-photo-row { display: flex; gap: 2mm; width: 100%; height: 100%; }
+        .hr-photo-box { flex: 1 1 0; min-width: 0; height: 100%; border: 1px solid #555; background: #fafafa; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .hr-photo-box img { width: 100%; height: 100%; object-fit: contain; display: block; }
+        .hr-photo-empty { color: #aaa; font-size: 8pt; }
+      `}</style>
+
+      <table className="hr-table" style={{ height: "26mm", marginBottom: "2mm" }}>
+        <tbody>
+          <tr>
+            <td style={{ border: "none", padding: 0 }}>
+              <h1 className="hr-title">오픈채팅 이력 기록표</h1>
+              <p className="hr-subtitle">단지 오픈채팅 안전 관련 대화 이력 · 근로자 의견 수렴</p>
+            </td>
+            <td style={{ border: "none", padding: 0, width: "66mm", verticalAlign: "top" }}>
+              <table className="hr-table" style={{ height: "24mm" }}>
+                <tbody>
+                  <tr style={{ height: "6mm" }}>
+                    <th className="hr-label" rowSpan={2} style={{ width: "9mm", padding: "1mm", writingMode: "vertical-rl" }}>결재</th>
+                    {APPROVAL_ROLES.map(r => <th key={r.label} className="hr-label">{r.label}</th>)}
+                  </tr>
+                  <tr>
+                    {APPROVAL_ROLES.map(({ key, nameKey, label }) => (
+                      <td key={label} style={{ textAlign: "center", height: "18mm", padding: "1mm" }}>
+                        <div style={{ minHeight: "8mm", fontWeight: 700 }}>{(a?.[nameKey] as string) || ""}</div>
+                        <div className="hr-small">{a?.[key] ? new Date(a[key] as string).toLocaleDateString("ko-KR") : ""}</div>
+                      </td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table className="hr-table" style={{ height: "26mm" }}>
+        <tbody>
+          <tr style={{ height: "8mm" }}>
+            <th className="hr-label" style={{ width: "24mm" }}>단지</th>
+            <td>{complexName || "-"}</td>
+            <th className="hr-label" style={{ width: "24mm" }}>일시</th>
+            <td>{dateStr} {timeStr}</td>
+          </tr>
+          <tr style={{ height: "8mm" }}>
+            <th className="hr-label">채팅방명</th>
+            <td>{m.room_name || "-"}</td>
+            <th className="hr-label">작성자</th>
+            <td>{m.author_name || "-"}</td>
+          </tr>
+          <tr style={{ height: "10mm" }}>
+            <th className="hr-label">수집방법</th>
+            <td colSpan={3}>단지 오픈채팅방에 공유된 안전 관련 대화·의견을 수집하여 기록</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table className="hr-table" style={{ height: "168mm", marginTop: "2mm" }}>
+        <tbody>
+          <tr style={{ height: "168mm" }}>
+            <th className="hr-label" style={{ width: "24mm" }}>대화 내용<br/><span className="hr-small">(요약)</span></th>
+            <td className="hr-content"><ReportText value={m.summary ?? item.content} height="164mm" /></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table className="hr-table" style={{ height: "38mm", marginTop: "2mm" }}>
+        <tbody>
+          <tr>
+            <th className="hr-label" style={{ width: "24mm" }}>첨부 캡처</th>
+            <td style={{ padding: "1.5mm", height: "38mm" }}>
+              <div className="hr-photo-row">
+                {Array.from({ length: 4 }).map((_, i) => {
+                  const url = photos[i];
+                  return (
+                    <div key={i} className="hr-photo-box">
+                      {url ? <img src={url} alt={`첨부 ${i + 1}`} /> : <span className="hr-photo-empty">캡처 {i + 1}</span>}
+                    </div>
+                  );
+                })}
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style={{ textAlign: "right", fontSize: "7.5pt", color: "#555", marginTop: "1mm" }}>
+        출력일: {new Date().toLocaleString("ko-KR")}
+      </div>
+    </div>
+  );
+}
+
+
 
