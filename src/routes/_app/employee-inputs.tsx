@@ -264,9 +264,12 @@ function EmployeeInputs() {
     setPrintItemId(rowId);
     window.setTimeout(async () => {
       await preloadImages(target?.attachments ?? []);
+      document.body.classList.add("printing-single-active");
       window.print();
-    }, 180);
+      document.body.classList.remove("printing-single-active");
+    }, 200);
   }
+
 
   return (
     <div className={`employee-print-root p-4 md:p-8 max-w-5xl mx-auto space-y-5 ${printItemId ? "printing-single" : ""}`}>
@@ -275,17 +278,29 @@ function EmployeeInputs() {
           @page { size: A4 portrait; margin: 8mm; }
           .no-print { display: none !important; }
           .print-only { display: block !important; }
-          html, body { width: 210mm; min-height: 297mm; background: white !important; }
+          html, body { width: 210mm; background: white !important; margin: 0 !important; padding: 0 !important; }
           .employee-print-root { max-width: none !important; padding: 0 !important; }
           .print-card { break-inside: avoid; page-break-inside: avoid; }
-          .printing-single > *:not(.print-sheet) { display: none !important; }
-          .printing-single .print-sheet { display: block !important; }
           .print-attachment-img { width: 150px !important; height: 110px !important; object-fit: cover; }
           * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+          /* Single-sheet print: hide everything except the print-sheet */
+          body.printing-single-active * { visibility: hidden !important; }
+          body.printing-single-active .print-sheet,
+          body.printing-single-active .print-sheet * { visibility: visible !important; }
+          body.printing-single-active .print-sheet {
+            position: absolute !important;
+            left: 0; top: 0;
+            margin: 0 !important;
+            page-break-after: avoid !important;
+            break-after: avoid !important;
+          }
         }
         .print-only { display: none; }
         .print-sheet { display: none; }
+        @media print { .print-sheet { display: block !important; } }
       `}</style>
+
 
 
       {printItem && printItem.input_type === "hearing" && (
