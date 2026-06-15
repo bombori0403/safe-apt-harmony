@@ -688,126 +688,140 @@ function HearingReportSheet({ item, complexName }: { item: any; complexName: str
   const timeStr = occurred.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
   const photos: string[] = item.attachments ?? [];
 
+  // A4 inner height (297mm) minus @page margin (12mm * 2) = 273mm
+  // Distribute fixed mm sizes so everything fits exactly on one page.
   return (
-    <div className="print-sheet text-black" style={{ fontFamily: "'Malgun Gothic', system-ui, sans-serif", fontSize: "11pt", lineHeight: 1.4 }}>
+    <div className="print-sheet" style={{ fontFamily: "'Malgun Gothic', system-ui, sans-serif", color: "#000" }}>
       <style>{`
-        .print-sheet { display: none; }
         @media print {
           .print-sheet {
             display: flex !important;
             flex-direction: column;
             width: 100%;
-            height: calc(297mm - 24mm); /* A4 height minus @page margins */
+            height: 273mm;
             box-sizing: border-box;
+            font-size: 10.5pt;
+            line-height: 1.35;
             page-break-after: avoid;
+            overflow: hidden;
           }
-          .rpt-flex-fill { flex: 1 1 auto; display: flex; flex-direction: column; }
-          .rpt-flex-fill > table { flex: 1 1 auto; height: 100%; }
-          .rpt-fill-cell { height: 100%; }
         }
-        .rpt-table { width: 100%; border-collapse: collapse; }
-        .rpt-table th, .rpt-table td { border: 1px solid #333; padding: 4px 6px; vertical-align: top; }
-        .rpt-table th { background: #f1f1f1; font-weight: 600; text-align: center; width: 90px; font-size: 10pt; }
-        .rpt-cell { white-space: pre-wrap; word-break: break-word; height: 100%; }
-        .rpt-approval { float: right; margin-bottom: 6px; width: auto !important; }
-        .rpt-approval td { width: 70px; height: 28px; text-align: center; font-size: 9pt; }
-        .rpt-approval td.sig { height: 44px; }
-        .rpt-photos { display: flex; flex-wrap: wrap; gap: 6px; }
-        .rpt-photos img { width: 130px; height: 95px; object-fit: cover; border: 1px solid #999; }
+        .ps-row { display: flex; border: 1px solid #000; }
+        .ps-row + .ps-row { border-top: none; }
+        .ps-h { width: 28mm; background: #eee; font-weight: 700; text-align: center;
+                display: flex; align-items: center; justify-content: center;
+                border-right: 1px solid #000; padding: 2mm; font-size: 10pt; }
+        .ps-v { flex: 1; padding: 2mm 3mm; white-space: pre-wrap; word-break: break-word;
+                display: flex; align-items: flex-start; }
+        .ps-v.center { align-items: center; }
+        .ps-grow { flex: 1 1 0; min-height: 0; }
+        .ps-grow .ps-v { width: 100%; }
       `}</style>
 
-      <table className="rpt-table rpt-approval">
-        <tbody>
-          <tr>
-            <th>결재</th>
-            {APPROVAL_ROLES.map(r => <th key={r.label}>{r.label}</th>)}
-          </tr>
-          <tr>
-            {APPROVAL_ROLES.map(({ nameKey }) => (
-              <td key={String(nameKey)} className="sig">{(a?.[nameKey] as string) || ""}</td>
-            ))}
-          </tr>
-          <tr>
-            {APPROVAL_ROLES.map(({ key }) => (
-              <td key={String(key)}>
-                {a?.[key] ? new Date(a[key] as string).toLocaleDateString("ko-KR") : ""}
-              </td>
-            ))}
-          </tr>
-        </tbody>
-      </table>
-
-      <div style={{ clear: "both" }} />
-
-      <h1 style={{ textAlign: "center", fontSize: "18pt", fontWeight: 700, margin: "0 0 4px", letterSpacing: "0.05em" }}>
-        청취조사에 의한 유해·위험요인 조사표
-      </h1>
-      <p style={{ textAlign: "center", fontSize: "9pt", color: "#555", margin: "0 0 10px" }}>
-        산업안전보건법 제36조 제2항 · 근로자 의견 청취 기록
-      </p>
-
-      <table className="rpt-table" style={{ marginBottom: 6, flex: "0 0 auto" }}>
-        <tbody>
-          <tr>
-            <th>단지</th><td>{complexName || "-"}</td>
-            <th>수행일시</th><td>{dateStr} {timeStr}</td>
-          </tr>
-          <tr>
-            <th>수행자</th><td>{m.conductor_name || "-"}</td>
-            <th>근로자</th><td>{m.worker_name || "-"}</td>
-          </tr>
-          <tr>
-            <th>실시방법</th>
-            <td colSpan={3} style={{ fontSize: "9.5pt" }}>
-              위험성평가 수행자가 현장 근로자와 면담을 통해 직접 경험한 유해·위험요인을 조사 (육하원칙에 따라 작성)
-            </td>
-          </tr>
-        </tbody>
-      </table>
-
-      <div className="rpt-flex-fill" style={{ marginBottom: 6 }}>
-        <table className="rpt-table">
+      {/* Header: title + approval box */}
+      <div style={{ display: "flex", alignItems: "flex-start", marginBottom: "4mm", flex: "0 0 auto" }}>
+        <div style={{ flex: 1, paddingTop: "4mm" }}>
+          <h1 style={{ textAlign: "center", fontSize: "20pt", fontWeight: 800, margin: 0, letterSpacing: "0.05em" }}>
+            청취조사에 의한 유해·위험요인 조사표
+          </h1>
+          <p style={{ textAlign: "center", fontSize: "9pt", color: "#444", margin: "2mm 0 0" }}>
+            산업안전보건법 제36조 제2항 · 근로자 의견 청취 기록
+          </p>
+        </div>
+        <table style={{ borderCollapse: "collapse", marginLeft: "4mm" }}>
           <tbody>
-            {[1, 2, 3].map(n => (
-              <tr key={n} style={{ height: "15%" }}>
-                <th>경험담 {n}</th>
-                <td className="rpt-fill-cell"><div className="rpt-cell">{m[`experience_${n}`] || ""}</div></td>
-              </tr>
-            ))}
-            <tr style={{ height: "17%" }}>
-              <th>근로자 의견<br/><span style={{ fontWeight: 400, fontSize: "8.5pt" }}>(원인·반성)</span></th>
-              <td className="rpt-fill-cell"><div className="rpt-cell">{m.worker_opinion || ""}</div></td>
+            <tr>
+              <td rowSpan={2} style={{ border: "1px solid #000", background: "#eee", padding: "1mm 2mm", fontSize: "9pt", fontWeight: 700, writingMode: "vertical-rl", textAlign: "center", width: "8mm" }}>결재</td>
+              {APPROVAL_ROLES.map(r => (
+                <td key={r.label} style={{ border: "1px solid #000", background: "#eee", width: "18mm", height: "6mm", textAlign: "center", fontSize: "9pt", fontWeight: 700 }}>
+                  {r.label}
+                </td>
+              ))}
             </tr>
-            <tr style={{ height: "17%" }}>
-              <th>수행자 의견<br/><span style={{ fontWeight: 400, fontSize: "8.5pt" }}>(조언)</span></th>
-              <td className="rpt-fill-cell"><div className="rpt-cell">{m.conductor_opinion || ""}</div></td>
+            <tr>
+              {APPROVAL_ROLES.map(({ key, nameKey }) => (
+                <td key={String(nameKey)} style={{ border: "1px solid #000", width: "18mm", height: "16mm", textAlign: "center", fontSize: "9pt", verticalAlign: "middle", padding: "1mm" }}>
+                  <div style={{ fontWeight: 600 }}>{(a?.[nameKey] as string) || ""}</div>
+                  <div style={{ fontSize: "7.5pt", color: "#555", marginTop: "1mm" }}>
+                    {a?.[key] ? new Date(a[key] as string).toLocaleDateString("ko-KR") : ""}
+                  </div>
+                </td>
+              ))}
             </tr>
           </tbody>
         </table>
       </div>
 
-      <table className="rpt-table" style={{ flex: "0 0 auto" }}>
-        <tbody>
-          <tr>
-            <th style={{ width: 70 }}>첨부<br/>사진</th>
-            <td style={{ minHeight: 100 }}>
-              {photos.length > 0 ? (
-                <div className="rpt-photos">
-                  {photos.slice(0, 6).map((url, i) => (
-                    <img key={i} src={url} alt={`첨부 ${i + 1}`} />
-                  ))}
-                </div>
-              ) : (
-                <div style={{ height: 95, color: "#999", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "9pt" }}>
-                  (첨부된 사진 없음)
-                </div>
-              )}
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      {/* Meta info */}
+      <div style={{ flex: "0 0 auto" }}>
+        <div className="ps-row">
+          <div className="ps-h">단지</div>
+          <div className="ps-v center" style={{ flex: 1 }}>{complexName || "-"}</div>
+          <div className="ps-h" style={{ borderLeft: "1px solid #000" }}>수행일시</div>
+          <div className="ps-v center" style={{ flex: 1 }}>{dateStr} {timeStr}</div>
+        </div>
+        <div className="ps-row">
+          <div className="ps-h">수행자</div>
+          <div className="ps-v center" style={{ flex: 1 }}>{m.conductor_name || "-"}</div>
+          <div className="ps-h" style={{ borderLeft: "1px solid #000" }}>근로자</div>
+          <div className="ps-v center" style={{ flex: 1 }}>{m.worker_name || "-"}</div>
+        </div>
+        <div className="ps-row">
+          <div className="ps-h">실시방법</div>
+          <div className="ps-v center" style={{ fontSize: "9.5pt" }}>
+            위험성평가 수행자가 현장 근로자와 면담을 통해 직접 경험한 유해·위험요인을 조사 (육하원칙에 따라 작성)
+          </div>
+        </div>
+      </div>
 
-      <p style={{ textAlign: "right", fontSize: "9pt", color: "#666", marginTop: 6, flex: "0 0 auto" }}>
+      {/* Experience + opinions — fills remaining space */}
+      <div style={{ flex: "1 1 auto", display: "flex", flexDirection: "column", marginTop: "2mm", minHeight: 0 }}>
+        {[1, 2, 3].map(n => (
+          <div key={n} className="ps-row ps-grow">
+            <div className="ps-h">경험담 {n}</div>
+            <div className="ps-v">{m[`experience_${n}`] || ""}</div>
+          </div>
+        ))}
+        <div className="ps-row ps-grow">
+          <div className="ps-h">
+            <div>
+              근로자 의견<br/>
+              <span style={{ fontWeight: 400, fontSize: "8.5pt" }}>(원인·반성)</span>
+            </div>
+          </div>
+          <div className="ps-v">{m.worker_opinion || ""}</div>
+        </div>
+        <div className="ps-row ps-grow">
+          <div className="ps-h">
+            <div>
+              수행자 의견<br/>
+              <span style={{ fontWeight: 400, fontSize: "8.5pt" }}>(조언)</span>
+            </div>
+          </div>
+          <div className="ps-v">{m.conductor_opinion || ""}</div>
+        </div>
+      </div>
+
+      {/* Photos: fixed height block */}
+      <div className="ps-row" style={{ marginTop: "2mm", flex: "0 0 auto", height: "42mm" }}>
+        <div className="ps-h">첨부<br/>사진</div>
+        <div className="ps-v" style={{ padding: "2mm" }}>
+          {photos.length > 0 ? (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "2mm" }}>
+              {photos.slice(0, 4).map((url, i) => (
+                <img key={i} src={url} alt={`첨부 ${i + 1}`}
+                  style={{ width: "42mm", height: "32mm", objectFit: "cover", border: "1px solid #666" }} />
+              ))}
+            </div>
+          ) : (
+            <div style={{ width: "100%", textAlign: "center", color: "#888", fontSize: "9pt", alignSelf: "center" }}>
+              (첨부된 사진 없음)
+            </div>
+          )}
+        </div>
+      </div>
+
+      <p style={{ textAlign: "right", fontSize: "8.5pt", color: "#666", marginTop: "2mm", flex: "0 0 auto" }}>
         출력일: {new Date().toLocaleString("ko-KR")}
       </p>
     </div>
