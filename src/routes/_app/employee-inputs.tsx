@@ -520,7 +520,7 @@ function AttachmentPicker({ files, setFiles, uploading, onPick }: any) {
   );
 }
 
-function List({ items, me, onDelete, onEdit, complexNameById }: { items: any[]; me: any; onDelete: (id: string) => void; onEdit: (it: any) => void; complexNameById: Record<string,string> }) {
+function List({ items, me, onDelete, onEdit, onPrint, printItemId, complexNameById }: { items: any[]; me: any; onDelete: (id: string) => void; onEdit: (it: any) => void; onPrint?: (id: string) => void; printItemId?: string | null; complexNameById: Record<string,string> }) {
   if (items.length === 0) {
     return <div className="text-center text-sm text-muted-foreground py-8 border rounded-md">등록된 항목이 없습니다.</div>;
   }
@@ -530,7 +530,7 @@ function List({ items, me, onDelete, onEdit, complexNameById }: { items: any[]; 
         const canMutate = me && (it.created_by === me.id || me.org_role === "admin" || me.org_role === "manager");
         const m = it.meta ?? {};
         return (
-          <Card key={it.id}><CardContent className="p-4 space-y-2">
+          <Card key={it.id} className={`print-card ${printItemId === it.id ? "print-target" : ""}`}><CardContent className="p-4 space-y-2">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1 space-y-1.5">
                 <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -565,7 +565,7 @@ function List({ items, me, onDelete, onEdit, complexNameById }: { items: any[]; 
                   <div className="flex flex-wrap gap-2 pt-1">
                     {it.attachments.map((url: string, i: number) => (
                       <a key={i} href={url} target="_blank" rel="noreferrer">
-                        <img src={url} alt="" className="w-20 h-20 object-cover rounded-md border" />
+                        <img src={url} alt="" className="print-attachment-img w-20 h-20 object-cover rounded-md border" />
                       </a>
                     ))}
                   </div>
@@ -574,14 +574,21 @@ function List({ items, me, onDelete, onEdit, complexNameById }: { items: any[]; 
                 <ApprovalLineView approval={m.approval} />
 
               </div>
-              {canMutate && (
+              {(canMutate || (onPrint && it.input_type === "hearing")) && (
                 <div className="flex items-center gap-1 no-print">
+                  {onPrint && it.input_type === "hearing" && (
+                    <button onClick={() => onPrint(it.id)} className="text-muted-foreground hover:text-primary p-1" title="이 청취조사 출력">
+                      <Printer className="h-4 w-4" />
+                    </button>
+                  )}
+                  {canMutate && <>
                   <button onClick={() => onEdit(it)} className="text-muted-foreground hover:text-primary p-1" title="수정">
                     <Pencil className="h-4 w-4" />
                   </button>
                   <button onClick={() => onDelete(it.id)} className="text-muted-foreground hover:text-destructive p-1" title="삭제">
                     <Trash2 className="h-4 w-4" />
                   </button>
+                  </>}
                 </div>
               )}
             </div>
