@@ -278,7 +278,7 @@ function EmployeeInputs() {
         <HearingReportSheet item={printItem} complexName={complexNameById[printItem.complex_id] ?? ""} />
       )}
 
-      <div className="print-only screen-only mb-4">
+      <div className="print-only mb-4">
         <h1 className="text-xl font-bold">{printTitle}</h1>
         <p className="text-xs text-muted-foreground">출력일: {new Date().toLocaleString("ko-KR")}</p>
       </div>
