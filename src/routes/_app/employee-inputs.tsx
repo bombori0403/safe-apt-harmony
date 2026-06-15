@@ -20,6 +20,15 @@ export const Route = createFileRoute("/_app/employee-inputs")({
 
 type InputType = "hearing" | "open_chat";
 
+const EMPTY_APPROVAL = {
+  drafter_name: "",
+  reviewer_name: "",
+  approver_name: "",
+  drafter_signed_at: "",
+  reviewer_signed_at: "",
+  approver_signed_at: "",
+};
+
 const EMPTY_HEARING = {
   conductor_name: "",
   worker_name: "",
@@ -28,12 +37,14 @@ const EMPTY_HEARING = {
   experience_3: "",
   worker_opinion: "",
   conductor_opinion: "",
+  approval: { ...EMPTY_APPROVAL },
 };
 
 const EMPTY_CHAT = {
   room_name: "",
   author_name: "",
   summary: "",
+  approval: { ...EMPTY_APPROVAL },
 };
 
 function nowLocal() {
