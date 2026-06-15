@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, ClipboardList, FilePlus2, Building2, Settings, Shield, Users, AlertTriangle, ShieldAlert } from "lucide-react";
+import { LayoutDashboard, ClipboardList, FilePlus2, Building2, Settings, Shield, Users, AlertTriangle, ShieldAlert, MessageCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ const NAV = [
   { to: "/history", label: "평가 이력", icon: ClipboardList, adminOnly: false },
   { to: "/near-miss", label: "아차사고", icon: AlertTriangle, adminOnly: false, managerOrAdmin: true },
   { to: "/work-stop-right", label: "작업중지권", icon: ShieldAlert, adminOnly: false, managerOrAdmin: true },
+  { to: "/employee-inputs", label: "직원 참여", icon: MessageCircle, adminOnly: false },
   { to: "/console", label: "본사 콘솔", icon: Building2, adminOnly: false },
   { to: "/team", label: "직원 관리", icon: Users, adminOnly: false, managerOrAdmin: true },
   { to: "/settings", label: "설정", icon: Settings, adminOnly: false },
