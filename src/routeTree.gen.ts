@@ -21,6 +21,7 @@ import { Route as AppTeamRouteImport } from './routes/_app/team'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppNearMissRouteImport } from './routes/_app/near-miss'
 import { Route as AppHistoryRouteImport } from './routes/_app/history'
+import { Route as AppEmployeeInputsRouteImport } from './routes/_app/employee-inputs'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppConsoleRouteImport } from './routes/_app/console'
 import { Route as AppWorkStopRecordsLedgerRouteImport } from './routes/_app/work-stop-records_.ledger'
@@ -93,6 +94,11 @@ const AppNearMissRoute = AppNearMissRouteImport.update({
 const AppHistoryRoute = AppHistoryRouteImport.update({
   id: '/history',
   path: '/history',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppEmployeeInputsRoute = AppEmployeeInputsRouteImport.update({
+  id: '/employee-inputs',
+  path: '/employee-inputs',
   getParentRoute: () => AppRoute,
 } as any)
 const AppDashboardRoute = AppDashboardRouteImport.update({
@@ -173,6 +179,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/console': typeof AppConsoleRoute
   '/dashboard': typeof AppDashboardRoute
+  '/employee-inputs': typeof AppEmployeeInputsRoute
   '/history': typeof AppHistoryRoute
   '/near-miss': typeof AppNearMissRouteWithChildren
   '/settings': typeof AppSettingsRoute
@@ -200,6 +207,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/console': typeof AppConsoleRoute
   '/dashboard': typeof AppDashboardRoute
+  '/employee-inputs': typeof AppEmployeeInputsRoute
   '/history': typeof AppHistoryRoute
   '/near-miss': typeof AppNearMissRouteWithChildren
   '/settings': typeof AppSettingsRoute
@@ -229,6 +237,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/_app/console': typeof AppConsoleRoute
   '/_app/dashboard': typeof AppDashboardRoute
+  '/_app/employee-inputs': typeof AppEmployeeInputsRoute
   '/_app/history': typeof AppHistoryRoute
   '/_app/near-miss': typeof AppNearMissRouteWithChildren
   '/_app/settings': typeof AppSettingsRoute
@@ -258,6 +267,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/console'
     | '/dashboard'
+    | '/employee-inputs'
     | '/history'
     | '/near-miss'
     | '/settings'
@@ -285,6 +295,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/console'
     | '/dashboard'
+    | '/employee-inputs'
     | '/history'
     | '/near-miss'
     | '/settings'
@@ -313,6 +324,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/_app/console'
     | '/_app/dashboard'
+    | '/_app/employee-inputs'
     | '/_app/history'
     | '/_app/near-miss'
     | '/_app/settings'
@@ -428,6 +440,13 @@ declare module '@tanstack/react-router' {
       path: '/history'
       fullPath: '/history'
       preLoaderRoute: typeof AppHistoryRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/employee-inputs': {
+      id: '/_app/employee-inputs'
+      path: '/employee-inputs'
+      fullPath: '/employee-inputs'
+      preLoaderRoute: typeof AppEmployeeInputsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/dashboard': {
@@ -548,6 +567,7 @@ const AppNearMissRouteWithChildren = AppNearMissRoute._addFileChildren(
 interface AppRouteChildren {
   AppConsoleRoute: typeof AppConsoleRoute
   AppDashboardRoute: typeof AppDashboardRoute
+  AppEmployeeInputsRoute: typeof AppEmployeeInputsRoute
   AppHistoryRoute: typeof AppHistoryRoute
   AppNearMissRoute: typeof AppNearMissRouteWithChildren
   AppSettingsRoute: typeof AppSettingsRoute
@@ -569,6 +589,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppConsoleRoute: AppConsoleRoute,
   AppDashboardRoute: AppDashboardRoute,
+  AppEmployeeInputsRoute: AppEmployeeInputsRoute,
   AppHistoryRoute: AppHistoryRoute,
   AppNearMissRoute: AppNearMissRouteWithChildren,
   AppSettingsRoute: AppSettingsRoute,

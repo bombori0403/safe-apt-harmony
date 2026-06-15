@@ -69,6 +69,7 @@ function EmployeeInputs() {
       if (!u) return;
       setMe(u as any);
       // Load complexes
+      if (!u.organization_id) return;
       let q = supabase.from("complexes").select("id, name").eq("organization_id", u.organization_id).order("name");
       if (u.org_role !== "admin") {
         const { data: cm } = await supabase.from("complex_members").select("complex_id").eq("user_id", u.id);
