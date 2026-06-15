@@ -10,7 +10,7 @@ import { Calendar as CalendarComp } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, AlertTriangle, Calendar, Users, TrendingUp, Building2 } from "lucide-react";
+import { Plus, AlertTriangle, Calendar, Users, TrendingUp, Building2, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_app/dashboard")({
@@ -43,6 +43,7 @@ function Dashboard() {
   const [assessments, setAssessments] = useState<Assessment[]>([]);
   const [nearMisses, setNearMisses] = useState<any[]>([]);
   const [workStops, setWorkStops] = useState<any[]>([]);
+  const [employeeInputs, setEmployeeInputs] = useState<any[]>([]);
   const [unresolvedHigh, setUnresolvedHigh] = useState(0);
   const [monthCount, setMonthCount] = useState(0);
   const [nextDate, setNextDate] = useState<Date | undefined>(undefined);
@@ -97,6 +98,15 @@ function Dashboard() {
       if (scoped) wsQ = wsQ.eq("complex_id", selectedComplexId);
       const { data: ws } = await wsQ;
       setWorkStops(ws ?? []);
+
+      let eiQ = supabase
+        .from("employee_inputs")
+        .select("id, assessment_id, input_type, respondent_name, respondent_role, content, occurred_at, complex_id")
+        .order("occurred_at", { ascending: false })
+        .limit(5);
+      if (scoped) eiQ = eiQ.eq("complex_id", selectedComplexId);
+      const { data: ei } = await eiQ;
+      setEmployeeInputs(ei ?? []);
 
       const startMonth = new Date(); startMonth.setDate(1); startMonth.setHours(0,0,0,0);
       let mQ = supabase.from("assessments").select("*", { count: "exact", head: true }).gte("created_at", startMonth.toISOString());
@@ -272,7 +282,35 @@ function Dashboard() {
         </CardContent>
       </Card>
 
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid xl:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="p-4 md:p-6">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-semibold">최근 직원 참여</h2>
+              <MessageCircle className="h-4 w-4 text-muted-foreground" />
+            </div>
+            {employeeInputs.length === 0 ? (
+              <div className="text-center text-muted-foreground py-8 text-sm">등록된 청취조사/오픈채팅 이력이 없습니다.</div>
+            ) : (
+              <div className="divide-y">
+                {employeeInputs.map((it) => (
+                  <Link key={it.id} to="/assessment/$id/inputs" params={{ id: it.assessment_id }} className="py-3 flex items-center justify-between gap-3 hover:bg-muted/30 -mx-2 px-2 rounded">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">{it.input_type === "hearing" ? "청취조사" : "오픈채팅"}</Badge>
+                        <span className="font-medium truncate">{it.respondent_name || it.respondent_role || "직원 의견"}</span>
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1 truncate">
+                        {it.occurred_at ? new Date(it.occurred_at).toLocaleDateString() : ""} · {it.content}
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         <Card>
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center justify-between mb-3">

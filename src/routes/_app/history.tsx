@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Search } from "lucide-react";
+import { MessageCircle, Search } from "lucide-react";
 import { riskLevelClass, type RiskLevel } from "@/lib/types";
 
 export const Route = createFileRoute("/_app/history")({
@@ -89,6 +89,14 @@ function History() {
                     허용 {a.allowable_level}
                   </span>
                 )}
+                <Link
+                  to="/assessment/$id/inputs"
+                  params={{ id: a.id }}
+                  className="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium text-primary hover:bg-primary/10"
+                >
+                  <MessageCircle className="h-3.5 w-3.5" />
+                  직원 참여
+                </Link>
               </div>
             ))}
           </div>
