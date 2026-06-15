@@ -250,24 +250,38 @@ function EmployeeInputs() {
     ? `청취조사 기록 — ${complexNameById[printItem.complex_id] ?? ""}${printItem.respondent_name ? ` / ${printItem.respondent_name}` : ""}`
     : `직원참여 기록 — ${filterComplex === "all" ? "전체 단지" : (complexNameById[filterComplex] ?? "")}`;
 
+  function preloadImages(urls: string[]) {
+    return Promise.all(urls.map(url => new Promise<void>((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve();
+      img.onerror = () => resolve();
+      img.src = url;
+    })));
+  }
+
   function printOne(rowId: string) {
+    const target = items.find(i => i.id === rowId);
     setPrintItemId(rowId);
-    window.setTimeout(() => window.print(), 80);
+    window.setTimeout(async () => {
+      await preloadImages(target?.attachments ?? []);
+      window.print();
+    }, 180);
   }
 
   return (
     <div className={`employee-print-root p-4 md:p-8 max-w-5xl mx-auto space-y-5 ${printItemId ? "printing-single" : ""}`}>
       <style>{`
         @media print {
-          @page { size: A4 portrait; margin: 12mm; }
+          @page { size: A4 portrait; margin: 8mm; }
           .no-print { display: none !important; }
           .print-only { display: block !important; }
-          body { background: white !important; }
+          html, body { width: 210mm; min-height: 297mm; background: white !important; }
           .employee-print-root { max-width: none !important; padding: 0 !important; }
           .print-card { break-inside: avoid; page-break-inside: avoid; }
           .printing-single > *:not(.print-sheet) { display: none !important; }
           .printing-single .print-sheet { display: block !important; }
           .print-attachment-img { width: 150px !important; height: 110px !important; object-fit: cover; }
+          * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
         .print-only { display: none; }
         .print-sheet { display: none; }
@@ -680,6 +694,14 @@ function ApprovalLineView({ approval }: { approval?: Approval }) {
   );
 }
 
+function ReportText({ value, height }: { value?: string; height: string }) {
+  return (
+    <div style={{ height, overflow: "hidden", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+      {value || ""}
+    </div>
+  );
+}
+
 function HearingReportSheet({ item, complexName }: { item: any; complexName: string }) {
   const m = item.meta ?? {};
   const a: Approval | undefined = m.approval;
@@ -688,142 +710,123 @@ function HearingReportSheet({ item, complexName }: { item: any; complexName: str
   const timeStr = occurred.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
   const photos: string[] = item.attachments ?? [];
 
-  // A4 inner height (297mm) minus @page margin (12mm * 2) = 273mm
-  // Distribute fixed mm sizes so everything fits exactly on one page.
   return (
     <div className="print-sheet" style={{ fontFamily: "'Malgun Gothic', system-ui, sans-serif", color: "#000" }}>
       <style>{`
         @media print {
           .print-sheet {
-            display: flex !important;
-            flex-direction: column;
-            width: 100%;
-            height: 273mm;
+            display: block !important;
+            width: 194mm;
+            height: 281mm;
             box-sizing: border-box;
-            font-size: 10.5pt;
-            line-height: 1.35;
-            page-break-after: avoid;
+            font-size: 9.5pt;
+            line-height: 1.25;
             overflow: hidden;
+            page-break-after: avoid;
+            break-after: avoid;
           }
+          .print-sheet table { page-break-inside: avoid; break-inside: avoid; }
         }
-        .ps-row { display: flex; border: 1px solid #000; }
-        .ps-row + .ps-row { border-top: none; }
-        .ps-h { width: 28mm; background: #eee; font-weight: 700; text-align: center;
-                display: flex; align-items: center; justify-content: center;
-                border-right: 1px solid #000; padding: 2mm; font-size: 10pt; }
-        .ps-v { flex: 1; padding: 2mm 3mm; white-space: pre-wrap; word-break: break-word;
-                display: flex; align-items: flex-start; }
-        .ps-v.center { align-items: center; }
-        .ps-grow { flex: 1 1 0; min-height: 0; }
-        .ps-grow .ps-v { width: 100%; }
+        .hr-title { text-align: center; font-size: 17pt; font-weight: 800; margin: 0; letter-spacing: 0; }
+        .hr-subtitle { text-align: center; font-size: 8.2pt; margin: 1.5mm 0 0; color: #333; }
+        .hr-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        .hr-table th, .hr-table td { border: 1px solid #111; padding: 1.5mm 2mm; vertical-align: middle; box-sizing: border-box; }
+        .hr-label { background: #f1f1f1; text-align: center; font-weight: 700; }
+        .hr-content { white-space: pre-wrap; word-break: break-word; overflow: hidden; vertical-align: top !important; }
+        .hr-small { font-size: 8pt; color: #444; }
+        .hr-photo { width: 41mm; height: 29mm; object-fit: contain; border: 1px solid #555; background: #fff; }
+        .hr-photo-box { display: inline-flex; align-items: center; justify-content: center; width: 42.5mm; height: 30.5mm; margin-right: 1.5mm; vertical-align: top; }
       `}</style>
 
-      {/* Header: title + approval box */}
-      <div style={{ display: "flex", alignItems: "flex-start", marginBottom: "4mm", flex: "0 0 auto" }}>
-        <div style={{ flex: 1, paddingTop: "4mm" }}>
-          <h1 style={{ textAlign: "center", fontSize: "20pt", fontWeight: 800, margin: 0, letterSpacing: "0.05em" }}>
+      <table className="hr-table" style={{ height: "28mm", marginBottom: "2mm" }}>
+        <tbody>
+          <tr>
+            <td style={{ border: "none", padding: 0 }}>
+              <h1 className="hr-title">
             청취조사에 의한 유해·위험요인 조사표
-          </h1>
-          <p style={{ textAlign: "center", fontSize: "9pt", color: "#444", margin: "2mm 0 0" }}>
-            산업안전보건법 제36조 제2항 · 근로자 의견 청취 기록
-          </p>
-        </div>
-        <table style={{ borderCollapse: "collapse", marginLeft: "4mm" }}>
-          <tbody>
-            <tr>
-              <td rowSpan={2} style={{ border: "1px solid #000", background: "#eee", padding: "1mm 2mm", fontSize: "9pt", fontWeight: 700, writingMode: "vertical-rl", textAlign: "center", width: "8mm" }}>결재</td>
-              {APPROVAL_ROLES.map(r => (
-                <td key={r.label} style={{ border: "1px solid #000", background: "#eee", width: "18mm", height: "6mm", textAlign: "center", fontSize: "9pt", fontWeight: 700 }}>
-                  {r.label}
-                </td>
-              ))}
+              </h1>
+              <p className="hr-subtitle">산업안전보건법 제36조 제2항 · 근로자 의견 청취 기록</p>
+            </td>
+            <td style={{ border: "none", padding: 0, width: "66mm", verticalAlign: "top" }}>
+              <table className="hr-table" style={{ height: "26mm" }}>
+                <tbody>
+                  <tr style={{ height: "7mm" }}>
+                    <th className="hr-label" rowSpan={2} style={{ width: "9mm", padding: "1mm", writingMode: "vertical-rl" }}>결재</th>
+                    {APPROVAL_ROLES.map(r => <th key={r.label} className="hr-label">{r.label}</th>)}
+                  </tr>
+                  <tr>
+                    {APPROVAL_ROLES.map(({ key, nameKey, label }) => (
+                      <td key={label} style={{ textAlign: "center", height: "19mm", padding: "1mm" }}>
+                        <div style={{ minHeight: "8mm", fontWeight: 700 }}>{(a?.[nameKey] as string) || ""}</div>
+                        <div className="hr-small">{a?.[key] ? new Date(a[key] as string).toLocaleDateString("ko-KR") : ""}</div>
+                      </td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table className="hr-table" style={{ height: "28mm" }}>
+        <tbody>
+          <tr style={{ height: "9mm" }}>
+            <th className="hr-label" style={{ width: "24mm" }}>단지</th>
+            <td>{complexName || "-"}</td>
+            <th className="hr-label" style={{ width: "24mm" }}>수행일시</th>
+            <td>{dateStr} {timeStr}</td>
+          </tr>
+          <tr style={{ height: "9mm" }}>
+            <th className="hr-label">수행자</th>
+            <td>{m.conductor_name || "-"}</td>
+            <th className="hr-label">근로자</th>
+            <td>{m.worker_name || "-"}</td>
+          </tr>
+          <tr style={{ height: "11mm" }}>
+            <th className="hr-label">실시방법</th>
+            <td colSpan={3}>위험성평가 수행자가 현장 근로자와 면담을 통해 직접 경험한 유해·위험요인을 조사</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table className="hr-table" style={{ height: "179mm", marginTop: "2mm" }}>
+        <tbody>
+          {[1, 2, 3].map(n => (
+            <tr key={n} style={{ height: "31mm" }}>
+              <th className="hr-label" style={{ width: "24mm" }}>경험담 {n}</th>
+              <td className="hr-content"><ReportText value={m[`experience_${n}`]} height="26mm" /></td>
             </tr>
-            <tr>
-              {APPROVAL_ROLES.map(({ key, nameKey }) => (
-                <td key={String(nameKey)} style={{ border: "1px solid #000", width: "18mm", height: "16mm", textAlign: "center", fontSize: "9pt", verticalAlign: "middle", padding: "1mm" }}>
-                  <div style={{ fontWeight: 600 }}>{(a?.[nameKey] as string) || ""}</div>
-                  <div style={{ fontSize: "7.5pt", color: "#555", marginTop: "1mm" }}>
-                    {a?.[key] ? new Date(a[key] as string).toLocaleDateString("ko-KR") : ""}
-                  </div>
-                </td>
-              ))}
-            </tr>
-          </tbody>
-        </table>
-      </div>
+          ))}
+          <tr style={{ height: "39mm" }}>
+            <th className="hr-label">근로자 의견<br/><span className="hr-small">(원인·반성)</span></th>
+            <td className="hr-content"><ReportText value={m.worker_opinion} height="34mm" /></td>
+          </tr>
+          <tr style={{ height: "46mm" }}>
+            <th className="hr-label">수행자 의견<br/><span className="hr-small">(조언)</span></th>
+            <td className="hr-content"><ReportText value={m.conductor_opinion} height="40mm" /></td>
+          </tr>
+        </tbody>
+      </table>
 
-      {/* Meta info */}
-      <div style={{ flex: "0 0 auto" }}>
-        <div className="ps-row">
-          <div className="ps-h">단지</div>
-          <div className="ps-v center" style={{ flex: 1 }}>{complexName || "-"}</div>
-          <div className="ps-h" style={{ borderLeft: "1px solid #000" }}>수행일시</div>
-          <div className="ps-v center" style={{ flex: 1 }}>{dateStr} {timeStr}</div>
-        </div>
-        <div className="ps-row">
-          <div className="ps-h">수행자</div>
-          <div className="ps-v center" style={{ flex: 1 }}>{m.conductor_name || "-"}</div>
-          <div className="ps-h" style={{ borderLeft: "1px solid #000" }}>근로자</div>
-          <div className="ps-v center" style={{ flex: 1 }}>{m.worker_name || "-"}</div>
-        </div>
-        <div className="ps-row">
-          <div className="ps-h">실시방법</div>
-          <div className="ps-v center" style={{ fontSize: "9.5pt" }}>
-            위험성평가 수행자가 현장 근로자와 면담을 통해 직접 경험한 유해·위험요인을 조사 (육하원칙에 따라 작성)
-          </div>
-        </div>
-      </div>
+      <table className="hr-table" style={{ height: "36mm", marginTop: "2mm" }}>
+        <tbody>
+          <tr>
+            <th className="hr-label" style={{ width: "24mm" }}>첨부사진</th>
+            <td style={{ padding: "1.5mm", textAlign: photos.length > 0 ? "left" : "center", color: photos.length > 0 ? "#000" : "#777" }}>
+              {photos.length > 0 ? photos.slice(0, 4).map((url, i) => (
+                <span key={i} className="hr-photo-box">
+                  <img src={url} alt={`첨부사진 ${i + 1}`} className="hr-photo" />
+                </span>
+              )) : "첨부된 사진 없음"}
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
-      {/* Experience + opinions — fills remaining space */}
-      <div style={{ flex: "1 1 auto", display: "flex", flexDirection: "column", marginTop: "2mm", minHeight: 0 }}>
-        {[1, 2, 3].map(n => (
-          <div key={n} className="ps-row ps-grow">
-            <div className="ps-h">경험담 {n}</div>
-            <div className="ps-v">{m[`experience_${n}`] || ""}</div>
-          </div>
-        ))}
-        <div className="ps-row ps-grow">
-          <div className="ps-h">
-            <div>
-              근로자 의견<br/>
-              <span style={{ fontWeight: 400, fontSize: "8.5pt" }}>(원인·반성)</span>
-            </div>
-          </div>
-          <div className="ps-v">{m.worker_opinion || ""}</div>
-        </div>
-        <div className="ps-row ps-grow">
-          <div className="ps-h">
-            <div>
-              수행자 의견<br/>
-              <span style={{ fontWeight: 400, fontSize: "8.5pt" }}>(조언)</span>
-            </div>
-          </div>
-          <div className="ps-v">{m.conductor_opinion || ""}</div>
-        </div>
-      </div>
-
-      {/* Photos: fixed height block */}
-      <div className="ps-row" style={{ marginTop: "2mm", flex: "0 0 auto", height: "42mm" }}>
-        <div className="ps-h">첨부<br/>사진</div>
-        <div className="ps-v" style={{ padding: "2mm" }}>
-          {photos.length > 0 ? (
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "2mm" }}>
-              {photos.slice(0, 4).map((url, i) => (
-                <img key={i} src={url} alt={`첨부 ${i + 1}`}
-                  style={{ width: "42mm", height: "32mm", objectFit: "cover", border: "1px solid #666" }} />
-              ))}
-            </div>
-          ) : (
-            <div style={{ width: "100%", textAlign: "center", color: "#888", fontSize: "9pt", alignSelf: "center" }}>
-              (첨부된 사진 없음)
-            </div>
-          )}
-        </div>
-      </div>
-
-      <p style={{ textAlign: "right", fontSize: "8.5pt", color: "#666", marginTop: "2mm", flex: "0 0 auto" }}>
+      <div style={{ textAlign: "right", fontSize: "8pt", color: "#555", marginTop: "1mm" }}>
         출력일: {new Date().toLocaleString("ko-KR")}
-      </p>
+      </div>
     </div>
   );
 }
