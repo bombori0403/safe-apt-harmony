@@ -546,6 +546,9 @@ function List({ items, me, onDelete, onEdit, complexNameById }: { items: any[]; 
                     ))}
                   </div>
                 )}
+
+                <ApprovalLineView approval={m.approval} />
+
               </div>
               {canMutate && (
                 <div className="flex items-center gap-1 no-print">
