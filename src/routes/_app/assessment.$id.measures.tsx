@@ -34,15 +34,17 @@ function Measures() {
   }
 
   async function updateMeasure(mid: string, patch: any) {
-    const { error } = await supabase.from("measures").update(patch).eq("id", mid);
-    if (error) { toast.error(error.message); return; }
+    const { data, error } = await supabase.from("measures").update(patch).eq("id", mid).select();
+    if (error) { console.error(error); toast.error(error.message); return; }
+    if (!data || data.length === 0) { toast.error("권한이 없어 수정할 수 없습니다"); return; }
     toast.success("저장되었습니다"); load();
   }
 
   async function deleteMeasure(mid: string) {
     if (!confirm("이 감소대책을 삭제하시겠습니까?")) return;
-    const { error } = await supabase.from("measures").delete().eq("id", mid);
-    if (error) { toast.error(error.message); return; }
+    const { data, error } = await supabase.from("measures").delete().eq("id", mid).select();
+    if (error) { console.error(error); toast.error(error.message); return; }
+    if (!data || data.length === 0) { toast.error("권한이 없어 삭제할 수 없습니다"); return; }
     toast.success("삭제되었습니다"); load();
   }
 
