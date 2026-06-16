@@ -265,7 +265,7 @@ function Dashboard() {
         <CardContent className="p-4 md:p-6">
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-semibold">최근 평가</h2>
-            <Link to="/history" className="text-sm text-primary hover:underline">전체 보기</Link>
+            {!isMember && <Link to="/history" className="text-sm text-primary hover:underline">전체 보기</Link>}
           </div>
           {assessments.length === 0 ? (
             <div className="text-center text-muted-foreground py-10 text-sm">아직 평가가 없습니다. "새 평가 시작" 버튼을 눌러보세요.</div>
