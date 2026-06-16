@@ -34,8 +34,10 @@ function Measures() {
   }
 
   async function addMeasure(hid: string, payload: any) {
-    const { error } = await supabase.from("measures").insert({ hazard_id: hid, ...payload });
-    if (error) toast.error(error.message); else { toast.success("대책 추가됨"); load(); }
+    const { data, error } = await supabase.from("measures").insert({ hazard_id: hid, ...payload }).select();
+    if (error) { console.error(error); toast.error(error.message); return; }
+    if (!data || data.length === 0) { toast.error("권한이 없어 추가할 수 없습니다"); return; }
+    toast.success("대책 추가됨"); load();
   }
 
   async function updateMeasure(mid: string, patch: any) {
