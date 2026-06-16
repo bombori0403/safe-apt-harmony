@@ -18,15 +18,20 @@ function Measures() {
   const navigate = useNavigate();
   const [a, setA] = useState<any>(null);
   const [items, setItems] = useState<any[]>([]);
+  const allowLevel = (a?.allowable_level ?? "낮음") as RiskLevel;
 
   async function load() {
     const { data: ass } = await supabase.from("assessments").select("*").eq("id", id).maybeSingle();
     setA(ass);
-    const { data: h } = await supabase.from("hazards").select("*, measures(*)").eq("assessment_id", id);
-    const allow = (ass?.allowable_level ?? "낮음") as RiskLevel;
-    setItems((h ?? []).filter((x: any) => x.level && RISK_ORDER[x.level as RiskLevel] > RISK_ORDER[allow]));
+    const { data: h } = await supabase.from("hazards").select("*, measures(*)").eq("assessment_id", id).order("created_at", { ascending: true });
+    setItems(h ?? []);
   }
   useEffect(() => { load(); }, [id]);
+
+  function isOverAllow(level: string | null) {
+    if (!level) return false;
+    return RISK_ORDER[level as RiskLevel] > RISK_ORDER[allowLevel];
+  }
 
   async function addMeasure(hid: string, payload: any) {
     const { error } = await supabase.from("measures").insert({ hazard_id: hid, ...payload });
