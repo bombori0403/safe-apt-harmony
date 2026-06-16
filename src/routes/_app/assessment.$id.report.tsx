@@ -129,7 +129,7 @@ function Report() {
                 {hazards.flatMap(h => (h.measures ?? []).map((m: any) => (
                   <tr key={m.id} className="border-b">
                     <td className="py-2">{h.description}</td>
-                    <td className="py-2">{m.measure_type}</td>
+                    <td className="py-2">{m.type?.replace("_대책", "") ?? "-"}</td>
                     <td className="py-2">{m.content}</td>
                     <td className="py-2">{m.responsible_name ?? "-"}</td>
                     <td className="py-2">{m.due_date ?? "-"}</td>
