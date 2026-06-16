@@ -17,6 +17,7 @@ function displayMeasureType(type: string | null) {
 }
 
 export const Route = createFileRoute("/_app/assessment/$id/measures")({
+  validateSearch: (s: Record<string, unknown>) => ({ hazard: typeof s.hazard === "string" ? s.hazard : undefined }),
   component: Measures,
 });
 
