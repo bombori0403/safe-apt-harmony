@@ -172,6 +172,9 @@ function Dashboard() {
   const currentComplexName = selectedComplexId === "all"
     ? "전체 단지"
     : complexes.find((c) => c.id === selectedComplexId)?.name ?? "";
+  const isMember = userRow?.org_role === "member";
+  const RowLink = ({ children, ...props }: any) =>
+    isMember ? <div className={props.className}>{children}</div> : <Link {...props}>{children}</Link>;
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
@@ -187,11 +190,13 @@ function Dashboard() {
           </h1>
           {currentComplexName && <p className="text-sm text-muted-foreground mt-1">{currentComplexName}</p>}
         </div>
-        <Link to="/assessment/new">
-          <Button size="lg" className="gap-2 shadow-md shadow-primary/20">
-            <Plus className="h-5 w-5" /> 새 평가 시작
-          </Button>
-        </Link>
+        {userRow?.org_role !== "member" && (
+          <Link to="/assessment/new">
+            <Button size="lg" className="gap-2 shadow-md shadow-primary/20">
+              <Plus className="h-5 w-5" /> 새 평가 시작
+            </Button>
+          </Link>
+        )}
       </div>
 
       {isAdmin && complexes.length > 0 && (
@@ -219,7 +224,7 @@ function Dashboard() {
         <KpiCard title="높음·매우높음 미해결" value={unresolvedHigh} icon={AlertTriangle} danger />
         <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
           <PopoverTrigger asChild>
-            <button type="button" className="text-left" disabled={selectedComplexId === "all"}>
+            <button type="button" className="text-left" disabled={selectedComplexId === "all" || isMember}>
               <Card className={cn("transition-colors", selectedComplexId === "all" ? "opacity-60" : "hover:border-primary/40 cursor-pointer")}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between text-muted-foreground text-xs">
@@ -260,14 +265,14 @@ function Dashboard() {
         <CardContent className="p-4 md:p-6">
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-semibold">최근 평가</h2>
-            <Link to="/history" className="text-sm text-primary hover:underline">전체 보기</Link>
+            {!isMember && <Link to="/history" className="text-sm text-primary hover:underline">전체 보기</Link>}
           </div>
           {assessments.length === 0 ? (
             <div className="text-center text-muted-foreground py-10 text-sm">아직 평가가 없습니다. "새 평가 시작" 버튼을 눌러보세요.</div>
           ) : (
             <div className="divide-y">
               {assessments.slice(0, 5).map((a) => (
-                <Link key={a.id} to="/assessment/$id" params={{ id: a.id }} className="py-3 flex items-center justify-between gap-3 hover:bg-muted/30 -mx-2 px-2 rounded">
+                <RowLink key={a.id} to="/assessment/$id" params={{ id: a.id }} className="py-3 flex items-center justify-between gap-3 hover:bg-muted/30 -mx-2 px-2 rounded">
                   <div className="min-w-0 flex-1">
                     <div className="font-medium truncate">{a.work_name}</div>
                     <div className="text-xs text-muted-foreground mt-0.5">
@@ -275,7 +280,7 @@ function Dashboard() {
                     </div>
                   </div>
                   <Badge variant="outline">{a.status}</Badge>
-                </Link>
+                </RowLink>
               ))}
             </div>
           )}
@@ -294,7 +299,7 @@ function Dashboard() {
             ) : (
               <div className="divide-y">
                 {employeeInputs.map((it) => (
-                  <Link key={it.id} to="/assessment/$id/inputs" params={{ id: it.assessment_id }} className="py-3 flex items-center justify-between gap-3 hover:bg-muted/30 -mx-2 px-2 rounded">
+                  <RowLink key={it.id} to="/assessment/$id/inputs" params={{ id: it.assessment_id }} className="py-3 flex items-center justify-between gap-3 hover:bg-muted/30 -mx-2 px-2 rounded">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <Badge variant="outline">{it.input_type === "hearing" ? "청취조사" : "오픈채팅"}</Badge>
@@ -304,7 +309,7 @@ function Dashboard() {
                         {it.occurred_at ? new Date(it.occurred_at).toLocaleDateString() : ""} · {it.content}
                       </div>
                     </div>
-                  </Link>
+                  </RowLink>
                 ))}
               </div>
             )}
@@ -315,21 +320,21 @@ function Dashboard() {
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center justify-between mb-3">
               <h2 className="font-semibold">최근 아차사고</h2>
-              <Link to="/near-miss" className="text-sm text-primary hover:underline">전체 보기</Link>
+            {!isMember && <Link to="/near-miss" className="text-sm text-primary hover:underline">전체 보기</Link>}
             </div>
             {nearMisses.length === 0 ? (
               <div className="text-center text-muted-foreground py-8 text-sm">등록된 아차사고가 없습니다.</div>
             ) : (
               <div className="divide-y">
                 {nearMisses.map((n) => (
-                  <Link key={n.id} to="/near-miss/$id" params={{ id: n.id }} className="py-3 flex items-center justify-between gap-3 hover:bg-muted/30 -mx-2 px-2 rounded">
+                  <RowLink key={n.id} to="/near-miss/$id" params={{ id: n.id }} className="py-3 flex items-center justify-between gap-3 hover:bg-muted/30 -mx-2 px-2 rounded">
                     <div className="min-w-0 flex-1">
                       <div className="font-medium truncate">{n.incident_name || n.situation}</div>
                       <div className="text-xs text-muted-foreground mt-0.5">
                         {n.occurred_at ? new Date(n.occurred_at).toLocaleDateString() : ""}
                       </div>
                     </div>
-                  </Link>
+                  </RowLink>
                 ))}
               </div>
             )}
@@ -340,14 +345,14 @@ function Dashboard() {
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center justify-between mb-3">
               <h2 className="font-semibold">최근 작업중지권 행사</h2>
-              <Link to="/work-stop-records" className="text-sm text-primary hover:underline">전체 보기</Link>
+            {!isMember && <Link to="/work-stop-records" className="text-sm text-primary hover:underline">전체 보기</Link>}
             </div>
             {workStops.length === 0 ? (
               <div className="text-center text-muted-foreground py-8 text-sm">등록된 작업중지권 기록이 없습니다.</div>
             ) : (
               <div className="divide-y">
                 {workStops.map((w) => (
-                  <Link key={w.id} to="/work-stop-records_/$id" params={{ id: w.id }} className="py-3 flex items-center justify-between gap-3 hover:bg-muted/30 -mx-2 px-2 rounded">
+                  <RowLink key={w.id} to="/work-stop-records_/$id" params={{ id: w.id }} className="py-3 flex items-center justify-between gap-3 hover:bg-muted/30 -mx-2 px-2 rounded">
                     <div className="min-w-0 flex-1">
                       <div className="font-medium truncate">{w.work_description}</div>
                       <div className="text-xs text-muted-foreground mt-0.5">
@@ -355,7 +360,7 @@ function Dashboard() {
                       </div>
                     </div>
                     <Badge variant="outline">{w.result}</Badge>
-                  </Link>
+                  </RowLink>
                 ))}
               </div>
             )}
