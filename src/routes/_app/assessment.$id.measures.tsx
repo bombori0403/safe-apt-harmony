@@ -71,9 +71,14 @@ function Measures() {
 
   return (
     <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-5">
-      <div>
-        <h1 className="text-2xl font-bold">위험성 감소대책</h1>
-        <p className="text-xs text-muted-foreground mt-1">감소대책은 본질적→공학적→관리적→개인보호구 순으로 우선 고려해야 합니다.</p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">위험성 감소대책</h1>
+          <p className="text-xs text-muted-foreground mt-1">감소대책은 본질적→공학적→관리적→개인보호구 순으로 우선 고려해야 합니다.</p>
+        </div>
+        <Link to="/assessment/$id/measures-report" params={{ id }}>
+          <Button variant="outline" size="sm" className="gap-1"><Printer className="h-4 w-4" />감소대책 출력</Button>
+        </Link>
       </div>
 
       {items.length === 0 && (
