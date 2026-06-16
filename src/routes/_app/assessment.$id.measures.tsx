@@ -76,13 +76,7 @@ function Measures() {
           {h.measures?.length > 0 && (
             <div className="space-y-1.5 mt-2">
               {h.measures.map((m: any) => (
-                <div key={m.id} className="bg-muted/40 rounded p-2.5 text-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">[{m.measure_type}] {m.content}</span>
-                    <span className="text-xs text-muted-foreground">{m.status}</span>
-                  </div>
-                  {m.responsible_name && <div className="text-xs text-muted-foreground mt-0.5">책임자: {m.responsible_name} · {m.due_date}</div>}
-                </div>
+                <MeasureRow key={m.id} m={m} onUpdate={(p) => updateMeasure(m.id, p)} onDelete={() => deleteMeasure(m.id)} />
               ))}
             </div>
           )}
