@@ -121,3 +121,65 @@ function MeasureForm({ onAdd }: { onAdd: (p: any) => void }) {
     </div>
   );
 }
+
+function MeasureRow({ m, onUpdate, onDelete }: { m: any; onUpdate: (p: any) => void; onDelete: () => void }) {
+  const [editing, setEditing] = useState(false);
+  const [type, setType] = useState(m.measure_type ?? "관리적");
+  const [content, setContent] = useState(m.content ?? "");
+  const [resp, setResp] = useState(m.responsible_name ?? "");
+  const [due, setDue] = useState(m.due_date ?? "");
+  const [status, setStatus] = useState(m.status ?? "계획");
+
+  if (!editing) {
+    return (
+      <div className="bg-muted/40 rounded p-2.5 text-sm">
+        <div className="flex items-center justify-between gap-2">
+          <span className="font-medium flex-1">[{m.measure_type}] {m.content}</span>
+          <span className="text-xs text-muted-foreground">{m.status}</span>
+          <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => setEditing(true)}><Pencil className="h-3.5 w-3.5" /></Button>
+          <Button size="sm" variant="ghost" className="h-7 px-2 text-destructive hover:text-destructive" onClick={onDelete}><Trash2 className="h-3.5 w-3.5" /></Button>
+        </div>
+        {m.responsible_name && <div className="text-xs text-muted-foreground mt-0.5">책임자: {m.responsible_name} · {m.due_date ?? "-"}</div>}
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-muted/40 rounded p-2.5 text-sm space-y-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+        <div>
+          <Label className="text-xs">대책 유형</Label>
+          <select value={type} onChange={e=>setType(e.target.value)} className="w-full h-9 px-2 rounded border bg-background text-sm">
+            <option>본질적</option><option>공학적</option><option>관리적</option><option>개인보호구</option>
+          </select>
+        </div>
+        <div>
+          <Label className="text-xs">상태</Label>
+          <select value={status} onChange={e=>setStatus(e.target.value)} className="w-full h-9 px-2 rounded border bg-background text-sm">
+            <option>계획</option><option>진행</option><option>완료</option>
+          </select>
+        </div>
+        <div className="md:col-span-2">
+          <Label className="text-xs">대책 내용</Label>
+          <Input value={content} onChange={e=>setContent(e.target.value)} className="h-9" />
+        </div>
+        <div>
+          <Label className="text-xs">책임자</Label>
+          <Input value={resp} onChange={e=>setResp(e.target.value)} className="h-9" />
+        </div>
+        <div>
+          <Label className="text-xs">이행 예정일</Label>
+          <Input type="date" value={due ?? ""} onChange={e=>setDue(e.target.value)} className="h-9" />
+        </div>
+      </div>
+      <div className="flex gap-2 justify-end">
+        <Button size="sm" variant="ghost" onClick={() => setEditing(false)}><X className="h-4 w-4 mr-1" />취소</Button>
+        <Button size="sm" onClick={() => {
+          if (!content.trim()) { toast.error("내용을 입력하세요"); return; }
+          onUpdate({ measure_type: type, content, responsible_name: resp, due_date: due || null, status });
+          setEditing(false);
+        }}><Check className="h-4 w-4 mr-1" />저장</Button>
+      </div>
+    </div>
+  );
+}
