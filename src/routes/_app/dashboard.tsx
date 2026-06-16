@@ -280,7 +280,7 @@ function Dashboard() {
                     </div>
                   </div>
                   <Badge variant="outline">{a.status}</Badge>
-                </Link>
+                </RowLink>
               ))}
             </div>
           )}
