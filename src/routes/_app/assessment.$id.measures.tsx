@@ -35,7 +35,17 @@ function Measures() {
     const { data: h } = await supabase.from("hazards").select("*, measures(*)").eq("assessment_id", id).order("created_at", { ascending: true });
     setItems(h ?? []);
   }
-  useEffect(() => { load(); }, [id]);
+  useEffect(() => {
+    load();
+    const onFocus = () => load();
+    const onVis = () => { if (document.visibilityState === "visible") load(); };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, [id]);
 
   function isOverAllow(level: string | null) {
     if (!level) return false;
