@@ -4,11 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import type { RiskLevel } from "@/lib/types";
 import { RISK_ORDER, riskLevelClass } from "@/lib/types";
 import { toast } from "sonner";
 import { PhotoUpload } from "@/components/photo-upload";
 import { useAuth } from "@/hooks/use-auth";
+import { Pencil, Trash2, Check, X } from "lucide-react";
 
 export const Route = createFileRoute("/_app/assessment/$id/results")({
   component: Results,
@@ -22,6 +24,26 @@ function Results() {
   const [a, setA] = useState<any>(null);
   const [hazards, setHazards] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editDesc, setEditDesc] = useState("");
+
+  async function saveDesc(hid: string) {
+    if (!editDesc.trim()) { toast.error("내용을 입력하세요"); return; }
+    const { error } = await supabase.from("hazards").update({ description: editDesc.trim() }).eq("id", hid);
+    if (error) { toast.error(error.message); return; }
+    toast.success("저장되었습니다");
+    setEditingId(null);
+    await load();
+  }
+
+  async function deleteHazard(hid: string) {
+    if (!confirm("이 유해·위험요인을 삭제하시겠습니까? 관련 감소대책도 함께 삭제됩니다.")) return;
+    await supabase.from("measures").delete().eq("hazard_id", hid);
+    const { error } = await supabase.from("hazards").delete().eq("id", hid);
+    if (error) { toast.error(error.message); return; }
+    toast.success("삭제되었습니다");
+    await load();
+  }
 
   useEffect(() => {
     if (!user) return;
@@ -108,7 +130,23 @@ function Results() {
       <div className="space-y-3">
         {hazards.map(h => (
           <Card key={h.id}><CardContent className="p-4 space-y-3">
-            <div className="font-medium">{h.description}</div>
+            <div className="flex items-start justify-between gap-2">
+              {editingId === h.id ? (
+                <div className="flex-1 flex gap-2">
+                  <Input value={editDesc} onChange={e => setEditDesc(e.target.value)} className="h-9" />
+                  <Button size="sm" variant="outline" onClick={() => saveDesc(h.id)}><Check className="h-4 w-4" /></Button>
+                  <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}><X className="h-4 w-4" /></Button>
+                </div>
+              ) : (
+                <>
+                  <div className="font-medium flex-1">{h.description}</div>
+                  <div className="flex gap-1">
+                    <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => { setEditingId(h.id); setEditDesc(h.description); }}><Pencil className="h-3.5 w-3.5" /></Button>
+                    <Button size="sm" variant="ghost" className="h-7 px-2 text-destructive hover:text-destructive" onClick={() => deleteHazard(h.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                  </div>
+                </>
+              )}
+            </div>
 
             {a.method === "3단계_판단법" && (
               <div className="grid grid-cols-3 gap-2">
