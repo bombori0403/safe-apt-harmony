@@ -320,21 +320,21 @@ function Dashboard() {
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center justify-between mb-3">
               <h2 className="font-semibold">최근 아차사고</h2>
-              <Link to="/near-miss" className="text-sm text-primary hover:underline">전체 보기</Link>
+            {!isMember && <Link to="/near-miss" className="text-sm text-primary hover:underline">전체 보기</Link>}
             </div>
             {nearMisses.length === 0 ? (
               <div className="text-center text-muted-foreground py-8 text-sm">등록된 아차사고가 없습니다.</div>
             ) : (
               <div className="divide-y">
                 {nearMisses.map((n) => (
-                  <Link key={n.id} to="/near-miss/$id" params={{ id: n.id }} className="py-3 flex items-center justify-between gap-3 hover:bg-muted/30 -mx-2 px-2 rounded">
+                  <RowLink key={n.id} to="/near-miss/$id" params={{ id: n.id }} className="py-3 flex items-center justify-between gap-3 hover:bg-muted/30 -mx-2 px-2 rounded">
                     <div className="min-w-0 flex-1">
                       <div className="font-medium truncate">{n.incident_name || n.situation}</div>
                       <div className="text-xs text-muted-foreground mt-0.5">
                         {n.occurred_at ? new Date(n.occurred_at).toLocaleDateString() : ""}
                       </div>
                     </div>
-                  </Link>
+                  </RowLink>
                 ))}
               </div>
             )}
