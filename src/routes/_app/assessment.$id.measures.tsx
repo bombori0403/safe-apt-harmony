@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RISK_ORDER, riskLevelClass, type RiskLevel } from "@/lib/types";
 import { toast } from "sonner";
+import { Pencil, Trash2, Check, X } from "lucide-react";
 
 export const Route = createFileRoute("/_app/assessment/$id/measures")({
   component: Measures,
