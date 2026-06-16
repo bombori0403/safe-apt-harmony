@@ -61,10 +61,11 @@ function Settings() {
         .select("complex_id")
         .eq("user_id", u.id);
 
+      const isAdmin = u.org_role === "admin";
       const complexIds = [...new Set((members ?? []).map((m: any) => m.complex_id).filter(Boolean))];
       if (complexIds.length === 0) {
         setComplexes([]);
-        setShowNewForm(true);
+        setShowNewForm(isAdmin);
         setLoading(false);
         return;
       }
@@ -76,7 +77,7 @@ function Settings() {
         .order("created_at", { ascending: true });
       if (error) toast.error(error.message);
       setComplexes(list ?? []);
-      setShowNewForm((list ?? []).length === 0);
+      setShowNewForm(isAdmin && (list ?? []).length === 0);
     }
     setLoading(false);
   }
@@ -247,7 +248,7 @@ function Settings() {
       <Card><CardContent className="p-5 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="font-semibold">등록된 단지 ({complexes.length})</h2>
-          {complexes.length > 0 && !showNewForm && (
+          {complexes.length > 0 && !showNewForm && userRow?.org_role === "admin" && (
             <Button size="sm" variant="outline" onClick={()=>setShowNewForm(true)}>+ 단지 추가</Button>
           )}
         </div>
@@ -303,7 +304,7 @@ function Settings() {
           ))
         )}
 
-        {showNewForm && (
+        {showNewForm && userRow?.org_role === "admin" && (
           <div className="rounded-md border border-dashed p-4 space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="font-medium text-sm">새 단지 등록</h3>
