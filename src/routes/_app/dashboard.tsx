@@ -224,7 +224,7 @@ function Dashboard() {
         <KpiCard title="높음·매우높음 미해결" value={unresolvedHigh} icon={AlertTriangle} danger />
         <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
           <PopoverTrigger asChild>
-            <button type="button" className="text-left" disabled={selectedComplexId === "all"}>
+            <button type="button" className="text-left" disabled={selectedComplexId === "all" || isMember}>
               <Card className={cn("transition-colors", selectedComplexId === "all" ? "opacity-60" : "hover:border-primary/40 cursor-pointer")}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between text-muted-foreground text-xs">
