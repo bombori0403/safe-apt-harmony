@@ -304,7 +304,7 @@ function Settings() {
           ))
         )}
 
-        {showNewForm && (
+        {showNewForm && userRow?.org_role === "admin" && (
           <div className="rounded-md border border-dashed p-4 space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="font-medium text-sm">새 단지 등록</h3>
