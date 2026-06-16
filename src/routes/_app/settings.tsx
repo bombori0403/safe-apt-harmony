@@ -248,7 +248,7 @@ function Settings() {
       <Card><CardContent className="p-5 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="font-semibold">등록된 단지 ({complexes.length})</h2>
-          {complexes.length > 0 && !showNewForm && (
+          {complexes.length > 0 && !showNewForm && userRow?.org_role === "admin" && (
             <Button size="sm" variant="outline" onClick={()=>setShowNewForm(true)}>+ 단지 추가</Button>
           )}
         </div>
