@@ -345,14 +345,14 @@ function Dashboard() {
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center justify-between mb-3">
               <h2 className="font-semibold">최근 작업중지권 행사</h2>
-              <Link to="/work-stop-records" className="text-sm text-primary hover:underline">전체 보기</Link>
+            {!isMember && <Link to="/work-stop-records" className="text-sm text-primary hover:underline">전체 보기</Link>}
             </div>
             {workStops.length === 0 ? (
               <div className="text-center text-muted-foreground py-8 text-sm">등록된 작업중지권 기록이 없습니다.</div>
             ) : (
               <div className="divide-y">
                 {workStops.map((w) => (
-                  <Link key={w.id} to="/work-stop-records_/$id" params={{ id: w.id }} className="py-3 flex items-center justify-between gap-3 hover:bg-muted/30 -mx-2 px-2 rounded">
+                  <RowLink key={w.id} to="/work-stop-records_/$id" params={{ id: w.id }} className="py-3 flex items-center justify-between gap-3 hover:bg-muted/30 -mx-2 px-2 rounded">
                     <div className="min-w-0 flex-1">
                       <div className="font-medium truncate">{w.work_description}</div>
                       <div className="text-xs text-muted-foreground mt-0.5">
@@ -360,7 +360,7 @@ function Dashboard() {
                       </div>
                     </div>
                     <Badge variant="outline">{w.result}</Badge>
-                  </Link>
+                  </RowLink>
                 ))}
               </div>
             )}
