@@ -18,19 +18,26 @@ function Measures() {
   const navigate = useNavigate();
   const [a, setA] = useState<any>(null);
   const [items, setItems] = useState<any[]>([]);
+  const allowLevel = (a?.allowable_level ?? "낮음") as RiskLevel;
 
   async function load() {
     const { data: ass } = await supabase.from("assessments").select("*").eq("id", id).maybeSingle();
     setA(ass);
-    const { data: h } = await supabase.from("hazards").select("*, measures(*)").eq("assessment_id", id);
-    const allow = (ass?.allowable_level ?? "낮음") as RiskLevel;
-    setItems((h ?? []).filter((x: any) => x.level && RISK_ORDER[x.level as RiskLevel] > RISK_ORDER[allow]));
+    const { data: h } = await supabase.from("hazards").select("*, measures(*)").eq("assessment_id", id).order("created_at", { ascending: true });
+    setItems(h ?? []);
   }
   useEffect(() => { load(); }, [id]);
 
+  function isOverAllow(level: string | null) {
+    if (!level) return false;
+    return RISK_ORDER[level as RiskLevel] > RISK_ORDER[allowLevel];
+  }
+
   async function addMeasure(hid: string, payload: any) {
-    const { error } = await supabase.from("measures").insert({ hazard_id: hid, ...payload });
-    if (error) toast.error(error.message); else { toast.success("대책 추가됨"); load(); }
+    const { data, error } = await supabase.from("measures").insert({ hazard_id: hid, ...payload }).select();
+    if (error) { console.error(error); toast.error(error.message); return; }
+    if (!data || data.length === 0) { toast.error("권한이 없어 추가할 수 없습니다"); return; }
+    toast.success("대책 추가됨"); load();
   }
 
   async function updateMeasure(mid: string, patch: any) {
@@ -64,7 +71,7 @@ function Measures() {
 
       {items.length === 0 && (
         <Card><CardContent className="p-8 text-center text-sm text-muted-foreground">
-          허용 수준 초과 항목이 없습니다.
+          등록된 유해·위험요인이 없습니다. 먼저 유해·위험요인을 등록하세요.
         </CardContent></Card>
       )}
 
@@ -72,7 +79,10 @@ function Measures() {
         <Card key={h.id}><CardContent className="p-4 space-y-3">
           <div className="flex items-center justify-between gap-2">
             <div className="font-medium">{h.description}</div>
-            <span className={`px-2 py-1 rounded text-xs ${riskLevelClass(h.level)}`}>{h.level}</span>
+            <div className="flex items-center gap-2">
+              {isOverAllow(h.level) && <span className="px-2 py-0.5 rounded text-[10px] bg-destructive/10 text-destructive">허용수준 초과</span>}
+              {h.level && <span className={`px-2 py-1 rounded text-xs ${riskLevelClass(h.level)}`}>{h.level}</span>}
+            </div>
           </div>
           <MeasureForm onAdd={(p) => addMeasure(h.id, p)} />
           {h.measures?.length > 0 && (
