@@ -299,7 +299,7 @@ function Dashboard() {
             ) : (
               <div className="divide-y">
                 {employeeInputs.map((it) => (
-                  <Link key={it.id} to="/assessment/$id/inputs" params={{ id: it.assessment_id }} className="py-3 flex items-center justify-between gap-3 hover:bg-muted/30 -mx-2 px-2 rounded">
+                  <RowLink key={it.id} to="/assessment/$id/inputs" params={{ id: it.assessment_id }} className="py-3 flex items-center justify-between gap-3 hover:bg-muted/30 -mx-2 px-2 rounded">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <Badge variant="outline">{it.input_type === "hearing" ? "청취조사" : "오픈채팅"}</Badge>
@@ -309,7 +309,7 @@ function Dashboard() {
                         {it.occurred_at ? new Date(it.occurred_at).toLocaleDateString() : ""} · {it.content}
                       </div>
                     </div>
-                  </Link>
+                  </RowLink>
                 ))}
               </div>
             )}
