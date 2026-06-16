@@ -172,6 +172,9 @@ function Dashboard() {
   const currentComplexName = selectedComplexId === "all"
     ? "전체 단지"
     : complexes.find((c) => c.id === selectedComplexId)?.name ?? "";
+  const isMember = userRow?.org_role === "member";
+  const RowLink = ({ children, ...props }: any) =>
+    isMember ? <div className={props.className}>{children}</div> : <Link {...props}>{children}</Link>;
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
