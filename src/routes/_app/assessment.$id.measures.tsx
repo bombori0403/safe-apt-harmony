@@ -23,6 +23,7 @@ export const Route = createFileRoute("/_app/assessment/$id/measures")({
 
 function Measures() {
   const { id } = Route.useParams();
+  const { hazard: hazardFilter } = Route.useSearch();
   const navigate = useNavigate();
   const [a, setA] = useState<any>(null);
   const [items, setItems] = useState<any[]>([]);
