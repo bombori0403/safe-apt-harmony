@@ -21,17 +21,26 @@ function MeasuresReport() {
   const [complex, setComplex] = useState<any>(null);
   const [hazards, setHazards] = useState<any[]>([]);
 
+  async function load() {
+    const { data: ass } = await supabase.from("assessments").select("*").eq("id", id).maybeSingle();
+    setA(ass);
+    if (ass?.complex_id) {
+      const { data: c } = await supabase.from("complexes").select("*").eq("id", ass.complex_id).maybeSingle();
+      setComplex(c);
+    }
+    const { data: h } = await supabase.from("hazards").select("*, measures(*)").eq("assessment_id", id).order("created_at", { ascending: true });
+    setHazards(h ?? []);
+  }
   useEffect(() => {
-    (async () => {
-      const { data: ass } = await supabase.from("assessments").select("*").eq("id", id).maybeSingle();
-      setA(ass);
-      if (ass?.complex_id) {
-        const { data: c } = await supabase.from("complexes").select("*").eq("id", ass.complex_id).maybeSingle();
-        setComplex(c);
-      }
-      const { data: h } = await supabase.from("hazards").select("*, measures(*)").eq("assessment_id", id).order("created_at", { ascending: true });
-      setHazards(h ?? []);
-    })();
+    load();
+    const onFocus = () => load();
+    const onVis = () => { if (document.visibilityState === "visible") load(); };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVis);
+    };
   }, [id]);
 
   const allMeasures = useMemo(() => {
