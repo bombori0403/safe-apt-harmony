@@ -187,11 +187,13 @@ function Dashboard() {
           </h1>
           {currentComplexName && <p className="text-sm text-muted-foreground mt-1">{currentComplexName}</p>}
         </div>
-        <Link to="/assessment/new">
-          <Button size="lg" className="gap-2 shadow-md shadow-primary/20">
-            <Plus className="h-5 w-5" /> 새 평가 시작
-          </Button>
-        </Link>
+        {userRow?.org_role !== "member" && (
+          <Link to="/assessment/new">
+            <Button size="lg" className="gap-2 shadow-md shadow-primary/20">
+              <Plus className="h-5 w-5" /> 새 평가 시작
+            </Button>
+          </Link>
+        )}
       </div>
 
       {isAdmin && complexes.length > 0 && (
