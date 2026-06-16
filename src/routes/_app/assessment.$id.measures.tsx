@@ -168,11 +168,20 @@ function MeasureRow({ m, onUpdate, onDelete }: { m: any; onUpdate: (p: any) => v
   const [status, setStatus] = useState(m.status ?? "대기");
 
   if (!editing) {
+    const statusColor = m.status === "완료" ? "bg-green-100 text-green-700 border-green-300"
+      : m.status === "진행중" ? "bg-blue-100 text-blue-700 border-blue-300"
+      : "bg-amber-100 text-amber-700 border-amber-300";
     return (
       <div className="bg-muted/40 rounded p-2.5 text-sm">
         <div className="flex items-center justify-between gap-2">
           <span className="font-medium flex-1">[{displayMeasureType(m.type)}] {m.content}</span>
-          <span className="text-xs text-muted-foreground">{m.status}</span>
+          <select
+            value={m.status ?? "대기"}
+            onChange={e => onUpdate({ status: e.target.value })}
+            className={`h-7 px-1.5 rounded border text-xs ${statusColor}`}
+          >
+            {MEASURE_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
           <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => setEditing(true)}><Pencil className="h-3.5 w-3.5" /></Button>
           <Button size="sm" variant="ghost" className="h-7 px-2 text-destructive hover:text-destructive" onClick={onDelete}><Trash2 className="h-3.5 w-3.5" /></Button>
         </div>
