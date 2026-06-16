@@ -222,7 +222,9 @@ function Results() {
               <div className="flex items-center justify-between text-sm">
                 <span className={`px-2 py-1 rounded font-medium ${riskLevelClass(h.level)}`}>{h.level}</span>
                 {RISK_ORDER[h.level as RiskLevel] > RISK_ORDER[(a.allowable_level ?? "낮음") as RiskLevel] && (
-                  <Badge className="bg-danger text-danger-foreground">감소대책 수립 필요</Badge>
+                  <Link to="/assessment/$id/measures" params={{ id }} search={{ hazard: h.id }}>
+                    <Badge className="bg-danger text-danger-foreground cursor-pointer hover:opacity-90">감소대책 수립 필요 →</Badge>
+                  </Link>
                 )}
               </div>
             )}
