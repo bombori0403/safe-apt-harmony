@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RISK_ORDER, riskLevelClass, type RiskLevel } from "@/lib/types";
 import { toast } from "sonner";
-import { Pencil, Trash2, Check, X } from "lucide-react";
+import { Pencil, Trash2, Check, X, Printer } from "lucide-react";
 
 const MEASURE_TYPES = ["본질적_대책", "공학적_대책", "관리적_대책", "개인보호구"] as const;
 const MEASURE_STATUSES = ["대기", "진행중", "완료"] as const;
