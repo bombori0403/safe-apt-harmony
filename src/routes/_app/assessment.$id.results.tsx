@@ -4,11 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import type { RiskLevel } from "@/lib/types";
 import { RISK_ORDER, riskLevelClass } from "@/lib/types";
 import { toast } from "sonner";
 import { PhotoUpload } from "@/components/photo-upload";
 import { useAuth } from "@/hooks/use-auth";
+import { Pencil, Trash2, Check, X } from "lucide-react";
 
 export const Route = createFileRoute("/_app/assessment/$id/results")({
   component: Results,
