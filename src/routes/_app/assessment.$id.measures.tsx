@@ -33,6 +33,19 @@ function Measures() {
     if (error) toast.error(error.message); else { toast.success("대책 추가됨"); load(); }
   }
 
+  async function updateMeasure(mid: string, patch: any) {
+    const { error } = await supabase.from("measures").update(patch).eq("id", mid);
+    if (error) { toast.error(error.message); return; }
+    toast.success("저장되었습니다"); load();
+  }
+
+  async function deleteMeasure(mid: string) {
+    if (!confirm("이 감소대책을 삭제하시겠습니까?")) return;
+    const { error } = await supabase.from("measures").delete().eq("id", mid);
+    if (error) { toast.error(error.message); return; }
+    toast.success("삭제되었습니다"); load();
+  }
+
   async function complete() {
     await supabase.from("assessments").update({ status: "협의중" }).eq("id", id);
     navigate({ to: "/assessment/$id/share", params: { id } });
