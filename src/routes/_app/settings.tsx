@@ -61,10 +61,11 @@ function Settings() {
         .select("complex_id")
         .eq("user_id", u.id);
 
+      const isAdmin = u.org_role === "admin";
       const complexIds = [...new Set((members ?? []).map((m: any) => m.complex_id).filter(Boolean))];
       if (complexIds.length === 0) {
         setComplexes([]);
-        setShowNewForm(true);
+        setShowNewForm(isAdmin);
         setLoading(false);
         return;
       }
@@ -76,7 +77,7 @@ function Settings() {
         .order("created_at", { ascending: true });
       if (error) toast.error(error.message);
       setComplexes(list ?? []);
-      setShowNewForm((list ?? []).length === 0);
+      setShowNewForm(isAdmin && (list ?? []).length === 0);
     }
     setLoading(false);
   }
