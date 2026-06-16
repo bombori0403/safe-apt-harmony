@@ -71,7 +71,7 @@ function Measures() {
 
       {items.length === 0 && (
         <Card><CardContent className="p-8 text-center text-sm text-muted-foreground">
-          허용 수준 초과 항목이 없습니다.
+          등록된 유해·위험요인이 없습니다. 먼저 유해·위험요인을 등록하세요.
         </CardContent></Card>
       )}
 
@@ -79,7 +79,10 @@ function Measures() {
         <Card key={h.id}><CardContent className="p-4 space-y-3">
           <div className="flex items-center justify-between gap-2">
             <div className="font-medium">{h.description}</div>
-            <span className={`px-2 py-1 rounded text-xs ${riskLevelClass(h.level)}`}>{h.level}</span>
+            <div className="flex items-center gap-2">
+              {isOverAllow(h.level) && <span className="px-2 py-0.5 rounded text-[10px] bg-destructive/10 text-destructive">허용수준 초과</span>}
+              {h.level && <span className={`px-2 py-1 rounded text-xs ${riskLevelClass(h.level)}`}>{h.level}</span>}
+            </div>
           </div>
           <MeasureForm onAdd={(p) => addMeasure(h.id, p)} />
           {h.measures?.length > 0 && (
