@@ -130,7 +130,23 @@ function Results() {
       <div className="space-y-3">
         {hazards.map(h => (
           <Card key={h.id}><CardContent className="p-4 space-y-3">
-            <div className="font-medium">{h.description}</div>
+            <div className="flex items-start justify-between gap-2">
+              {editingId === h.id ? (
+                <div className="flex-1 flex gap-2">
+                  <Input value={editDesc} onChange={e => setEditDesc(e.target.value)} className="h-9" />
+                  <Button size="sm" variant="outline" onClick={() => saveDesc(h.id)}><Check className="h-4 w-4" /></Button>
+                  <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}><X className="h-4 w-4" /></Button>
+                </div>
+              ) : (
+                <>
+                  <div className="font-medium flex-1">{h.description}</div>
+                  <div className="flex gap-1">
+                    <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => { setEditingId(h.id); setEditDesc(h.description); }}><Pencil className="h-3.5 w-3.5" /></Button>
+                    <Button size="sm" variant="ghost" className="h-7 px-2 text-destructive hover:text-destructive" onClick={() => deleteHazard(h.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                  </div>
+                </>
+              )}
+            </div>
 
             {a.method === "3단계_판단법" && (
               <div className="grid grid-cols-3 gap-2">
