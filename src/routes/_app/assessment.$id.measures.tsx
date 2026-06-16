@@ -17,11 +17,13 @@ function displayMeasureType(type: string | null) {
 }
 
 export const Route = createFileRoute("/_app/assessment/$id/measures")({
+  validateSearch: (s: Record<string, unknown>) => ({ hazard: typeof s.hazard === "string" ? s.hazard : undefined }),
   component: Measures,
 });
 
 function Measures() {
   const { id } = Route.useParams();
+  const { hazard: hazardFilter } = Route.useSearch();
   const navigate = useNavigate();
   const [a, setA] = useState<any>(null);
   const [items, setItems] = useState<any[]>([]);
@@ -74,38 +76,49 @@ function Measures() {
       <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">위험성 감소대책</h1>
-          <p className="text-xs text-muted-foreground mt-1">감소대책은 본질적→공학적→관리적→개인보호구 순으로 우선 고려해야 합니다.</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {hazardFilter
+              ? "선택한 유해·위험요인에 대한 감소대책만 작성합니다."
+              : "감소대책은 본질적→공학적→관리적→개인보호구 순으로 우선 고려해야 합니다."}
+          </p>
+          {hazardFilter && (
+            <Link to="/assessment/$id/measures" params={{ id }} search={{ hazard: undefined }} className="text-xs text-primary underline mt-1 inline-block">전체 보기</Link>
+          )}
         </div>
         <Link to="/assessment/$id/measures-report" params={{ id }}>
           <Button variant="outline" size="sm" className="gap-1"><Printer className="h-4 w-4" />감소대책 출력</Button>
         </Link>
       </div>
 
-      {items.length === 0 && (
-        <Card><CardContent className="p-8 text-center text-sm text-muted-foreground">
-          등록된 유해·위험요인이 없습니다. 먼저 유해·위험요인을 등록하세요.
-        </CardContent></Card>
-      )}
-
-      {items.map(h => (
-        <Card key={h.id}><CardContent className="p-4 space-y-3">
-          <div className="flex items-center justify-between gap-2">
-            <div className="font-medium">{h.description}</div>
-            <div className="flex items-center gap-2">
-              {isOverAllow(h.level) && <span className="px-2 py-0.5 rounded text-[10px] bg-destructive/10 text-destructive">허용수준 초과</span>}
-              {h.level && <span className={`px-2 py-1 rounded text-xs ${riskLevelClass(h.level)}`}>{h.level}</span>}
+      {(() => {
+        const visible = hazardFilter ? items.filter(h => h.id === hazardFilter) : items;
+        if (visible.length === 0) {
+          return (
+            <Card><CardContent className="p-8 text-center text-sm text-muted-foreground">
+              {hazardFilter ? "해당 유해·위험요인을 찾을 수 없습니다." : "등록된 유해·위험요인이 없습니다. 먼저 유해·위험요인을 등록하세요."}
+            </CardContent></Card>
+          );
+        }
+        return visible.map(h => (
+          <Card key={h.id}><CardContent className="p-4 space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="font-medium">{h.description}</div>
+              <div className="flex items-center gap-2">
+                {isOverAllow(h.level) && <span className="px-2 py-0.5 rounded text-[10px] bg-destructive/10 text-destructive">허용수준 초과</span>}
+                {h.level && <span className={`px-2 py-1 rounded text-xs ${riskLevelClass(h.level)}`}>{h.level}</span>}
+              </div>
             </div>
-          </div>
-          <MeasureForm onAdd={(p) => addMeasure(h.id, p)} />
-          {h.measures?.length > 0 && (
-            <div className="space-y-1.5 mt-2">
-              {h.measures.map((m: any) => (
-                <MeasureRow key={m.id} m={m} onUpdate={(p) => updateMeasure(m.id, p)} onDelete={() => deleteMeasure(m.id)} />
-              ))}
-            </div>
-          )}
-        </CardContent></Card>
-      ))}
+            <MeasureForm onAdd={(p) => addMeasure(h.id, p)} />
+            {h.measures?.length > 0 && (
+              <div className="space-y-1.5 mt-2">
+                {h.measures.map((m: any) => (
+                  <MeasureRow key={m.id} m={m} onUpdate={(p) => updateMeasure(m.id, p)} onDelete={() => deleteMeasure(m.id)} />
+                ))}
+              </div>
+            )}
+          </CardContent></Card>
+        ));
+      })()}
 
       <div className="flex justify-end">
         <Button onClick={complete}>협의·공유 단계로</Button>
