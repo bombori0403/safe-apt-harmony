@@ -29,8 +29,9 @@ function Results() {
 
   async function saveDesc(hid: string) {
     if (!editDesc.trim()) { toast.error("내용을 입력하세요"); return; }
-    const { error } = await supabase.from("hazards").update({ description: editDesc.trim() }).eq("id", hid);
-    if (error) { toast.error(error.message); return; }
+    const { data, error } = await supabase.from("hazards").update({ description: editDesc.trim() }).eq("id", hid).select();
+    if (error) { console.error(error); toast.error(error.message); return; }
+    if (!data || data.length === 0) { toast.error("권한이 없어 수정할 수 없습니다"); return; }
     toast.success("저장되었습니다");
     setEditingId(null);
     await load();
@@ -38,9 +39,11 @@ function Results() {
 
   async function deleteHazard(hid: string) {
     if (!confirm("이 유해·위험요인을 삭제하시겠습니까? 관련 감소대책도 함께 삭제됩니다.")) return;
-    await supabase.from("measures").delete().eq("hazard_id", hid);
-    const { error } = await supabase.from("hazards").delete().eq("id", hid);
-    if (error) { toast.error(error.message); return; }
+    const { error: mErr } = await supabase.from("measures").delete().eq("hazard_id", hid);
+    if (mErr) { console.error(mErr); toast.error(mErr.message); return; }
+    const { data, error } = await supabase.from("hazards").delete().eq("id", hid).select();
+    if (error) { console.error(error); toast.error(error.message); return; }
+    if (!data || data.length === 0) { toast.error("권한이 없어 삭제할 수 없습니다"); return; }
     toast.success("삭제되었습니다");
     await load();
   }
