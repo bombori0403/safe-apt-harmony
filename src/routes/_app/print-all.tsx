@@ -93,6 +93,7 @@ function PrintAll() {
           const aIds = assessments.map((a: any) => a.id);
 
           let hazards: any[] = [], measures: any[] = [];
+          let participants: any[] = [], signatures: any[] = [], assessmentInputs: any[] = [];
           if (aIds.length) {
             const { data: h } = await supabase.from("hazards").select("*").in("assessment_id", aIds);
             hazards = h ?? [];
@@ -101,6 +102,12 @@ function PrintAll() {
               const { data: m } = await supabase.from("measures").select("*").in("hazard_id", hIds);
               measures = m ?? [];
             }
+            const { data: pp } = await supabase.from("participants").select("*").in("assessment_id", aIds);
+            participants = pp ?? [];
+            const { data: sg } = await supabase.from("signatures").select("*").in("assessment_id", aIds);
+            signatures = sg ?? [];
+            const { data: ai } = await supabase.from("employee_inputs").select("*").in("assessment_id", aIds).order("occurred_at", { ascending: false });
+            assessmentInputs = ai ?? [];
           }
 
           // near miss
@@ -123,6 +130,7 @@ function PrintAll() {
 
           result[cid] = {
             assessments, hazards, measures,
+            participants, signatures, assessmentInputs,
             nearMiss: nm ?? [], workStops: ws ?? [], inputs: ei ?? [],
           };
         }
