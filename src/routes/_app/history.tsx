@@ -31,6 +31,7 @@ function History() {
   const [complexes, setComplexes] = useState<{ id: string; name: string }[]>([]);
   const [complexId, setComplexId] = useState<string>("");
   const [q, setQ] = useState("");
+  const [typeFilter, setTypeFilter] = useState<string>("");
 
   const [editing, setEditing] = useState<any | null>(null);
   const [form, setForm] = useState({ work_name: "", assessment_date: "", location: "", status: "작성중" });
@@ -64,7 +65,8 @@ function History() {
 
   const filtered = items.filter(i =>
     (!q || i.work_name?.includes(q)) &&
-    (!complexId || i.complex_id === complexId)
+    (!complexId || i.complex_id === complexId) &&
+    (!typeFilter || i.assessment_type === typeFilter)
   );
 
   const openEdit = (a: any) => {
@@ -117,6 +119,19 @@ function History() {
             {complexes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </div>
+        <div className="min-w-[140px]">
+          <Label className="text-xs">평가종류</Label>
+          <select
+            value={typeFilter}
+            onChange={e => setTypeFilter(e.target.value)}
+            className="h-10 px-3 rounded-md border bg-background text-sm block w-full mt-1"
+          >
+            <option value="">전체</option>
+            <option value="최초평가">최초평가</option>
+            <option value="정기평가">정기평가</option>
+            <option value="수시평가">수시평가</option>
+          </select>
+        </div>
         <div className="relative flex-1 min-w-[200px] max-w-md">
           <Label className="text-xs">검색</Label>
           <div className="relative mt-1">
@@ -141,6 +156,7 @@ function History() {
                     {complexName.get(a.complex_id) ?? "-"} · {a.assessment_date} · {a.method} · {a.work_category ?? "-"}
                   </div>
                 </Link>
+                <Badge variant={a.assessment_type === "수시평가" ? "default" : "secondary"}>{a.assessment_type ?? "-"}</Badge>
                 <Badge variant="outline">{a.status}</Badge>
                 {a.allowable_level && (
                   <span className={`px-2 py-1 rounded-md text-xs font-medium ${riskLevelClass(a.allowable_level as RiskLevel)}`}>
