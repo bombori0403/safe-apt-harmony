@@ -302,6 +302,7 @@ function Settings() {
                     </p>
                   )}
                 </div>
+              </div>
               <div className="flex gap-2">
                 <Button onClick={()=>saveComplex(c)} disabled={savingId===c.id}>
                   {savingId===c.id?"저장 중...":"저장"}
