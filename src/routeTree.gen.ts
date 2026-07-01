@@ -19,6 +19,7 @@ import { Route as AppWorkStopRightRouteImport } from './routes/_app/work-stop-ri
 import { Route as AppWorkStopRecordsRouteImport } from './routes/_app/work-stop-records'
 import { Route as AppTeamRouteImport } from './routes/_app/team'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
+import { Route as AppPrintAllRouteImport } from './routes/_app/print-all'
 import { Route as AppNearMissRouteImport } from './routes/_app/near-miss'
 import { Route as AppHistoryRouteImport } from './routes/_app/history'
 import { Route as AppEmployeeInputsRouteImport } from './routes/_app/employee-inputs'
@@ -85,6 +86,11 @@ const AppTeamRoute = AppTeamRouteImport.update({
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPrintAllRoute = AppPrintAllRouteImport.update({
+  id: '/print-all',
+  path: '/print-all',
   getParentRoute: () => AppRoute,
 } as any)
 const AppNearMissRoute = AppNearMissRouteImport.update({
@@ -189,6 +195,7 @@ export interface FileRoutesByFullPath {
   '/employee-inputs': typeof AppEmployeeInputsRoute
   '/history': typeof AppHistoryRoute
   '/near-miss': typeof AppNearMissRouteWithChildren
+  '/print-all': typeof AppPrintAllRoute
   '/settings': typeof AppSettingsRoute
   '/team': typeof AppTeamRoute
   '/work-stop-records': typeof AppWorkStopRecordsRoute
@@ -218,6 +225,7 @@ export interface FileRoutesByTo {
   '/employee-inputs': typeof AppEmployeeInputsRoute
   '/history': typeof AppHistoryRoute
   '/near-miss': typeof AppNearMissRouteWithChildren
+  '/print-all': typeof AppPrintAllRoute
   '/settings': typeof AppSettingsRoute
   '/team': typeof AppTeamRoute
   '/work-stop-records': typeof AppWorkStopRecordsRoute
@@ -249,6 +257,7 @@ export interface FileRoutesById {
   '/_app/employee-inputs': typeof AppEmployeeInputsRoute
   '/_app/history': typeof AppHistoryRoute
   '/_app/near-miss': typeof AppNearMissRouteWithChildren
+  '/_app/print-all': typeof AppPrintAllRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/team': typeof AppTeamRoute
   '/_app/work-stop-records': typeof AppWorkStopRecordsRoute
@@ -280,6 +289,7 @@ export interface FileRouteTypes {
     | '/employee-inputs'
     | '/history'
     | '/near-miss'
+    | '/print-all'
     | '/settings'
     | '/team'
     | '/work-stop-records'
@@ -309,6 +319,7 @@ export interface FileRouteTypes {
     | '/employee-inputs'
     | '/history'
     | '/near-miss'
+    | '/print-all'
     | '/settings'
     | '/team'
     | '/work-stop-records'
@@ -339,6 +350,7 @@ export interface FileRouteTypes {
     | '/_app/employee-inputs'
     | '/_app/history'
     | '/_app/near-miss'
+    | '/_app/print-all'
     | '/_app/settings'
     | '/_app/team'
     | '/_app/work-stop-records'
@@ -439,6 +451,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/print-all': {
+      id: '/_app/print-all'
+      path: '/print-all'
+      fullPath: '/print-all'
+      preLoaderRoute: typeof AppPrintAllRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/near-miss': {
@@ -590,6 +609,7 @@ interface AppRouteChildren {
   AppEmployeeInputsRoute: typeof AppEmployeeInputsRoute
   AppHistoryRoute: typeof AppHistoryRoute
   AppNearMissRoute: typeof AppNearMissRouteWithChildren
+  AppPrintAllRoute: typeof AppPrintAllRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppTeamRoute: typeof AppTeamRoute
   AppWorkStopRecordsRoute: typeof AppWorkStopRecordsRoute
@@ -613,6 +633,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppEmployeeInputsRoute: AppEmployeeInputsRoute,
   AppHistoryRoute: AppHistoryRoute,
   AppNearMissRoute: AppNearMissRouteWithChildren,
+  AppPrintAllRoute: AppPrintAllRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppTeamRoute: AppTeamRoute,
   AppWorkStopRecordsRoute: AppWorkStopRecordsRoute,
