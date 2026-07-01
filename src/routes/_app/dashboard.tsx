@@ -10,9 +10,12 @@ import { Calendar as CalendarComp } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, AlertTriangle, Calendar, Users, TrendingUp, Building2, MessageCircle, CalendarClock, Download } from "lucide-react";
+import { Plus, AlertTriangle, Calendar, Users, TrendingUp, Building2, MessageCircle, CalendarClock, Download, Printer } from "lucide-react";
 import { cn } from "@/lib/utils";
 import JSZip from "jszip";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/_app/dashboard")({
   component: Dashboard,
@@ -379,20 +382,23 @@ function Dashboard() {
               </>
             )}
             {canBulkExport && complexes.length > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="ml-auto gap-2"
-                onClick={handleBulkExport}
-                disabled={exporting}
-              >
-                <Download className="h-4 w-4" />
-                {exporting
-                  ? "다운로드 중..."
-                  : selectedComplexId === "all"
-                    ? `전체 단지 결과 다운로드 (ZIP)`
-                    : `이 단지 결과 다운로드 (CSV)`}
-              </Button>
+              <div className="ml-auto flex flex-wrap items-center gap-2">
+                <PrintAllDialog scopeComplexId={selectedComplexId} isAdmin={isAdmin} />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={handleBulkExport}
+                  disabled={exporting}
+                >
+                  <Download className="h-4 w-4" />
+                  {exporting
+                    ? "다운로드 중..."
+                    : selectedComplexId === "all"
+                      ? `CSV (ZIP)`
+                      : `CSV`}
+                </Button>
+              </div>
             )}
           </CardContent>
         </Card>
@@ -578,5 +584,59 @@ function KpiCard({ title, value, icon: Icon, sub, danger }: { title: string; val
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function PrintAllDialog({ scopeComplexId, isAdmin }: { scopeComplexId: string; isAdmin: boolean }) {
+  const today = new Date();
+  const yStart = `${today.getFullYear()}-01-01`;
+  const todayStr = today.toISOString().slice(0, 10);
+  const [open, setOpen] = useState(false);
+  const [from, setFrom] = useState(yStart);
+  const [to, setTo] = useState(todayStr);
+
+  const openPrint = () => {
+    const params = new URLSearchParams();
+    params.set("complex", scopeComplexId || "all");
+    if (from) params.set("from", from);
+    if (to) params.set("to", to);
+    window.open(`/print-all?${params.toString()}`, "_blank");
+    setOpen(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" className="gap-2">
+          <Printer className="h-4 w-4" />
+          전체 인쇄 (PDF)
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>전체 자료집 인쇄</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3 text-sm">
+          <p className="text-muted-foreground text-xs">
+            선택한 기간의 위험성평가 결과서, 아차사고 보고서, 작업중지 개선완료 확인서, 실적 관리대장, 직원참여 기록이 한 문서로 출력됩니다.
+            {isAdmin && scopeComplexId === "all" ? " (전체 단지)" : ""}
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs">시작일</Label>
+              <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="h-9 mt-1" />
+            </div>
+            <div>
+              <Label className="text-xs">종료일</Label>
+              <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="h-9 mt-1" />
+            </div>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>취소</Button>
+          <Button onClick={openPrint} className="gap-2"><Printer className="h-4 w-4" />인쇄 페이지 열기</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
