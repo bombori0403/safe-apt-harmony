@@ -508,6 +508,15 @@ function Info({ label, value }: { label: string; value?: any }) {
   );
 }
 
+function ReportRow({ label, value }: { label: string; value?: string | null }) {
+  return (
+    <div className="flex border-b pb-1">
+      <span className="w-28 text-gray-600">{label}</span>
+      <span className="flex-1 font-medium">{value ?? "-"}</span>
+    </div>
+  );
+}
+
 function SectionBlock({ title, body, photos, photoLabel }: { title: string; body?: string; photos: string[]; photoLabel: string }) {
   return (
     <section className="mb-4">
