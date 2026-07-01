@@ -31,6 +31,7 @@ function History() {
   const [complexes, setComplexes] = useState<{ id: string; name: string }[]>([]);
   const [complexId, setComplexId] = useState<string>("");
   const [q, setQ] = useState("");
+  const [typeFilter, setTypeFilter] = useState<string>("");
 
   const [editing, setEditing] = useState<any | null>(null);
   const [form, setForm] = useState({ work_name: "", assessment_date: "", location: "", status: "작성중" });
