@@ -82,11 +82,16 @@ function Share() {
   function printQR() {
     const w = window.open("", "_blank", "width=600,height=800");
     if (!w) return;
-    w.document.write(`<html><head><title>QR 출력 — ${a?.work_name ?? ""}</title></head><body style="font-family:sans-serif;text-align:center;padding:40px;">
-      <h2>${a?.work_name ?? ""}</h2>
+    const esc = (s: string) =>
+      s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+    const workName = esc(a?.work_name ?? "");
+    const qrSrc = esc(qrUrl);
+    const url = esc(confirmUrl);
+    w.document.write(`<html><head><title>QR 출력 — ${workName}</title></head><body style="font-family:sans-serif;text-align:center;padding:40px;">
+      <h2>${workName}</h2>
       <p>참여자 확인 QR</p>
-      <img src="${qrUrl}" style="width:320px;height:320px;" />
-      <p style="font-size:12px;color:#666;margin-top:24px;">${confirmUrl}</p>
+      <img src="${qrSrc}" style="width:320px;height:320px;" />
+      <p style="font-size:12px;color:#666;margin-top:24px;">${url}</p>
     </body></html>`);
     w.document.close();
     setTimeout(() => w.print(), 300);
