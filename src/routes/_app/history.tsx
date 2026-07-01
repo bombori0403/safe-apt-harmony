@@ -65,7 +65,8 @@ function History() {
 
   const filtered = items.filter(i =>
     (!q || i.work_name?.includes(q)) &&
-    (!complexId || i.complex_id === complexId)
+    (!complexId || i.complex_id === complexId) &&
+    (!typeFilter || i.assessment_type === typeFilter)
   );
 
   const openEdit = (a: any) => {
