@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Printer, ArrowLeft, Loader2 } from "lucide-react";
 import { getCurrentUserContext } from "@/lib/user-context";
 import { useAuth } from "@/hooks/use-auth";
-import { WORK_STOP_LAW_TITLE, WORK_STOP_LAW_TEXT } from "@/lib/work-stop-law";
+import { WORK_STOP_LAW_TITLE, WORK_STOP_LAW_TEXT, WORK_STOP_PROCEDURE } from "@/lib/work-stop-law";
+import { riskLevelClass, type RiskLevel } from "@/lib/types";
 
 type Search = { complex?: string; from?: string; to?: string };
 
