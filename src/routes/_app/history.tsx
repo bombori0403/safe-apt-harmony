@@ -156,6 +156,7 @@ function History() {
                     {complexName.get(a.complex_id) ?? "-"} · {a.assessment_date} · {a.method} · {a.work_category ?? "-"}
                   </div>
                 </Link>
+                <Badge variant={a.assessment_type === "수시평가" ? "default" : "secondary"}>{a.assessment_type ?? "-"}</Badge>
                 <Badge variant="outline">{a.status}</Badge>
                 {a.allowable_level && (
                   <span className={`px-2 py-1 rounded-md text-xs font-medium ${riskLevelClass(a.allowable_level as RiskLevel)}`}>
