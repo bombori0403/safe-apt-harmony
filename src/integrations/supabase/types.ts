@@ -787,6 +787,35 @@ export type Database = {
           },
         ]
       }
+      regulation_content: {
+        Row: {
+          organization_id: string
+          overrides: Json
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          organization_id: string
+          overrides?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          organization_id?: string
+          overrides?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "regulation_content_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       signatures: {
         Row: {
           assessment_id: string
