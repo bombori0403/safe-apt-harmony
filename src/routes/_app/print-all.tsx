@@ -451,25 +451,14 @@ function PrintAll() {
                 </section>
               )}
 
-              {/* 직원참여 (건별) */}
-              {d.inputs.map((it: any) => {
-                const photos: string[] = Array.isArray((it.meta as any)?.photos) ? (it.meta as any).photos : [];
-                return (
-                  <section key={it.id} className="page">
-                    <div className="text-center border-b-2 border-black pb-3 mb-4">
-                      <h1 className="text-xl font-bold">{it.input_type === "hearing" ? "청취조사 결과서" : "오픈채팅 이력 요약"}</h1>
-                      <div className="text-xs mt-1">{c.name}</div>
-                    </div>
-                    <table className="w-full text-sm border-collapse mb-4">
-                      <tbody>
-                        <Info label="일시" value={fmtDT(it.occurred_at)} />
-                        <Info label="응답자/채팅방" value={[it.respondent_name, it.respondent_role].filter(Boolean).join(" / ")} />
-                      </tbody>
-                    </table>
-                    <SectionBlock title="내용" body={it.content} photos={photos} photoLabel="첨부 사진" />
-                  </section>
-                );
-              })}
+              {/* 직원참여 (건별) - 청취조사/오픈채팅 정식 보고서 형식 */}
+              {d.inputs.map((it: any) => (
+                <section key={it.id} className="page">
+                  {it.input_type === "hearing"
+                    ? <HearingReportSheet item={it} complexName={c.name} />
+                    : <OpenChatReportSheet item={it} complexName={c.name} />}
+                </section>
+              ))}
             </div>
           );
         })}
