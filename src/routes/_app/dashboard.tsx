@@ -10,8 +10,9 @@ import { Calendar as CalendarComp } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, AlertTriangle, Calendar, Users, TrendingUp, Building2, MessageCircle, CalendarClock } from "lucide-react";
+import { Plus, AlertTriangle, Calendar, Users, TrendingUp, Building2, MessageCircle, CalendarClock, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
+import JSZip from "jszip";
 
 export const Route = createFileRoute("/_app/dashboard")({
   component: Dashboard,
