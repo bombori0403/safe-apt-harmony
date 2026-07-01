@@ -153,6 +153,7 @@ function Settings() {
     const { error } = await supabase.from("complexes").update({
       name: c.name, address: c.address, household_count: c.household_count,
       mgmt_type: c.mgmt_type, manager_name: c.manager_name, manager_phone: c.manager_phone,
+      initial_assessment_date: c.initial_assessment_date || null,
     }).eq("id", c.id);
     setSavingId(null);
     if (error) toast.error(error.message); else toast.success("단지 정보가 저장되었습니다");
