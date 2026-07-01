@@ -36,6 +36,7 @@ function PrintAll() {
   const [complexes, setComplexes] = useState<any[]>([]);
   const [dataByComplex, setDataByComplex] = useState<Record<string, {
     assessments: any[]; hazards: any[]; measures: any[];
+    participants: any[]; signatures: any[]; assessmentInputs: any[];
     nearMiss: any[]; workStops: any[]; inputs: any[];
   }>>({});
 
