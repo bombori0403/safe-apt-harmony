@@ -358,25 +358,45 @@ function Dashboard() {
         </div>
       )}
 
-      {isAdmin && complexes.length > 0 && (
+      {(isAdmin && complexes.length > 0) || canBulkExport ? (
         <Card>
-          <CardContent className="p-3 md:p-4 flex items-center gap-3">
-            <Building2 className="h-4 w-4 text-muted-foreground shrink-0" />
-            <span className="text-sm text-muted-foreground shrink-0">단지 보기:</span>
-            <Select value={selectedComplexId} onValueChange={setSelectedComplexId}>
-              <SelectTrigger className="max-w-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">전체 단지</SelectItem>
-                {complexes.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <CardContent className="p-3 md:p-4 flex flex-wrap items-center gap-3">
+            {isAdmin && complexes.length > 0 && (
+              <>
+                <Building2 className="h-4 w-4 text-muted-foreground shrink-0" />
+                <span className="text-sm text-muted-foreground shrink-0">단지 보기:</span>
+                <Select value={selectedComplexId} onValueChange={setSelectedComplexId}>
+                  <SelectTrigger className="max-w-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">전체 단지</SelectItem>
+                    {complexes.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </>
+            )}
+            {canBulkExport && complexes.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="ml-auto gap-2"
+                onClick={handleBulkExport}
+                disabled={exporting}
+              >
+                <Download className="h-4 w-4" />
+                {exporting
+                  ? "다운로드 중..."
+                  : selectedComplexId === "all"
+                    ? `전체 단지 결과 다운로드 (ZIP)`
+                    : `이 단지 결과 다운로드 (CSV)`}
+              </Button>
+            )}
           </CardContent>
         </Card>
-      )}
+      ) : null}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <KpiCard title="이번 달 평가" value={monthCount} icon={TrendingUp} />
