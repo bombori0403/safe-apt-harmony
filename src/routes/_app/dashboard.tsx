@@ -214,8 +214,99 @@ function Dashboard() {
     : complexes.find((c) => c.id === selectedComplexId)?.name ?? "";
   const isMember = userRow?.org_role === "member";
   const canPickDate = isAdmin && selectedComplexId !== "all";
+  const canBulkExport = userRow?.org_role === "admin" || userRow?.org_role === "manager";
+  const [exporting, setExporting] = useState(false);
   const RowLink = ({ children, ...props }: any) =>
     isMember ? <div className={props.className}>{children}</div> : <Link {...props}>{children}</Link>;
+
+  const csvEscape = (v: any) => {
+    if (v === null || v === undefined) return "";
+    const s = String(v).replace(/"/g, '""');
+    return /[",\n\r]/.test(s) ? `"${s}"` : s;
+  };
+
+  const buildComplexCsv = async (complexId: string, complexName: string) => {
+    const { data: ass } = await supabase
+      .from("assessments")
+      .select("id, work_name, work_category, assessment_type, method, assessment_date, location, status, allowable_level")
+      .eq("complex_id", complexId)
+      .order("assessment_date", { ascending: false });
+    const assessmentList = ass ?? [];
+    const ids = assessmentList.map((a: any) => a.id);
+    let hazards: any[] = [];
+    let measures: any[] = [];
+    if (ids.length) {
+      const { data: h } = await supabase.from("hazards").select("*").in("assessment_id", ids);
+      hazards = h ?? [];
+      const hIds = hazards.map((h: any) => h.id);
+      if (hIds.length) {
+        const { data: m } = await supabase.from("measures").select("*").in("hazard_id", hIds);
+        measures = m ?? [];
+      }
+    }
+    const header = [
+      "단지명", "평가일", "평가종류", "작업명", "작업카테고리", "평가방법", "평가장소", "상태", "허용수준",
+      "유해위험요인", "위험성수준", "표준환산", "감소대책유형", "대책내용", "책임자", "이행예정", "이행상태",
+    ];
+    const rows: string[][] = [header];
+    for (const a of assessmentList) {
+      const hs = hazards.filter((h: any) => h.assessment_id === a.id);
+      if (hs.length === 0) {
+        rows.push([complexName, a.assessment_date, a.assessment_type, a.work_name, a.work_category ?? "", a.method ?? "", a.location ?? "", a.status ?? "", a.allowable_level ?? "", "", "", "", "", "", "", "", ""]);
+        continue;
+      }
+      for (const h of hs) {
+        const ms = measures.filter((m: any) => m.hazard_id === h.id);
+        if (ms.length === 0) {
+          rows.push([complexName, a.assessment_date, a.assessment_type, a.work_name, a.work_category ?? "", a.method ?? "", a.location ?? "", a.status ?? "", a.allowable_level ?? "", h.description ?? "", h.level ?? "", h.level_standardized ?? "", "", "", "", "", ""]);
+        } else {
+          for (const m of ms) {
+            rows.push([complexName, a.assessment_date, a.assessment_type, a.work_name, a.work_category ?? "", a.method ?? "", a.location ?? "", a.status ?? "", a.allowable_level ?? "", h.description ?? "", h.level ?? "", h.level_standardized ?? "", m.type ?? "", m.content ?? "", m.responsible_name ?? "", m.due_date ?? "", m.status ?? ""]);
+          }
+        }
+      }
+    }
+    return rows.map((r) => r.map(csvEscape).join(",")).join("\r\n");
+  };
+
+  const downloadBlob = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename; document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+  };
+
+  const sanitize = (n: string) => n.replace(/[\\/:*?"<>|]/g, "_");
+
+  const handleBulkExport = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const BOM = "\uFEFF";
+      const today = new Date().toISOString().slice(0, 10);
+      if (selectedComplexId === "all") {
+        if (complexes.length === 0) { toast.error("단지가 없습니다."); return; }
+        const zip = new JSZip();
+        for (const c of complexes) {
+          const csv = await buildComplexCsv(c.id, c.name);
+          zip.file(`${sanitize(c.name)}_위험성평가결과.csv`, BOM + csv);
+        }
+        const blob = await zip.generateAsync({ type: "blob" });
+        downloadBlob(blob, `위험성평가결과_전체단지_${today}.zip`);
+        toast.success(`${complexes.length}개 단지 결과를 다운로드했습니다.`);
+      } else {
+        const c = complexes.find((x) => x.id === selectedComplexId);
+        if (!c) { toast.error("단지를 찾을 수 없습니다."); return; }
+        const csv = await buildComplexCsv(c.id, c.name);
+        downloadBlob(new Blob([BOM + csv], { type: "text/csv;charset=utf-8" }), `${sanitize(c.name)}_위험성평가결과_${today}.csv`);
+        toast.success("다운로드가 시작되었습니다.");
+      }
+    } catch (e: any) {
+      toast.error("다운로드 실패: " + (e?.message ?? String(e)));
+    } finally {
+      setExporting(false);
+    }
+  };
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
