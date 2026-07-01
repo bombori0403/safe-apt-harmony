@@ -197,10 +197,12 @@ export type Database = {
           created_at: string | null
           household_count: number | null
           id: string
+          initial_assessment_date: string | null
           manager_name: string | null
           manager_phone: string | null
           mgmt_type: Database["public"]["Enums"]["mgmt_type"]
           name: string
+          next_assessment_auto: string | null
           next_assessment_date: string | null
           organization_id: string | null
           updated_at: string | null
@@ -211,10 +213,12 @@ export type Database = {
           created_at?: string | null
           household_count?: number | null
           id?: string
+          initial_assessment_date?: string | null
           manager_name?: string | null
           manager_phone?: string | null
           mgmt_type?: Database["public"]["Enums"]["mgmt_type"]
           name: string
+          next_assessment_auto?: string | null
           next_assessment_date?: string | null
           organization_id?: string | null
           updated_at?: string | null
@@ -225,10 +229,12 @@ export type Database = {
           created_at?: string | null
           household_count?: number | null
           id?: string
+          initial_assessment_date?: string | null
           manager_name?: string | null
           manager_phone?: string | null
           mgmt_type?: Database["public"]["Enums"]["mgmt_type"]
           name?: string
+          next_assessment_auto?: string | null
           next_assessment_date?: string | null
           organization_id?: string | null
           updated_at?: string | null
@@ -994,6 +1000,10 @@ export type Database = {
       is_org_manager: { Args: never; Returns: boolean }
       org_can_manage_assessment: { Args: never; Returns: boolean }
       org_can_write: { Args: never; Returns: boolean }
+      recompute_next_assessment: {
+        Args: { _complex_id: string }
+        Returns: undefined
+      }
       user_admin_company_ids: { Args: never; Returns: string[] }
       user_complex_ids: { Args: never; Returns: string[] }
       user_member_company_ids: { Args: never; Returns: string[] }
