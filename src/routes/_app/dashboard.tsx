@@ -382,20 +382,23 @@ function Dashboard() {
               </>
             )}
             {canBulkExport && complexes.length > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="ml-auto gap-2"
-                onClick={handleBulkExport}
-                disabled={exporting}
-              >
-                <Download className="h-4 w-4" />
-                {exporting
-                  ? "다운로드 중..."
-                  : selectedComplexId === "all"
-                    ? `전체 단지 결과 다운로드 (ZIP)`
-                    : `이 단지 결과 다운로드 (CSV)`}
-              </Button>
+              <div className="ml-auto flex flex-wrap items-center gap-2">
+                <PrintAllDialog scopeComplexId={selectedComplexId} isAdmin={isAdmin} />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={handleBulkExport}
+                  disabled={exporting}
+                >
+                  <Download className="h-4 w-4" />
+                  {exporting
+                    ? "다운로드 중..."
+                    : selectedComplexId === "all"
+                      ? `CSV (ZIP)`
+                      : `CSV`}
+                </Button>
+              </div>
             )}
           </CardContent>
         </Card>
