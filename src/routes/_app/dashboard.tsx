@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { getCurrentUserContext } from "@/lib/user-context";
@@ -10,7 +10,7 @@ import { Calendar as CalendarComp } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, AlertTriangle, Calendar, Users, TrendingUp, Building2, MessageCircle } from "lucide-react";
+import { Plus, AlertTriangle, Calendar, Users, TrendingUp, Building2, MessageCircle, CalendarClock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_app/dashboard")({
@@ -31,6 +31,19 @@ interface ComplexRow {
   id: string;
   name: string;
   next_assessment_date: string | null;
+  next_assessment_auto: string | null;
+  initial_assessment_date: string | null;
+}
+
+function daysDiff(dateISO: string | null | undefined): number | null {
+  if (!dateISO) return null;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const target = new Date(dateISO); target.setHours(0, 0, 0, 0);
+  return Math.round((target.getTime() - today.getTime()) / 86400000);
+}
+
+function effectiveNextDate(c: ComplexRow): string | null {
+  return c.next_assessment_date ?? c.next_assessment_auto ?? null;
 }
 
 function Dashboard() {
@@ -46,10 +59,8 @@ function Dashboard() {
   const [employeeInputs, setEmployeeInputs] = useState<any[]>([]);
   const [unresolvedHigh, setUnresolvedHigh] = useState(0);
   const [monthCount, setMonthCount] = useState(0);
-  const [nextDate, setNextDate] = useState<Date | undefined>(undefined);
   const [calendarOpen, setCalendarOpen] = useState(false);
 
-  // Load user context once
   useEffect(() => {
     if (!user) return;
     (async () => {
@@ -62,14 +73,14 @@ function Dashboard() {
       if (admin) {
         const { data: cs } = await supabase
           .from("complexes")
-          .select("id, name, next_assessment_date")
+          .select("id, name, next_assessment_date, next_assessment_auto, initial_assessment_date")
           .order("name");
         setComplexes((cs ?? []) as ComplexRow[]);
         setSelectedComplexId("all");
       } else if (complexId) {
         const { data: c } = await supabase
           .from("complexes")
-          .select("id, name, next_assessment_date")
+          .select("id, name, next_assessment_date, next_assessment_auto, initial_assessment_date")
           .eq("id", complexId)
           .maybeSingle();
         if (c) setComplexes([c as ComplexRow]);
@@ -78,7 +89,6 @@ function Dashboard() {
     })();
   }, [user]);
 
-  // Reload metrics when selection changes
   useEffect(() => {
     if (!user) return;
     (async () => {
@@ -115,7 +125,6 @@ function Dashboard() {
       setMonthCount(mc ?? 0);
 
       if (scoped) {
-        // Fetch hazards joined via assessments of selected complex
         const { data: aids } = await supabase.from("assessments").select("id").eq("complex_id", selectedComplexId);
         const ids = (aids ?? []).map((x: any) => x.id);
         if (ids.length === 0) {
@@ -135,44 +144,75 @@ function Dashboard() {
           .in("level", ["높음", "매우높음"]);
         setUnresolvedHigh(hc ?? 0);
       }
-
-      const cur = complexes.find((c) => c.id === selectedComplexId);
-      if (cur?.next_assessment_date) setNextDate(new Date(cur.next_assessment_date));
-      else setNextDate(undefined);
     })();
-  }, [user, selectedComplexId, complexes]);
+  }, [user, selectedComplexId]);
+
+  const currentComplex = complexes.find((c) => c.id === selectedComplexId);
+  const effNext = currentComplex ? effectiveNextDate(currentComplex) : null;
+  const diff = daysDiff(effNext);
+  const autoDiff = currentComplex && currentComplex.next_assessment_date && currentComplex.next_assessment_auto
+    ? Math.round((new Date(currentComplex.next_assessment_date).getTime() - new Date(currentComplex.next_assessment_auto).getTime()) / 86400000)
+    : null;
+
+  const overdueComplexes = useMemo(
+    () => complexes.filter((c) => {
+      const d = daysDiff(effectiveNextDate(c));
+      return d !== null && d < 0;
+    }),
+    [complexes]
+  );
+  const upcomingComplexes = useMemo(
+    () => complexes.filter((c) => {
+      const d = daysDiff(effectiveNextDate(c));
+      return d !== null && d >= 0 && d <= 30;
+    }),
+    [complexes]
+  );
 
   const handleDateSelect = async (d: Date | undefined) => {
-    setNextDate(d);
     setCalendarOpen(false);
     const targetComplex = selectedComplexId !== "all" ? selectedComplexId : myComplexId;
-    if (!targetComplex) {
-      toast.error("단지를 선택해주세요.");
-      return;
-    }
+    if (!targetComplex) { toast.error("단지를 선택해주세요."); return; }
     const iso = d ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}` : null;
     const { error } = await supabase.from("complexes").update({ next_assessment_date: iso }).eq("id", targetComplex);
-    if (error) toast.error("저장 실패: " + error.message);
-    else {
-      toast.success(d ? "다음 정기평가 날짜가 저장되었습니다." : "날짜가 해제되었습니다.");
-      setComplexes((prev) => prev.map((c) => c.id === targetComplex ? { ...c, next_assessment_date: iso } : c));
-    }
+    if (error) { toast.error("저장 실패: " + error.message); return; }
+    toast.success(d ? "다음 정기평가 날짜가 저장되었습니다." : "수동 지정이 해제되었습니다.");
+    setComplexes((prev) => prev.map((c) => c.id === targetComplex ? { ...c, next_assessment_date: iso } : c));
   };
 
   const nextDisplay = (() => {
-    if (!nextDate) return { value: "미정", sub: "날짜 선택" };
-    const today = new Date(); today.setHours(0,0,0,0);
-    const target = new Date(nextDate); target.setHours(0,0,0,0);
-    const diff = Math.round((target.getTime() - today.getTime()) / 86400000);
-    if (diff > 0) return { value: `D-${diff}`, sub: `${target.getMonth() + 1}/${target.getDate()}` };
+    if (!effNext) return { value: "미정", sub: currentComplex ? "최초평가일 설정 필요" : "단지 선택" };
+    const target = new Date(effNext);
+    const label = `${target.getMonth() + 1}/${target.getDate()}`;
+    if (diff === null) return { value: "미정", sub: "" };
+    if (diff > 0) return { value: `D-${diff}`, sub: label };
     if (diff === 0) return { value: "D-DAY", sub: "오늘" };
-    return { value: `D+${-diff}`, sub: "지남" };
+    return { value: `D+${-diff}`, sub: "기한초과" };
   })();
+
+  // Color tier for D-day card
+  const dueTier: "none" | "safe" | "soon" | "urgent" | "overdue" =
+    diff === null ? "none" : diff < 0 ? "overdue" : diff <= 7 ? "urgent" : diff <= 30 ? "soon" : "safe";
+  const dueCardClass = {
+    none: "",
+    safe: "",
+    soon: "border-yellow-400 bg-yellow-50 dark:bg-yellow-950/20",
+    urgent: "border-red-500 bg-red-50 dark:bg-red-950/20",
+    overdue: "border-red-600 bg-red-100 dark:bg-red-950/30",
+  }[dueTier];
+  const dueValueClass = {
+    none: "",
+    safe: "",
+    soon: "text-yellow-700 dark:text-yellow-400",
+    urgent: "text-red-600 dark:text-red-400",
+    overdue: "text-red-700 dark:text-red-400",
+  }[dueTier];
 
   const currentComplexName = selectedComplexId === "all"
     ? "전체 단지"
     : complexes.find((c) => c.id === selectedComplexId)?.name ?? "";
   const isMember = userRow?.org_role === "member";
+  const canPickDate = isAdmin && selectedComplexId !== "all";
   const RowLink = ({ children, ...props }: any) =>
     isMember ? <div className={props.className}>{children}</div> : <Link {...props}>{children}</Link>;
 
@@ -199,6 +239,33 @@ function Dashboard() {
         )}
       </div>
 
+      {(overdueComplexes.length > 0 || upcomingComplexes.length > 0) && (
+        <div className="space-y-2">
+          {overdueComplexes.length > 0 && (
+            <div className="rounded-md border border-red-500 bg-red-50 dark:bg-red-950/20 p-3 flex items-start gap-2">
+              <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5 shrink-0" />
+              <div className="text-sm">
+                <span className="font-semibold text-red-700 dark:text-red-400">정기평가 기한초과 {overdueComplexes.length}개 단지</span>
+                <span className="ml-2 text-muted-foreground">
+                  {overdueComplexes.map((c) => `${c.name} (${-daysDiff(effectiveNextDate(c))!}일 경과)`).join(" · ")}
+                </span>
+              </div>
+            </div>
+          )}
+          {upcomingComplexes.length > 0 && (
+            <div className="rounded-md border border-yellow-400 bg-yellow-50 dark:bg-yellow-950/20 p-3 flex items-start gap-2">
+              <CalendarClock className="h-4 w-4 text-yellow-700 mt-0.5 shrink-0" />
+              <div className="text-sm">
+                <span className="font-semibold text-yellow-800 dark:text-yellow-300">정기평가 임박 {upcomingComplexes.length}개 단지</span>
+                <span className="ml-2 text-muted-foreground">
+                  {upcomingComplexes.map((c) => `${c.name} 정기평가 기한이 ${daysDiff(effectiveNextDate(c))}일 남았습니다`).join(" · ")}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {isAdmin && complexes.length > 0 && (
         <Card>
           <CardContent className="p-3 md:p-4 flex items-center gap-3">
@@ -224,19 +291,30 @@ function Dashboard() {
         <KpiCard title="높음·매우높음 미해결" value={unresolvedHigh} icon={AlertTriangle} danger />
         <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
           <PopoverTrigger asChild>
-            <button type="button" className="text-left" disabled={selectedComplexId === "all" || isMember}>
-              <Card className={cn("transition-colors", selectedComplexId === "all" ? "opacity-60" : "hover:border-primary/40 cursor-pointer")}>
+            <button type="button" className="text-left" disabled={!canPickDate}>
+              <Card className={cn("transition-colors", !canPickDate ? "opacity-90" : "hover:border-primary/40 cursor-pointer", dueCardClass)}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between text-muted-foreground text-xs">
                     <span>다음 정기평가</span>
                     <Calendar className="h-4 w-4" />
                   </div>
-                  <div className="text-2xl md:text-3xl font-bold mt-2">
+                  <div className={cn("text-2xl md:text-3xl font-bold mt-2", dueValueClass)}>
                     {selectedComplexId === "all" ? "—" : nextDisplay.value}
                     <span className="text-sm font-normal text-muted-foreground ml-1">
                       {selectedComplexId === "all" ? "단지 선택" : nextDisplay.sub}
                     </span>
                   </div>
+                  {selectedComplexId !== "all" && dueTier === "overdue" && (
+                    <Badge variant="destructive" className="mt-2 text-[10px]">기한초과</Badge>
+                  )}
+                  {selectedComplexId !== "all" && currentComplex?.next_assessment_auto && !currentComplex?.next_assessment_date && (
+                    <div className="text-[10px] text-muted-foreground mt-1">자동계산됨</div>
+                  )}
+                  {autoDiff !== null && autoDiff !== 0 && (
+                    <div className="text-[10px] text-muted-foreground mt-1">
+                      자동계산과 {Math.abs(autoDiff)}일 차이 (수동지정 우선)
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </button>
@@ -244,21 +322,21 @@ function Dashboard() {
           <PopoverContent className="w-auto p-0" align="start">
             <CalendarComp
               mode="single"
-              selected={nextDate}
+              selected={effNext ? new Date(effNext) : undefined}
               onSelect={handleDateSelect}
               initialFocus
               className={cn("p-3 pointer-events-auto")}
             />
-            {nextDate && (
+            {currentComplex?.next_assessment_date && (
               <div className="p-2 border-t">
                 <Button variant="ghost" size="sm" className="w-full" onClick={() => handleDateSelect(undefined)}>
-                  날짜 해제
+                  수동 지정 해제 (자동계산 사용)
                 </Button>
               </div>
             )}
           </PopoverContent>
         </Popover>
-        <KpiCard title="참여 확인 대기" value={0} icon={Users} sub="명" />
+        <KpiCard title="정기평가 기한초과" value={overdueComplexes.length} icon={CalendarClock} danger />
       </div>
 
       <Card>

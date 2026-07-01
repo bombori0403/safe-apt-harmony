@@ -153,6 +153,7 @@ function Settings() {
     const { error } = await supabase.from("complexes").update({
       name: c.name, address: c.address, household_count: c.household_count,
       mgmt_type: c.mgmt_type, manager_name: c.manager_name, manager_phone: c.manager_phone,
+      initial_assessment_date: c.initial_assessment_date || null,
     }).eq("id", c.id);
     setSavingId(null);
     if (error) toast.error(error.message); else toast.success("단지 정보가 저장되었습니다");
@@ -290,6 +291,16 @@ function Settings() {
                   <Label>관리자 연락처</Label>
                   <Input value={c.manager_phone ?? ""} placeholder="010-0000-0000"
                     onChange={e=>updateComplex(c.id, {manager_phone:e.target.value})} />
+                </div>
+                <div className="col-span-2">
+                  <Label>최초평가일 <span className="text-xs text-muted-foreground">(정기평가 예정일 자동계산 기준)</span></Label>
+                  <Input type="date" value={c.initial_assessment_date ?? ""}
+                    onChange={e=>updateComplex(c.id, {initial_assessment_date:e.target.value})} />
+                  {c.next_assessment_auto && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      자동계산된 다음 정기평가일: {c.next_assessment_auto}
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="flex gap-2">
