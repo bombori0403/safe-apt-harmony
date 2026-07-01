@@ -168,7 +168,7 @@ function PrintAll() {
         <section className="page">
           <div className="h-full flex flex-col items-center justify-center text-center">
             <div className="text-sm text-gray-600">공동주택 안전보건 통합 자료집</div>
-            <h1 className="text-3xl font-bold mt-3">위험성평가 · 아차사고 · 작업중지 통합 출력</h1>
+            <h1 className="text-3xl font-bold mt-3">위험성평가 결과 보고서</h1>
             <div className="mt-6 text-sm">
               대상 단지: <b>{complexes.length === 1 ? complexes[0].name : `${complexes.length}개 단지`}</b>
             </div>
