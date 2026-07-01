@@ -292,7 +292,16 @@ function Settings() {
                   <Input value={c.manager_phone ?? ""} placeholder="010-0000-0000"
                     onChange={e=>updateComplex(c.id, {manager_phone:e.target.value})} />
                 </div>
-              </div>
+                <div className="col-span-2">
+                  <Label>최초평가일 <span className="text-xs text-muted-foreground">(정기평가 예정일 자동계산 기준)</span></Label>
+                  <Input type="date" value={c.initial_assessment_date ?? ""}
+                    onChange={e=>updateComplex(c.id, {initial_assessment_date:e.target.value})} />
+                  {c.next_assessment_auto && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      자동계산된 다음 정기평가일: {c.next_assessment_auto}
+                    </p>
+                  )}
+                </div>
               <div className="flex gap-2">
                 <Button onClick={()=>saveComplex(c)} disabled={savingId===c.id}>
                   {savingId===c.id?"저장 중...":"저장"}
