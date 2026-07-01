@@ -206,67 +206,164 @@ function PrintAll() {
                 </table>
               </section>
 
-              {/* 위험성평가 결과서 (건별) */}
+              {/* 위험성평가 결과서 (건별) - 평가이력 결과서와 동일한 형식 */}
               {d.assessments.map((a: any) => {
                 const hs = d.hazards.filter((h: any) => h.assessment_id === a.id);
+                const parts = d.participants.filter((p: any) => p.assessment_id === a.id);
+                const sigs = d.signatures.filter((s: any) => s.assessment_id === a.id);
+                const aInputs = d.assessmentInputs.filter((ei: any) => ei.assessment_id === a.id);
                 return (
                   <section key={a.id} className="page">
-                    <div className="text-center border-b-2 border-black pb-3 mb-4">
-                      <h1 className="text-xl font-bold">위험성평가 결과서</h1>
-                      <div className="text-xs mt-1">{c.name} · 산업안전보건법 제36조</div>
-                    </div>
-                    <table className="w-full text-sm border-collapse mb-4">
-                      <tbody>
-                        <Info label="평가명" value={a.work_name} />
-                        <Info label="평가종류" value={a.assessment_type} />
-                        <Info label="평가일" value={a.assessment_date} />
-                        <Info label="평가방법" value={a.method} />
-                        <Info label="작업 카테고리" value={a.work_category} />
-                        <Info label="상태" value={a.status} />
-                      </tbody>
-                    </table>
-                    <h3 className="font-semibold text-sm bg-gray-100 border border-black/70 px-2 py-1">유해·위험요인 및 감소대책</h3>
-                    <table className="w-full text-xs border-collapse border border-black/70 border-t-0">
-                      <thead>
-                        <tr className="bg-gray-50">
-                          <th className="border border-black/70 px-1.5 py-1 w-8">#</th>
-                          <th className="border border-black/70 px-1.5 py-1">유해·위험요인</th>
-                          <th className="border border-black/70 px-1.5 py-1 w-20">위험성</th>
-                          <th className="border border-black/70 px-1.5 py-1">감소대책</th>
-                          <th className="border border-black/70 px-1.5 py-1 w-16">상태</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {hs.length === 0 ? (
-                          <tr><td colSpan={5} className="border border-black/70 px-2 py-3 text-center text-gray-500">유해요인 없음</td></tr>
-                        ) : hs.map((h: any, i: number) => {
-                          const ms = d.measures.filter((m: any) => m.hazard_id === h.id);
-                          if (ms.length === 0) {
+                    <header className="text-center border-b-2 border-black pb-4 mb-6">
+                      <div className="text-sm text-gray-600">공동주택 위험성평가 결과서</div>
+                      <h1 className="text-2xl font-bold mt-1">{a.work_name}</h1>
+                      <div className="text-sm mt-2">산업안전보건법 제36조 · 고용노동부 고시 제2024-76호</div>
+                    </header>
+
+                    <section className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm mb-6">
+                      <ReportRow label="단지명" value={c.name} />
+                      <ReportRow label="주소" value={c.address} />
+                      <ReportRow label="평가일자" value={a.assessment_date} />
+                      <ReportRow label="평가종류" value={a.assessment_type} />
+                      <ReportRow label="평가방법" value={a.method} />
+                      <ReportRow label="평가장소" value={a.location ?? "-"} />
+                      <ReportRow label="허용 위험성수준" value={a.allowable_level} />
+                      <ReportRow label="작업 카테고리" value={a.work_category ?? "-"} />
+                    </section>
+
+                    <section className="mb-6">
+                      <h2 className="font-bold border-b pb-1 mb-3">1. 유해·위험요인 및 위험성 결정</h2>
+                      <table className="w-full text-sm border-collapse">
+                        <thead>
+                          <tr className="border-b-2 border-black">
+                            <th className="py-2 text-left w-10">번호</th>
+                            <th className="py-2 text-left">유해·위험요인</th>
+                            <th className="py-2 text-center w-24">위험성수준</th>
+                            <th className="py-2 text-center w-24">표준환산</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {hs.map((h: any, i: number) => (
+                            <tr key={h.id} className="border-b">
+                              <td className="py-2">{i + 1}</td>
+                              <td className="py-2">{h.description}</td>
+                              <td className="py-2 text-center">{h.level ?? "-"}</td>
+                              <td className="py-2 text-center">
+                                {h.level_standardized && <span className={`px-2 py-0.5 rounded text-xs ${riskLevelClass(h.level_standardized as RiskLevel)}`}>{h.level_standardized}</span>}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </section>
+
+                    <section className="mb-6">
+                      <h2 className="font-bold border-b pb-1 mb-3">2. 위험성 감소대책</h2>
+                      {hs.filter((h: any) => d.measures.some((m: any) => m.hazard_id === h.id)).length === 0 ? (
+                        <p className="text-sm text-gray-500">감소대책이 등록되지 않았습니다.</p>
+                      ) : (
+                        <table className="w-full text-sm border-collapse">
+                          <thead>
+                            <tr className="border-b-2 border-black">
+                              <th className="py-2 text-left">유해·위험요인</th>
+                              <th className="py-2 text-left w-20">유형</th>
+                              <th className="py-2 text-left">대책 내용</th>
+                              <th className="py-2 text-left w-24">책임자</th>
+                              <th className="py-2 text-left w-24">이행예정</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {hs.flatMap((h: any) => d.measures.filter((m: any) => m.hazard_id === h.id).map((m: any) => (
+                              <tr key={m.id} className="border-b">
+                                <td className="py-2">{h.description}</td>
+                                <td className="py-2">{m.type?.replace("_대책", "") ?? "-"}</td>
+                                <td className="py-2">{m.content}</td>
+                                <td className="py-2">{m.responsible_name ?? "-"}</td>
+                                <td className="py-2">{m.due_date ?? "-"}</td>
+                              </tr>
+                            )))}
+                          </tbody>
+                        </table>
+                      )}
+                    </section>
+
+                    <section className="mb-6">
+                      <h2 className="font-bold border-b pb-1 mb-3">3. 직원 참여 의견 (청취조사 · 오픈채팅 이력)</h2>
+                      {aInputs.length === 0 ? (
+                        <p className="text-sm text-gray-500">등록된 직원 의견이 없습니다.</p>
+                      ) : (
+                        <table className="w-full text-sm border-collapse">
+                          <thead>
+                            <tr className="border-b-2 border-black">
+                              <th className="py-2 text-left w-20">구분</th>
+                              <th className="py-2 text-left w-28">일시</th>
+                              <th className="py-2 text-left w-28">응답자/채팅방</th>
+                              <th className="py-2 text-left">내용</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {aInputs.map((it: any) => (
+                              <tr key={it.id} className="border-b align-top">
+                                <td className="py-2">{it.input_type === "hearing" ? "청취조사" : "오픈채팅"}</td>
+                                <td className="py-2 text-xs">{fmtDT(it.occurred_at)}</td>
+                                <td className="py-2">{[it.respondent_name, it.respondent_role].filter(Boolean).join(" / ") || "-"}</td>
+                                <td className="py-2 whitespace-pre-wrap">{it.content}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      )}
+                    </section>
+
+                    <section>
+                      <h2 className="font-bold border-b pb-1 mb-3">4. 참여자 확인</h2>
+                      <table className="w-full text-sm border-collapse">
+                        <thead>
+                          <tr className="border-b-2 border-black">
+                            <th className="py-2 text-left">성명</th>
+                            <th className="py-2 text-left">직책</th>
+                            <th className="py-2 text-left">참여구분</th>
+                            <th className="py-2 text-left w-32">서명</th>
+                            <th className="py-2 text-left w-32">확인일시</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {parts.map((p: any) => {
+                            const sig = sigs.find((s: any) => s.participant_id === p.id);
                             return (
-                              <tr key={h.id}>
-                                <td className="border border-black/70 px-1.5 py-1 text-center">{i + 1}</td>
-                                <td className="border border-black/70 px-1.5 py-1">{h.description}</td>
-                                <td className="border border-black/70 px-1.5 py-1 text-center">{h.level ?? "-"}</td>
-                                <td className="border border-black/70 px-1.5 py-1 text-gray-500">-</td>
-                                <td className="border border-black/70 px-1.5 py-1 text-center">-</td>
+                              <tr key={p.id} className="border-b">
+                                <td className="py-2">{p.name}</td>
+                                <td className="py-2">{p.role ?? "-"}</td>
+                                <td className="py-2">{p.participation_role}</td>
+                                <td className="py-2">
+                                  {sig?.signature_image?.startsWith("data:image") ? (
+                                    <img src={sig.signature_image} alt="서명" className="h-10 w-24 object-contain" />
+                                  ) : sig ? "확인됨" : "—"}
+                                </td>
+                                <td className="py-2 text-xs">{sig ? fmtDT(sig.signed_at) : "-"}</td>
                               </tr>
                             );
-                          }
-                          return ms.map((m: any, mi: number) => (
-                            <tr key={m.id}>
-                              {mi === 0 && <td rowSpan={ms.length} className="border border-black/70 px-1.5 py-1 text-center align-top">{i + 1}</td>}
-                              {mi === 0 && <td rowSpan={ms.length} className="border border-black/70 px-1.5 py-1 align-top">{h.description}</td>}
-                              {mi === 0 && <td rowSpan={ms.length} className="border border-black/70 px-1.5 py-1 text-center align-top">{h.level ?? "-"}</td>}
-                              <td className="border border-black/70 px-1.5 py-1">{m.content}</td>
-                              <td className="border border-black/70 px-1.5 py-1 text-center">{m.status ?? "-"}</td>
-                            </tr>
-                          ));
-                        })}
-                      </tbody>
-                    </table>
+                          })}
+                        </tbody>
+                      </table>
+                    </section>
+
+                    <section className="mt-8">
+                      <h2 className="font-bold border-b pb-1 mb-3">[부록] {WORK_STOP_LAW_TITLE}</h2>
+                      <pre className="whitespace-pre-wrap text-xs leading-relaxed font-sans">{WORK_STOP_LAW_TEXT}</pre>
+                      <h3 className="font-semibold mt-4 mb-2 text-sm">행사 절차</h3>
+                      <ol className="text-xs space-y-1">
+                        {WORK_STOP_PROCEDURE.map((p, i) => (<li key={i}>{p}</li>))}
+                      </ol>
+                    </section>
+
+                    <footer className="mt-8 pt-4 border-t text-[10px] text-gray-500 text-center">
+                      본 결과서는 산업안전보건법 시행규칙 제37조에 따라 5년간 보존됩니다.
+                    </footer>
                   </section>
                 );
               })}
+
 
               {/* 아차사고 (건별) */}
               {d.nearMiss.map((n: any) => (
