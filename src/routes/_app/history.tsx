@@ -119,6 +119,19 @@ function History() {
             {complexes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </div>
+        <div className="min-w-[140px]">
+          <Label className="text-xs">평가종류</Label>
+          <select
+            value={typeFilter}
+            onChange={e => setTypeFilter(e.target.value)}
+            className="h-10 px-3 rounded-md border bg-background text-sm block w-full mt-1"
+          >
+            <option value="">전체</option>
+            <option value="최초평가">최초평가</option>
+            <option value="정기평가">정기평가</option>
+            <option value="수시평가">수시평가</option>
+          </select>
+        </div>
         <div className="relative flex-1 min-w-[200px] max-w-md">
           <Label className="text-xs">검색</Label>
           <div className="relative mt-1">
