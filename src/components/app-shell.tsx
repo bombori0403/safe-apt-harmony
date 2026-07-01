@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, ClipboardList, FilePlus2, Building2, Settings, Shield, Users, AlertTriangle, ShieldAlert, MessageCircle } from "lucide-react";
+import { LayoutDashboard, ClipboardList, FilePlus2, Building2, Settings, Shield, Users, AlertTriangle, ShieldAlert, MessageCircle, BookOpen } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const NAV = [
   { to: "/dashboard", label: "대시보드", icon: LayoutDashboard, adminOnly: false },
+  { to: "/regulation", label: "위험성평가 실시규정", icon: BookOpen, adminOnly: false },
   { to: "/assessment/new", label: "새 평가", icon: FilePlus2, adminOnly: false, managerOrAdmin: true },
   { to: "/history", label: "평가 이력", icon: ClipboardList, adminOnly: false },
   { to: "/near-miss", label: "아차사고", icon: AlertTriangle, adminOnly: false, managerOrAdmin: true },
@@ -16,6 +17,7 @@ const NAV = [
   { to: "/team", label: "직원 관리", icon: Users, adminOnly: false, managerOrAdmin: true },
   { to: "/settings", label: "설정", icon: Settings, adminOnly: false },
 ] as const;
+
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const path = useRouterState({ select: (r) => r.location.pathname });
