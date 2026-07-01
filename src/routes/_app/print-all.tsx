@@ -451,25 +451,14 @@ function PrintAll() {
                 </section>
               )}
 
-              {/* 직원참여 (건별) */}
-              {d.inputs.map((it: any) => {
-                const photos: string[] = Array.isArray((it.meta as any)?.photos) ? (it.meta as any).photos : [];
-                return (
-                  <section key={it.id} className="page">
-                    <div className="text-center border-b-2 border-black pb-3 mb-4">
-                      <h1 className="text-xl font-bold">{it.input_type === "hearing" ? "청취조사 결과서" : "오픈채팅 이력 요약"}</h1>
-                      <div className="text-xs mt-1">{c.name}</div>
-                    </div>
-                    <table className="w-full text-sm border-collapse mb-4">
-                      <tbody>
-                        <Info label="일시" value={fmtDT(it.occurred_at)} />
-                        <Info label="응답자/채팅방" value={[it.respondent_name, it.respondent_role].filter(Boolean).join(" / ")} />
-                      </tbody>
-                    </table>
-                    <SectionBlock title="내용" body={it.content} photos={photos} photoLabel="첨부 사진" />
-                  </section>
-                );
-              })}
+              {/* 직원참여 (건별) - 청취조사/오픈채팅 정식 보고서 형식 */}
+              {d.inputs.map((it: any) => (
+                <section key={it.id} className="page">
+                  {it.input_type === "hearing"
+                    ? <HearingReportSheet item={it} complexName={c.name} />
+                    : <OpenChatReportSheet item={it} complexName={c.name} />}
+                </section>
+              ))}
             </div>
           );
         })}
@@ -533,5 +522,193 @@ function SectionBlock({ title, body, photos, photoLabel }: { title: string; body
         </div>
       )}
     </section>
+  );
+}
+
+type Approval = {
+  drafter_name: string; reviewer_name: string; approver_name: string;
+  drafter_signed_at: string; reviewer_signed_at: string; approver_signed_at: string;
+};
+const APPROVAL_ROLES: { key: keyof Approval; nameKey: keyof Approval; label: string }[] = [
+  { key: "drafter_signed_at", nameKey: "drafter_name", label: "담당" },
+  { key: "reviewer_signed_at", nameKey: "reviewer_name", label: "검토" },
+  { key: "approver_signed_at", nameKey: "approver_name", label: "승인" },
+];
+
+function ReportText({ value, height }: { value?: string; height: string }) {
+  return (
+    <div style={{ height, overflow: "hidden", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+      {value || ""}
+    </div>
+  );
+}
+
+const SHEET_STYLES = `
+  .print-sheet { font-family: 'Malgun Gothic', system-ui, sans-serif; color: #000; width: 100%; }
+  .print-sheet .hr-title { text-align: center; font-size: 16pt; font-weight: 800; margin: 0; }
+  .print-sheet .hr-subtitle { text-align: center; font-size: 8pt; margin: 1mm 0 0; color: #333; }
+  .print-sheet .hr-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .print-sheet .hr-table th, .print-sheet .hr-table td { border: 1px solid #111; padding: 1.2mm 2mm; vertical-align: middle; box-sizing: border-box; font-size: 9pt; line-height: 1.2; }
+  .print-sheet .hr-label { background: #f1f1f1; text-align: center; font-weight: 700; }
+  .print-sheet .hr-content { white-space: pre-wrap; word-break: break-word; overflow: hidden; vertical-align: top !important; }
+  .print-sheet .hr-small { font-size: 7.5pt; color: #444; }
+  .print-sheet .hr-photo-row { display: flex; gap: 2mm; width: 100%; height: 100%; }
+  .print-sheet .hr-photo-box { flex: 1 1 0; min-width: 0; height: 100%; border: 1px solid #555; background: #fafafa; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .print-sheet .hr-photo-box img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .print-sheet .hr-photo-empty { color: #aaa; font-size: 8pt; }
+`;
+
+function ApprovalHeader({ title, subtitle, a }: { title: string; subtitle: string; a?: Approval }) {
+  return (
+    <table className="hr-table" style={{ height: "26mm", marginBottom: "2mm" }}>
+      <tbody>
+        <tr>
+          <td style={{ border: "none", padding: 0 }}>
+            <h1 className="hr-title">{title}</h1>
+            <p className="hr-subtitle">{subtitle}</p>
+          </td>
+          <td style={{ border: "none", padding: 0, width: "66mm", verticalAlign: "top" }}>
+            <table className="hr-table" style={{ height: "24mm" }}>
+              <tbody>
+                <tr style={{ height: "6mm" }}>
+                  <th className="hr-label" rowSpan={2} style={{ width: "9mm", padding: "1mm", writingMode: "vertical-rl" }}>결재</th>
+                  {APPROVAL_ROLES.map(r => <th key={r.label} className="hr-label">{r.label}</th>)}
+                </tr>
+                <tr>
+                  {APPROVAL_ROLES.map(({ key, nameKey, label }) => (
+                    <td key={label} style={{ textAlign: "center", height: "18mm", padding: "1mm" }}>
+                      <div style={{ minHeight: "8mm", fontWeight: 700 }}>{(a?.[nameKey] as string) || ""}</div>
+                      <div className="hr-small">{a?.[key] ? new Date(a[key] as string).toLocaleDateString("ko-KR") : ""}</div>
+                    </td>
+                  ))}
+                </tr>
+              </tbody>
+            </table>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  );
+}
+
+function PhotoStrip({ photos, label }: { photos: string[]; label: string }) {
+  return (
+    <table className="hr-table" style={{ height: "38mm", marginTop: "2mm" }}>
+      <tbody>
+        <tr>
+          <th className="hr-label" style={{ width: "24mm" }}>{label}</th>
+          <td style={{ padding: "1.5mm", height: "38mm" }}>
+            <div className="hr-photo-row">
+              {Array.from({ length: 4 }).map((_, i) => {
+                const url = photos[i];
+                return (
+                  <div key={i} className="hr-photo-box">
+                    {url ? <img src={url} alt={`${label} ${i + 1}`} crossOrigin="anonymous" /> : <span className="hr-photo-empty">사진 {i + 1}</span>}
+                  </div>
+                );
+              })}
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  );
+}
+
+function HearingReportSheet({ item, complexName }: { item: any; complexName: string }) {
+  const m = item.meta ?? {};
+  const a: Approval | undefined = m.approval;
+  const occurred = new Date(item.occurred_at);
+  const dateStr = occurred.toLocaleDateString("ko-KR");
+  const timeStr = occurred.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+  const photos: string[] = item.attachments ?? [];
+  return (
+    <div className="print-sheet">
+      <style>{SHEET_STYLES}</style>
+      <ApprovalHeader title="청취조사에 의한 유해·위험요인 조사표" subtitle="산업안전보건법 제36조 제2항 · 근로자 의견 청취 기록" a={a} />
+      <table className="hr-table" style={{ height: "26mm" }}>
+        <tbody>
+          <tr style={{ height: "8mm" }}>
+            <th className="hr-label" style={{ width: "24mm" }}>단지</th>
+            <td>{complexName || "-"}</td>
+            <th className="hr-label" style={{ width: "24mm" }}>수행일시</th>
+            <td>{dateStr} {timeStr}</td>
+          </tr>
+          <tr style={{ height: "8mm" }}>
+            <th className="hr-label">수행자</th>
+            <td>{m.conductor_name || "-"}</td>
+            <th className="hr-label">근로자</th>
+            <td>{m.worker_name || "-"}</td>
+          </tr>
+          <tr style={{ height: "10mm" }}>
+            <th className="hr-label">실시방법</th>
+            <td colSpan={3}>위험성평가 수행자가 현장 근로자와 면담을 통해 직접 경험한 유해·위험요인을 조사</td>
+          </tr>
+        </tbody>
+      </table>
+      <table className="hr-table" style={{ height: "168mm", marginTop: "2mm" }}>
+        <tbody>
+          {[1, 2, 3].map(n => (
+            <tr key={n} style={{ height: "28mm" }}>
+              <th className="hr-label" style={{ width: "24mm" }}>경험담 {n}</th>
+              <td className="hr-content"><ReportText value={m[`experience_${n}`]} height="24mm" /></td>
+            </tr>
+          ))}
+          <tr style={{ height: "38mm" }}>
+            <th className="hr-label">근로자 의견<br/><span className="hr-small">(원인·반성)</span></th>
+            <td className="hr-content"><ReportText value={m.worker_opinion} height="34mm" /></td>
+          </tr>
+          <tr style={{ height: "46mm" }}>
+            <th className="hr-label">수행자 의견<br/><span className="hr-small">(조언)</span></th>
+            <td className="hr-content"><ReportText value={m.conductor_opinion} height="42mm" /></td>
+          </tr>
+        </tbody>
+      </table>
+      <PhotoStrip photos={photos} label="첨부사진" />
+    </div>
+  );
+}
+
+function OpenChatReportSheet({ item, complexName }: { item: any; complexName: string }) {
+  const m = item.meta ?? {};
+  const a: Approval | undefined = m.approval;
+  const occurred = new Date(item.occurred_at);
+  const dateStr = occurred.toLocaleDateString("ko-KR");
+  const timeStr = occurred.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+  const photos: string[] = item.attachments ?? [];
+  return (
+    <div className="print-sheet">
+      <style>{SHEET_STYLES}</style>
+      <ApprovalHeader title="오픈채팅 이력 기록표" subtitle="단지 오픈채팅 안전 관련 대화 이력 · 근로자 의견 수렴" a={a} />
+      <table className="hr-table" style={{ height: "26mm" }}>
+        <tbody>
+          <tr style={{ height: "8mm" }}>
+            <th className="hr-label" style={{ width: "24mm" }}>단지</th>
+            <td>{complexName || "-"}</td>
+            <th className="hr-label" style={{ width: "24mm" }}>일시</th>
+            <td>{dateStr} {timeStr}</td>
+          </tr>
+          <tr style={{ height: "8mm" }}>
+            <th className="hr-label">채팅방명</th>
+            <td>{m.room_name || "-"}</td>
+            <th className="hr-label">작성자</th>
+            <td>{m.author_name || "-"}</td>
+          </tr>
+          <tr style={{ height: "10mm" }}>
+            <th className="hr-label">수집방법</th>
+            <td colSpan={3}>단지 오픈채팅방에 공유된 안전 관련 대화·의견을 수집하여 기록</td>
+          </tr>
+        </tbody>
+      </table>
+      <table className="hr-table" style={{ height: "168mm", marginTop: "2mm" }}>
+        <tbody>
+          <tr style={{ height: "168mm" }}>
+            <th className="hr-label" style={{ width: "24mm" }}>대화 내용<br/><span className="hr-small">(요약)</span></th>
+            <td className="hr-content"><ReportText value={m.summary ?? item.content} height="164mm" /></td>
+          </tr>
+        </tbody>
+      </table>
+      <PhotoStrip photos={photos} label="첨부 캡처" />
+    </div>
   );
 }
