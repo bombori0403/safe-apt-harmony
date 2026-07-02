@@ -376,9 +376,6 @@ function OrgChart() {
     </div>
   );
 }
-    </div>
-  );
-}
 
 function ArticleSec({ no, k }: { no: string; k: string }) {
   return (
