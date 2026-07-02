@@ -306,6 +306,12 @@ function TableBlock({ k }: { k: string }) {
         className="font-mono text-xs leading-6"
       />
     );
+  }
+  return (
+    <pre className="text-xs leading-6 whitespace-pre-wrap border rounded-md p-3 bg-muted/30 font-sans">
+      {current}
+    </pre>
+  );
 }
 
 // 조직도 박스: 상단 역할 라벨(파란색), 하단 이름
