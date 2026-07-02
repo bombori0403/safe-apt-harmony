@@ -447,10 +447,10 @@ function RegulationPage() {
             <ArticleSec no="1" k="article_1" />
             <ArticleSec no="2" k="article_2" />
 
-            <section className="space-y-2">
+            <section className="space-y-3">
               <h3 className="font-bold text-base">제3조(<F k="article_3_title" singleLine />)</h3>
               <div className="text-sm leading-7"><F k="article_3" /></div>
-              <TableBlock k="article_3_table" />
+              <OrgChart />
             </section>
 
             <section className="space-y-2">
