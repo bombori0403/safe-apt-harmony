@@ -306,7 +306,55 @@ function TableBlock({ k }: { k: string }) {
         className="font-mono text-xs leading-6"
       />
     );
-  }
+}
+
+// 조직도 박스: 상단 역할 라벨(파란색), 하단 이름
+function OrgBox({ roleKey, nameKey }: { roleKey: string; nameKey: string }) {
+  return (
+    <div className="border border-slate-400 rounded-sm overflow-hidden bg-white text-center text-xs min-w-[110px]">
+      <div className="bg-sky-100 border-b border-slate-400 px-2 py-1 font-semibold">
+        <F k={roleKey} singleLine className="text-center" />
+      </div>
+      <div className="px-2 py-1">
+        <F k={nameKey} singleLine className="text-center" />
+      </div>
+    </div>
+  );
+}
+
+function OrgChart() {
+  return (
+    <div className="border rounded-md p-4 md:p-6 bg-muted/20 print:bg-white">
+      <div className="flex flex-col items-center gap-0">
+        {/* 총괄 책임자 */}
+        <OrgBox roleKey="org_lead_role" nameKey="org_lead_name" />
+        <div className="w-px h-4 bg-slate-400" />
+
+        {/* 안전보건관리 책임자 + 위험성평가 담당자 */}
+        <div className="flex items-start gap-8 relative">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[calc(100%-120px)] h-px bg-slate-400" style={{ display: "none" }} />
+          <OrgBox roleKey="org_safety_role" nameKey="org_safety_name" />
+          <OrgBox roleKey="org_assessor_role" nameKey="org_assessor_name" />
+        </div>
+
+        <div className="w-px h-4 bg-slate-400" />
+
+        {/* 관리자 4명 + 근로자 4명 */}
+        <div className="w-full">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-3 gap-y-2 justify-items-center">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="flex flex-col items-center gap-0">
+                <OrgBox roleKey={`org_mgr${i}_role`} nameKey={`org_mgr${i}_name`} />
+                <div className="w-px h-3 bg-slate-400" />
+                <OrgBox roleKey={`org_worker${i}_role`} nameKey={`org_worker${i}_name`} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
   return (
     <pre className="text-xs leading-6 whitespace-pre-wrap border rounded-md p-3 bg-muted/30 font-sans">
       {current}
