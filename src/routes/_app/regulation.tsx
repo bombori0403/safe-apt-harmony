@@ -34,11 +34,22 @@ const DEFAULTS: Record<string, string> = {
   article_2: `이 실시규정은 공단 임대주택에서 수행하는 모든 작업, 설비 및 공정, 업무에 대한 활동, 또한 외부환경에서 발생할 수 있는 유해·위험요인 위험성평가에 대한 범위, 절차, 책임과 권한에 대하여 적용한다.`,
 
   article_3_title: "조직의 구성",
-  article_3: `위험성평가 실시 담당 조직의 구성은 아래표와 같이 하되, 공단 임대주택의 특성을 고려하여 구성하며, 담당자는 위·수탁용역업체 내부지침에 따른다.`,
-  article_3_table: `[총괄 책임자] 관리용역 위탁사 대표
-[안전보건관리 책임자] 관리사무소장  /  [위험성평가 담당자] 안전관리자
-관리팀장(관리자) | 시설팀장(관리자) | 미화반장(관리자) | 경비반장(관리자)
-관리직원 | 기술요원 | 미화원 | 경비원`,
+  article_3: `위험성평가 실시 담당 조직의 구성은 아래 조직도와 같이 하되, 공단 임대주택의 특성을 고려하여 구성하며, 담당자는 위·수탁용역업체 내부지침에 따른다.`,
+  // 조직도 (역할 라벨 / 값)
+  org_lead_role: "총괄 책임자",
+  org_lead_name: "관리용역 위탁사 대표",
+  org_safety_role: "안전보건관리 책임자",
+  org_safety_name: "관리사무소장",
+  org_assessor_role: "위험성평가 담당자",
+  org_assessor_name: "안전관리자",
+  org_mgr1_role: "관리자", org_mgr1_name: "관리팀장",
+  org_mgr2_role: "관리자", org_mgr2_name: "시설팀장",
+  org_mgr3_role: "관리자", org_mgr3_name: "미화반장",
+  org_mgr4_role: "관리자", org_mgr4_name: "경비반장",
+  org_worker1_role: "근로자", org_worker1_name: "관리직원",
+  org_worker2_role: "근로자", org_worker2_name: "기술요원",
+  org_worker3_role: "근로자", org_worker3_name: "미화원",
+  org_worker4_role: "근로자", org_worker4_name: "경비원",
 
   article_4_title: "역할과 책임",
   article_4: `위험성평가 실시 담당 조직 구성원별 역할과 책임은 다음과 같이 한다.`,
