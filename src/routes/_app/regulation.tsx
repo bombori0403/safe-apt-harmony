@@ -330,28 +330,43 @@ function OrgBox({ roleKey, nameKey }: { roleKey: string; nameKey: string }) {
 
 function OrgChart() {
   return (
-    <div className="border rounded-md p-4 md:p-6 bg-muted/20 print:bg-white">
-      <div className="flex flex-col items-center gap-0">
+    <div className="border rounded-md p-4 md:p-6 bg-muted/20 print:bg-white overflow-x-auto">
+      <div className="flex flex-col items-center min-w-[560px]">
         {/* 총괄 책임자 */}
         <OrgBox roleKey="org_lead_role" nameKey="org_lead_name" />
-        <div className="w-px h-4 bg-slate-400" />
+        <div className="w-px h-4 bg-slate-500" />
 
         {/* 안전보건관리 책임자 + 위험성평가 담당자 */}
-        <div className="flex items-start gap-8 relative">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[calc(100%-120px)] h-px bg-slate-400" style={{ display: "none" }} />
-          <OrgBox roleKey="org_safety_role" nameKey="org_safety_name" />
-          <OrgBox roleKey="org_assessor_role" nameKey="org_assessor_name" />
+        <div className="relative flex items-start justify-center gap-16">
+          {/* 두 박스를 잇는 가로선 */}
+          <div className="absolute top-[-16px] left-1/4 right-1/4 h-px bg-slate-500" />
+          {/* 각 박스 위로 세로선 */}
+          <div className="flex flex-col items-center">
+            <div className="w-px h-4 bg-slate-500" />
+            <OrgBox roleKey="org_safety_role" nameKey="org_safety_name" />
+          </div>
+          <div className="flex flex-col items-center">
+            <div className="w-px h-4 bg-slate-500" />
+            <OrgBox roleKey="org_assessor_role" nameKey="org_assessor_name" />
+          </div>
         </div>
 
-        <div className="w-px h-4 bg-slate-400" />
+        {/* 안전보건관리 책임자에서 내려오는 세로선 */}
+        <div className="w-px h-4 bg-slate-500" style={{ marginLeft: "-120px" }} />
 
-        {/* 관리자 4명 + 근로자 4명 */}
-        <div className="w-full">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-3 gap-y-2 justify-items-center">
+        {/* 관리자 4명 가로 연결선 */}
+        <div className="w-full max-w-[720px] px-[60px]">
+          <div className="h-px bg-slate-500" />
+        </div>
+
+        {/* 관리자/근로자 4열 */}
+        <div className="w-full max-w-[720px]">
+          <div className="grid grid-cols-4 gap-x-3">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="flex flex-col items-center gap-0">
+              <div key={i} className="flex flex-col items-center">
+                <div className="w-px h-4 bg-slate-500" />
                 <OrgBox roleKey={`org_mgr${i}_role`} nameKey={`org_mgr${i}_name`} />
-                <div className="w-px h-3 bg-slate-400" />
+                <div className="w-px h-4 bg-slate-500" />
                 <OrgBox roleKey={`org_worker${i}_role`} nameKey={`org_worker${i}_name`} />
               </div>
             ))}
