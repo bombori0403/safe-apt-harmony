@@ -34,11 +34,22 @@ const DEFAULTS: Record<string, string> = {
   article_2: `이 실시규정은 공단 임대주택에서 수행하는 모든 작업, 설비 및 공정, 업무에 대한 활동, 또한 외부환경에서 발생할 수 있는 유해·위험요인 위험성평가에 대한 범위, 절차, 책임과 권한에 대하여 적용한다.`,
 
   article_3_title: "조직의 구성",
-  article_3: `위험성평가 실시 담당 조직의 구성은 아래표와 같이 하되, 공단 임대주택의 특성을 고려하여 구성하며, 담당자는 위·수탁용역업체 내부지침에 따른다.`,
-  article_3_table: `[총괄 책임자] 관리용역 위탁사 대표
-[안전보건관리 책임자] 관리사무소장  /  [위험성평가 담당자] 안전관리자
-관리팀장(관리자) | 시설팀장(관리자) | 미화반장(관리자) | 경비반장(관리자)
-관리직원 | 기술요원 | 미화원 | 경비원`,
+  article_3: `위험성평가 실시 담당 조직의 구성은 아래 조직도와 같이 하되, 공단 임대주택의 특성을 고려하여 구성하며, 담당자는 위·수탁용역업체 내부지침에 따른다.`,
+  // 조직도 (역할 라벨 / 값)
+  org_lead_role: "총괄 책임자",
+  org_lead_name: "관리용역 위탁사 대표",
+  org_safety_role: "안전보건관리 책임자",
+  org_safety_name: "관리사무소장",
+  org_assessor_role: "위험성평가 담당자",
+  org_assessor_name: "안전관리자",
+  org_mgr1_role: "관리자", org_mgr1_name: "관리팀장",
+  org_mgr2_role: "관리자", org_mgr2_name: "시설팀장",
+  org_mgr3_role: "관리자", org_mgr3_name: "미화반장",
+  org_mgr4_role: "관리자", org_mgr4_name: "경비반장",
+  org_worker1_role: "근로자", org_worker1_name: "관리직원",
+  org_worker2_role: "근로자", org_worker2_name: "기술요원",
+  org_worker3_role: "근로자", org_worker3_name: "미화원",
+  org_worker4_role: "근로자", org_worker4_name: "경비원",
 
   article_4_title: "역할과 책임",
   article_4: `위험성평가 실시 담당 조직 구성원별 역할과 책임은 다음과 같이 한다.`,
@@ -303,6 +314,54 @@ function TableBlock({ k }: { k: string }) {
   );
 }
 
+// 조직도 박스: 상단 역할 라벨(파란색), 하단 이름
+function OrgBox({ roleKey, nameKey }: { roleKey: string; nameKey: string }) {
+  return (
+    <div className="border border-slate-400 rounded-sm overflow-hidden bg-white text-center text-xs min-w-[110px]">
+      <div className="bg-sky-100 border-b border-slate-400 px-2 py-1 font-semibold">
+        <F k={roleKey} singleLine className="text-center" />
+      </div>
+      <div className="px-2 py-1">
+        <F k={nameKey} singleLine className="text-center" />
+      </div>
+    </div>
+  );
+}
+
+function OrgChart() {
+  return (
+    <div className="border rounded-md p-4 md:p-6 bg-muted/20 print:bg-white">
+      <div className="flex flex-col items-center gap-0">
+        {/* 총괄 책임자 */}
+        <OrgBox roleKey="org_lead_role" nameKey="org_lead_name" />
+        <div className="w-px h-4 bg-slate-400" />
+
+        {/* 안전보건관리 책임자 + 위험성평가 담당자 */}
+        <div className="flex items-start gap-8 relative">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[calc(100%-120px)] h-px bg-slate-400" style={{ display: "none" }} />
+          <OrgBox roleKey="org_safety_role" nameKey="org_safety_name" />
+          <OrgBox roleKey="org_assessor_role" nameKey="org_assessor_name" />
+        </div>
+
+        <div className="w-px h-4 bg-slate-400" />
+
+        {/* 관리자 4명 + 근로자 4명 */}
+        <div className="w-full">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-3 gap-y-2 justify-items-center">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="flex flex-col items-center gap-0">
+                <OrgBox roleKey={`org_mgr${i}_role`} nameKey={`org_mgr${i}_name`} />
+                <div className="w-px h-3 bg-slate-400" />
+                <OrgBox roleKey={`org_worker${i}_role`} nameKey={`org_worker${i}_name`} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ArticleSec({ no, k }: { no: string; k: string }) {
   return (
     <section className="space-y-2">
@@ -436,10 +495,10 @@ function RegulationPage() {
             <ArticleSec no="1" k="article_1" />
             <ArticleSec no="2" k="article_2" />
 
-            <section className="space-y-2">
+            <section className="space-y-3">
               <h3 className="font-bold text-base">제3조(<F k="article_3_title" singleLine />)</h3>
               <div className="text-sm leading-7"><F k="article_3" /></div>
-              <TableBlock k="article_3_table" />
+              <OrgChart />
             </section>
 
             <section className="space-y-2">
