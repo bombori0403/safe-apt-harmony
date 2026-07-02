@@ -355,12 +355,6 @@ function OrgChart() {
     </div>
   );
 }
-  return (
-    <pre className="text-xs leading-6 whitespace-pre-wrap border rounded-md p-3 bg-muted/30 font-sans">
-      {current}
-    </pre>
-  );
-}
 
 function ArticleSec({ no, k }: { no: string; k: string }) {
   return (
