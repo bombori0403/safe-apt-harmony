@@ -333,30 +333,25 @@ function OrgChart() {
   return (
     <div className="border rounded-md p-4 md:p-6 bg-muted/20 print:bg-white overflow-x-auto">
       <div className="mx-auto w-full max-w-[720px] min-w-[560px]">
-        {/* Row: 총괄 책임자 - centered above safety (col 1-2 of 4) */}
-        <div className="grid grid-cols-4">
-          <div className="col-start-1 col-span-2 flex justify-center">
-            <OrgBox roleKey="org_lead_role" nameKey="org_lead_name" />
-          </div>
+        {/* 총괄 책임자 - centered */}
+        <div className="flex justify-center">
+          <OrgBox roleKey="org_lead_role" nameKey="org_lead_name" />
         </div>
-        {/* vertical line below 총괄 */}
-        <div className="grid grid-cols-4">
-          <div className="col-start-1 col-span-2 flex justify-center">{V}</div>
-        </div>
-        {/* Row: safety (cols 1-2) + assessor (cols 3-4) */}
-        <div className="grid grid-cols-4">
-          <div className="col-start-1 col-span-2 flex justify-center">
+        {/* vertical line */}
+        <div className="flex justify-center">{V}</div>
+        {/* 안전보건관리 책임자 (centered) + 위험성평가 담당자 (to the right, connected by horizontal line) */}
+        <div className="flex justify-center">
+          <div className="relative">
             <OrgBox roleKey="org_safety_role" nameKey="org_safety_name" />
-          </div>
-          <div className="col-start-3 col-span-2 flex justify-center">
-            <OrgBox roleKey="org_assessor_role" nameKey="org_assessor_name" />
+            <div className="absolute top-1/2 left-full -translate-y-1/2 flex items-center">
+              <div className="h-px w-10 bg-slate-600" />
+              <OrgBox roleKey="org_assessor_role" nameKey="org_assessor_name" />
+            </div>
           </div>
         </div>
         {/* vertical line below safety */}
-        <div className="grid grid-cols-4">
-          <div className="col-start-1 col-span-2 flex justify-center">{V}</div>
-        </div>
-        {/* horizontal bar from col1 center to col4 center */}
+        <div className="flex justify-center">{V}</div>
+        {/* horizontal bar spanning 4 columns */}
         <div className="grid grid-cols-4">
           {[0, 1, 2, 3].map((i) => (
             <div key={i} className="relative h-0">
