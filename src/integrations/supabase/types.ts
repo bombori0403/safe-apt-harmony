@@ -688,6 +688,7 @@ export type Database = {
       organizations: {
         Row: {
           address: string | null
+          approval_status: Database["public"]["Enums"]["org_approval_status"]
           business_number: string | null
           created_at: string
           created_by: string | null
@@ -702,6 +703,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          approval_status?: Database["public"]["Enums"]["org_approval_status"]
           business_number?: string | null
           created_at?: string
           created_by?: string | null
@@ -716,6 +718,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          approval_status?: Database["public"]["Enums"]["org_approval_status"]
           business_number?: string | null
           created_at?: string
           created_by?: string | null
@@ -876,6 +879,7 @@ export type Database = {
           created_at: string | null
           email: string
           id: string
+          is_platform_admin: boolean
           job_title: string | null
           name: string
           org_role: Database["public"]["Enums"]["org_role"]
@@ -889,6 +893,7 @@ export type Database = {
           created_at?: string | null
           email: string
           id?: string
+          is_platform_admin?: boolean
           job_title?: string | null
           name: string
           org_role?: Database["public"]["Enums"]["org_role"]
@@ -902,6 +907,7 @@ export type Database = {
           created_at?: string | null
           email?: string
           id?: string
+          is_platform_admin?: boolean
           job_title?: string | null
           name?: string
           org_role?: Database["public"]["Enums"]["org_role"]
@@ -1026,6 +1032,7 @@ export type Database = {
       current_user_id: { Args: never; Returns: string }
       current_user_org: { Args: never; Returns: string }
       is_org_admin: { Args: never; Returns: boolean }
+      is_platform_admin: { Args: never; Returns: boolean }
       is_org_manager: { Args: never; Returns: boolean }
       org_can_manage_assessment: { Args: never; Returns: boolean }
       org_can_write: { Args: never; Returns: boolean }
@@ -1061,6 +1068,7 @@ export type Database = {
       measure_status: "대기" | "진행중" | "완료"
       measure_type: "본질적_대책" | "공학적_대책" | "관리적_대책" | "개인보호구"
       mgmt_type: "자가관리" | "위탁관리"
+      org_approval_status: "pending" | "approved" | "rejected"
       org_role: "admin" | "manager" | "member"
       participation_role: "책임자" | "평가자" | "근로자" | "검토자"
       risk_level:
@@ -1234,6 +1242,7 @@ export const Constants = {
       measure_status: ["대기", "진행중", "완료"],
       measure_type: ["본질적_대책", "공학적_대책", "관리적_대책", "개인보호구"],
       mgmt_type: ["자가관리", "위탁관리"],
+      org_approval_status: ["pending", "approved", "rejected"],
       org_role: ["admin", "manager", "member"],
       participation_role: ["책임자", "평가자", "근로자", "검토자"],
       risk_level: [

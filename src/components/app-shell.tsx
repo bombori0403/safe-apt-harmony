@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, ClipboardList, FilePlus2, Building2, Settings, Shield, Users, AlertTriangle, ShieldAlert, MessageCircle, BookOpen } from "lucide-react";
+import { LayoutDashboard, ClipboardList, FilePlus2, Building2, Settings, Shield, Users, AlertTriangle, ShieldAlert, MessageCircle, BookOpen, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ const NAV = [
   { to: "/employee-inputs", label: "직원 참여", icon: MessageCircle, adminOnly: false },
   { to: "/console", label: "본사 콘솔", icon: Building2, adminOnly: true },
   { to: "/team", label: "직원 관리", icon: Users, adminOnly: false, managerOrAdmin: true },
+  { to: "/platform-admin", label: "가입 승인", icon: ShieldCheck, adminOnly: false, platformAdminOnly: true },
   { to: "/settings", label: "설정", icon: Settings, adminOnly: false },
 ] as const;
 
@@ -24,13 +25,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { signOut, user } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [isManager, setIsManager] = useState(false);
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const [orgName, setOrgName] = useState<string>("");
   useEffect(() => {
     if (!user) return;
-    supabase.from("users").select("org_role, organization_id").eq("auth_id", user.id).maybeSingle()
+    supabase.from("users").select("org_role, organization_id, is_platform_admin").eq("auth_id", user.id).maybeSingle()
       .then(async ({ data }) => {
         setIsAdmin(data?.org_role === "admin");
         setIsManager(data?.org_role === "manager");
+        setIsPlatformAdmin(!!data?.is_platform_admin);
         if (data?.organization_id) {
           const { data: org } = await supabase.from("organizations").select("name").eq("id", data.organization_id).maybeSingle();
           if (org?.name) setOrgName(org.name);
@@ -38,6 +41,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       });
   }, [user]);
   const visibleNav = NAV.filter(n => {
+    if ((n as any).platformAdminOnly) return isPlatformAdmin;
     if (n.adminOnly) return isAdmin;
     if ((n as any).managerOrAdmin) return isAdmin || isManager;
     return true;

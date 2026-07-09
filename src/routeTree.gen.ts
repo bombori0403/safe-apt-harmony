@@ -21,6 +21,7 @@ import { Route as AppTeamRouteImport } from './routes/_app/team'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppRegulationRouteImport } from './routes/_app/regulation'
 import { Route as AppPrintAllRouteImport } from './routes/_app/print-all'
+import { Route as AppPlatformAdminRouteImport } from './routes/_app/platform-admin'
 import { Route as AppNearMissRouteImport } from './routes/_app/near-miss'
 import { Route as AppHistoryRouteImport } from './routes/_app/history'
 import { Route as AppEmployeeInputsRouteImport } from './routes/_app/employee-inputs'
@@ -97,6 +98,11 @@ const AppRegulationRoute = AppRegulationRouteImport.update({
 const AppPrintAllRoute = AppPrintAllRouteImport.update({
   id: '/print-all',
   path: '/print-all',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPlatformAdminRoute = AppPlatformAdminRouteImport.update({
+  id: '/platform-admin',
+  path: '/platform-admin',
   getParentRoute: () => AppRoute,
 } as any)
 const AppNearMissRoute = AppNearMissRouteImport.update({
@@ -201,6 +207,7 @@ export interface FileRoutesByFullPath {
   '/employee-inputs': typeof AppEmployeeInputsRoute
   '/history': typeof AppHistoryRoute
   '/near-miss': typeof AppNearMissRouteWithChildren
+  '/platform-admin': typeof AppPlatformAdminRoute
   '/print-all': typeof AppPrintAllRoute
   '/regulation': typeof AppRegulationRoute
   '/settings': typeof AppSettingsRoute
@@ -232,6 +239,7 @@ export interface FileRoutesByTo {
   '/employee-inputs': typeof AppEmployeeInputsRoute
   '/history': typeof AppHistoryRoute
   '/near-miss': typeof AppNearMissRouteWithChildren
+  '/platform-admin': typeof AppPlatformAdminRoute
   '/print-all': typeof AppPrintAllRoute
   '/regulation': typeof AppRegulationRoute
   '/settings': typeof AppSettingsRoute
@@ -265,6 +273,7 @@ export interface FileRoutesById {
   '/_app/employee-inputs': typeof AppEmployeeInputsRoute
   '/_app/history': typeof AppHistoryRoute
   '/_app/near-miss': typeof AppNearMissRouteWithChildren
+  '/_app/platform-admin': typeof AppPlatformAdminRoute
   '/_app/print-all': typeof AppPrintAllRoute
   '/_app/regulation': typeof AppRegulationRoute
   '/_app/settings': typeof AppSettingsRoute
@@ -298,6 +307,7 @@ export interface FileRouteTypes {
     | '/employee-inputs'
     | '/history'
     | '/near-miss'
+    | '/platform-admin'
     | '/print-all'
     | '/regulation'
     | '/settings'
@@ -329,6 +339,7 @@ export interface FileRouteTypes {
     | '/employee-inputs'
     | '/history'
     | '/near-miss'
+    | '/platform-admin'
     | '/print-all'
     | '/regulation'
     | '/settings'
@@ -361,6 +372,7 @@ export interface FileRouteTypes {
     | '/_app/employee-inputs'
     | '/_app/history'
     | '/_app/near-miss'
+    | '/_app/platform-admin'
     | '/_app/print-all'
     | '/_app/regulation'
     | '/_app/settings'
@@ -477,6 +489,13 @@ declare module '@tanstack/react-router' {
       path: '/print-all'
       fullPath: '/print-all'
       preLoaderRoute: typeof AppPrintAllRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/platform-admin': {
+      id: '/_app/platform-admin'
+      path: '/platform-admin'
+      fullPath: '/platform-admin'
+      preLoaderRoute: typeof AppPlatformAdminRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/near-miss': {
@@ -628,6 +647,7 @@ interface AppRouteChildren {
   AppEmployeeInputsRoute: typeof AppEmployeeInputsRoute
   AppHistoryRoute: typeof AppHistoryRoute
   AppNearMissRoute: typeof AppNearMissRouteWithChildren
+  AppPlatformAdminRoute: typeof AppPlatformAdminRoute
   AppPrintAllRoute: typeof AppPrintAllRoute
   AppRegulationRoute: typeof AppRegulationRoute
   AppSettingsRoute: typeof AppSettingsRoute
@@ -653,6 +673,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppEmployeeInputsRoute: AppEmployeeInputsRoute,
   AppHistoryRoute: AppHistoryRoute,
   AppNearMissRoute: AppNearMissRouteWithChildren,
+  AppPlatformAdminRoute: AppPlatformAdminRoute,
   AppPrintAllRoute: AppPrintAllRoute,
   AppRegulationRoute: AppRegulationRoute,
   AppSettingsRoute: AppSettingsRoute,
@@ -685,3 +706,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

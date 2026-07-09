@@ -21,7 +21,7 @@ function Signup() {
     e.preventDefault();
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -30,7 +30,12 @@ function Signup() {
         },
       });
       if (error) throw error;
-      toast.success("회사 등록 완료! 14일 무료 체험이 시작되었습니다.");
+      if (!data.session) {
+        toast.success("가입 신청 완료! 이메일의 인증 링크를 확인해주세요.");
+        window.location.href = "/";
+        return;
+      }
+      toast.success("회사 등록 완료! 관리자 승인 후 이용하실 수 있습니다.");
       window.location.href = "/dashboard";
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "오류가 발생했습니다");
