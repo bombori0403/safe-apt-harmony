@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { platformDeleteOrganization } from "@/lib/platform-admin.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -51,14 +52,14 @@ function PlatformAdmin() {
   }
 
   async function remove(id: string, name: string) {
-    if (!window.confirm(`"${name}" 회사를 목록에서 완전히 삭제할까요? 이 회사의 단지/평가 데이터도 함께 삭제되며 되돌릴 수 없습니다.`)) return;
-    const { error } = await supabase.from("organizations").delete().eq("id", id);
-    if (error) {
-      toast.error(error.message);
-      return;
+    if (!window.confirm(`"${name}" 회사를 완전히 삭제할까요? 이 회사의 단지/평가 데이터와 소속 계정(로그인 포함)도 모두 삭제되며 되돌릴 수 없습니다.`)) return;
+    try {
+      await platformDeleteOrganization({ data: { orgId: id } });
+      toast.success("삭제되었습니다 (소속 계정 포함)");
+      load();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "삭제 중 오류가 발생했습니다");
     }
-    toast.success("삭제되었습니다");
-    load();
   }
 
   const pending = orgs.filter((o) => o.approval_status === "pending");
