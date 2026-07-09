@@ -31,6 +31,12 @@ function Signup() {
         },
       });
       if (error) throw error;
+      const isNewSignup = (data.user?.identities?.length ?? 0) > 0;
+      if (!isNewSignup) {
+        toast.error("이미 가입 신청된 이메일입니다. 인증 메일을 다시 확인해주세요.");
+        window.location.href = "/";
+        return;
+      }
       notifyPendingSignup({ data: { orgName, repName: name, email } }).catch(() => {});
       if (!data.session) {
         toast.success("가입 신청 완료! 이메일의 인증 링크를 확인해주세요.");
