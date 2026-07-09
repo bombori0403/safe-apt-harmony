@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/platform-admin")({
@@ -49,6 +50,17 @@ function PlatformAdmin() {
     load();
   }
 
+  async function remove(id: string, name: string) {
+    if (!window.confirm(`"${name}" 회사를 목록에서 완전히 삭제할까요? 이 회사의 단지/평가 데이터도 함께 삭제되며 되돌릴 수 없습니다.`)) return;
+    const { error } = await supabase.from("organizations").delete().eq("id", id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("삭제되었습니다");
+    load();
+  }
+
   const pending = orgs.filter((o) => o.approval_status === "pending");
   const decided = orgs.filter((o) => o.approval_status !== "pending");
 
@@ -79,6 +91,9 @@ function PlatformAdmin() {
                     <div className="flex gap-2">
                       <Button size="sm" onClick={() => decide(o.id, "approved")}>승인</Button>
                       <Button size="sm" variant="outline" onClick={() => decide(o.id, "rejected")}>거절</Button>
+                      <Button size="sm" variant="ghost" onClick={() => remove(o.id, o.name)} aria-label="삭제">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -105,6 +120,9 @@ function PlatformAdmin() {
                       <Button size="sm" variant="outline" onClick={() => decide(o.id, "rejected")}>거절</Button>
                     )}
                     <Button size="sm" variant="ghost" onClick={() => decide(o.id, "pending")}>취소(대기로)</Button>
+                    <Button size="sm" variant="ghost" onClick={() => remove(o.id, o.name)} aria-label="삭제">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
               ))}
