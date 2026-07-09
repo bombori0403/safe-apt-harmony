@@ -37,13 +37,15 @@ function PlatformAdmin() {
     load();
   }, []);
 
-  async function decide(id: string, approval_status: "approved" | "rejected") {
+  async function decide(id: string, approval_status: "pending" | "approved" | "rejected") {
     const { error } = await supabase.from("organizations").update({ approval_status }).eq("id", id);
     if (error) {
       toast.error(error.message);
       return;
     }
-    toast.success(approval_status === "approved" ? "승인 완료" : "거절 처리 완료");
+    toast.success(
+      approval_status === "approved" ? "승인 완료" : approval_status === "rejected" ? "거절 처리 완료" : "대기 상태로 되돌렸습니다"
+    );
     load();
   }
 
@@ -88,11 +90,22 @@ function PlatformAdmin() {
             <h2 className="text-sm font-semibold text-muted-foreground mb-2">처리 완료</h2>
             <div className="space-y-2">
               {decided.map((o) => (
-                <div key={o.id} className="flex items-center justify-between text-sm py-2 border-b">
-                  <span>{o.name}</span>
-                  <Badge variant={o.approval_status === "approved" ? "default" : "destructive"}>
-                    {o.approval_status === "approved" ? "승인됨" : "거절됨"}
-                  </Badge>
+                <div key={o.id} className="flex items-center justify-between text-sm py-2 border-b gap-3">
+                  <div>
+                    <div>{o.name}</div>
+                    <Badge variant={o.approval_status === "approved" ? "default" : "destructive"} className="mt-1">
+                      {o.approval_status === "approved" ? "승인됨" : "거절됨"}
+                    </Badge>
+                  </div>
+                  <div className="flex gap-2 shrink-0">
+                    {o.approval_status !== "approved" && (
+                      <Button size="sm" variant="outline" onClick={() => decide(o.id, "approved")}>승인</Button>
+                    )}
+                    {o.approval_status !== "rejected" && (
+                      <Button size="sm" variant="outline" onClick={() => decide(o.id, "rejected")}>거절</Button>
+                    )}
+                    <Button size="sm" variant="ghost" onClick={() => decide(o.id, "pending")}>취소(대기로)</Button>
+                  </div>
                 </div>
               ))}
             </div>
