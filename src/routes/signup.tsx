@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { notifyPendingSignup } from "@/lib/notify.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,6 +31,7 @@ function Signup() {
         },
       });
       if (error) throw error;
+      notifyPendingSignup({ data: { orgName, repName: name, email } }).catch(() => {});
       if (!data.session) {
         toast.success("가입 신청 완료! 이메일의 인증 링크를 확인해주세요.");
         window.location.href = "/";
