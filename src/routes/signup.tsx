@@ -5,9 +5,9 @@ import { notifyPendingSignup } from "@/lib/notify.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Building2 } from "lucide-react";
+import { Building2, ShieldCheck, Clock, Users } from "lucide-react";
 import { toast } from "sonner";
+import { AuthIllustration } from "@/components/auth-illustration";
 
 export const Route = createFileRoute("/signup")({ component: Signup });
 
@@ -53,46 +53,88 @@ function Signup() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-8 bg-gradient-to-br from-background to-accent/30">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary text-primary-foreground mb-3 shadow-lg shadow-primary/20">
-            <Building2 className="h-7 w-7" />
+    <div className="min-h-screen flex bg-background">
+      {/* Left brand panel */}
+      <div className="hidden lg:flex lg:w-[46%] xl:w-[42%] relative flex-col justify-between overflow-hidden bg-gradient-to-br from-primary via-primary to-[oklch(0.3_0.14_262)] text-primary-foreground px-12 py-12">
+        <div className="flex items-center gap-2.5">
+          <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-white/15">
+            <Building2 className="h-5 w-5" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">회사 대표 가입</h1>
-          <p className="text-sm text-muted-foreground mt-1">새 조직을 만들고 관리자 권한으로 시작합니다</p>
+          <span className="font-bold tracking-tight">위험성평가-리스크데스크</span>
         </div>
 
-        <Card>
-          <CardHeader><CardTitle className="text-xl">회사 등록</CardTitle></CardHeader>
-          <CardContent>
-            <form onSubmit={submit} className="space-y-3">
-              <div>
-                <Label>회사(조직)명</Label>
-                <Input value={orgName} onChange={(e) => setOrgName(e.target.value)} required maxLength={200} placeholder="(주)○○관리" />
-              </div>
-              <div>
-                <Label>대표자 이름</Label>
-                <Input value={name} onChange={(e) => setName(e.target.value)} required maxLength={100} />
-              </div>
-              <div>
-                <Label>이메일</Label>
-                <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-              </div>
-              <div>
-                <Label>비밀번호</Label>
-                <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
-              </div>
-              <Button type="submit" disabled={loading} className="w-full h-11">
-                {loading ? "등록 중..." : "회사 등록 후 가입"}
-              </Button>
-            </form>
-            <Link to="/" className="block text-center mt-4 text-sm text-primary hover:underline">로그인으로 돌아가기</Link>
-          </CardContent>
-        </Card>
-        <p className="text-[11px] text-center text-muted-foreground mt-6">
-          14일 무료 체험 · 좌석 5명 기본 제공
-        </p>
+        <div className="absolute inset-0 flex items-center justify-center opacity-90 pointer-events-none">
+          <div className="w-[85%] max-w-md">
+            <AuthIllustration />
+          </div>
+        </div>
+
+        <div className="relative space-y-6">
+          <h2 className="text-3xl font-bold leading-snug tracking-tight">
+            지금 등록하고
+            <br />
+            14일 무료로 체험하세요
+          </h2>
+          <p className="text-sm text-primary-foreground/80 max-w-sm leading-relaxed">
+            회사를 등록하면 관리자 권한으로 바로 시작할 수 있어요. 별도 설치나 결제 정보 없이 체험 가능합니다.
+          </p>
+          <ul className="space-y-3 text-sm">
+            <li className="flex items-center gap-2.5 text-primary-foreground/90">
+              <Clock className="h-4 w-4 shrink-0" /> 14일 무료 체험 · 신용카드 불필요
+            </li>
+            <li className="flex items-center gap-2.5 text-primary-foreground/90">
+              <Users className="h-4 w-4 shrink-0" /> 좌석 5명 기본 제공
+            </li>
+            <li className="flex items-center gap-2.5 text-primary-foreground/90">
+              <ShieldCheck className="h-4 w-4 shrink-0" /> 관리자 승인 기반 안전한 가입
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      {/* Right form panel */}
+      <div className="flex-1 flex items-center justify-center px-4 py-10 sm:px-8">
+        <div className="w-full max-w-sm">
+          <div className="mb-8 lg:hidden text-center">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary text-primary-foreground mb-3 shadow-lg shadow-primary/20">
+              <Building2 className="h-7 w-7" />
+            </div>
+            <h1 className="text-2xl font-bold tracking-tight">회사 대표 가입</h1>
+            <p className="text-sm text-muted-foreground mt-1">새 조직을 만들고 관리자 권한으로 시작합니다</p>
+          </div>
+
+          <div className="mb-7 hidden lg:block">
+            <h1 className="text-2xl font-bold tracking-tight">회사 등록</h1>
+            <p className="text-sm text-muted-foreground mt-1.5">새 조직을 만들고 관리자 권한으로 시작합니다</p>
+          </div>
+
+          <form onSubmit={submit} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label>회사(조직)명</Label>
+              <Input value={orgName} onChange={(e) => setOrgName(e.target.value)} required maxLength={200} placeholder="(주)○○관리" className="h-11" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>대표자 이름</Label>
+              <Input value={name} onChange={(e) => setName(e.target.value)} required maxLength={100} className="h-11" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>이메일</Label>
+              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="h-11" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>비밀번호</Label>
+              <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} className="h-11" />
+            </div>
+            <Button type="submit" disabled={loading} className="w-full h-11 text-base mt-1">
+              {loading ? "등록 중..." : "회사 등록 후 가입"}
+            </Button>
+          </form>
+          <Link to="/" className="block text-center mt-4 text-sm text-primary hover:underline">로그인으로 돌아가기</Link>
+
+          <p className="text-[11px] text-center text-muted-foreground mt-6 lg:hidden">
+            14일 무료 체험 · 좌석 5명 기본 제공
+          </p>
+        </div>
       </div>
     </div>
   );
