@@ -1032,7 +1032,6 @@ export type Database = {
       current_user_id: { Args: never; Returns: string }
       current_user_org: { Args: never; Returns: string }
       is_org_admin: { Args: never; Returns: boolean }
-      is_platform_admin: { Args: never; Returns: boolean }
       is_org_manager: { Args: never; Returns: boolean }
       is_platform_admin: { Args: never; Returns: boolean }
       org_can_manage_assessment: { Args: never; Returns: boolean }
