@@ -1034,6 +1034,7 @@ export type Database = {
       is_org_admin: { Args: never; Returns: boolean }
       is_platform_admin: { Args: never; Returns: boolean }
       is_org_manager: { Args: never; Returns: boolean }
+      is_platform_admin: { Args: never; Returns: boolean }
       org_can_manage_assessment: { Args: never; Returns: boolean }
       org_can_write: { Args: never; Returns: boolean }
       recompute_next_assessment: {
