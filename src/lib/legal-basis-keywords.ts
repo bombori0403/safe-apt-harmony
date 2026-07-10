@@ -19,6 +19,7 @@ const RULES: Rule[] = [
   { keywords: ["위생 불량", "청결"], article_no: "제4조", legal_basis: "산업안전보건기준에 관한 규칙 제4조(작업장의 청결)" },
   { keywords: ["조명 불량", "통로", "대피통로"], article_no: "제21조", legal_basis: "산업안전보건기준에 관한 규칙 제21조(통로의 설치)" },
   { keywords: ["계단"], article_no: "제22조", legal_basis: "산업안전보건기준에 관한 규칙 제22조(계단의 강도)" },
+  { keywords: ["밀폐공간", "분진", "호흡기", "질식", "흡입"], article_no: "제617조", legal_basis: "산업안전보건기준에 관한 규칙 제617조(호흡용 보호구의 지급 등)" },
   { keywords: ["매연", "일산화탄소", "산소결핍", "유해가스"], article_no: "제79조", legal_basis: "산업안전보건기준에 관한 규칙 제79조(신체 등의 안전 보호)" },
   { keywords: ["약품", "농약", "화학물질", "누출", "유출"], article_no: "제395조", legal_basis: "산업안전보건기준에 관한 규칙 제395조(누출ㆍ유출 등에 대비한 조치)" },
   { keywords: ["근골격계"], article_no: "제657조", legal_basis: "산업안전보건기준에 관한 규칙 제657조(유해요인 조사)" },
