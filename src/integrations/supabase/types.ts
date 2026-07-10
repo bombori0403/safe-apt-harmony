@@ -352,6 +352,7 @@ export type Database = {
       }
       hazard_library: {
         Row: {
+          article_no: string | null
           category: Database["public"]["Enums"]["work_category"]
           created_at: string | null
           default_likelihood: number | null
@@ -359,10 +360,12 @@ export type Database = {
           description: string
           id: string
           is_active: boolean | null
+          legal_basis: string | null
           sort_order: number | null
           suggested_measures: string[] | null
         }
         Insert: {
+          article_no?: string | null
           category: Database["public"]["Enums"]["work_category"]
           created_at?: string | null
           default_likelihood?: number | null
@@ -370,10 +373,12 @@ export type Database = {
           description: string
           id?: string
           is_active?: boolean | null
+          legal_basis?: string | null
           sort_order?: number | null
           suggested_measures?: string[] | null
         }
         Update: {
+          article_no?: string | null
           category?: Database["public"]["Enums"]["work_category"]
           created_at?: string | null
           default_likelihood?: number | null
@@ -381,6 +386,7 @@ export type Database = {
           description?: string
           id?: string
           is_active?: boolean | null
+          legal_basis?: string | null
           sort_order?: number | null
           suggested_measures?: string[] | null
         }
@@ -394,6 +400,7 @@ export type Database = {
           description: string
           exposed_workers: Json | null
           id: string
+          legal_basis_override: string | null
           level: Database["public"]["Enums"]["risk_level"] | null
           level_standardized: Database["public"]["Enums"]["risk_level"] | null
           library_item_id: string | null
@@ -401,6 +408,8 @@ export type Database = {
           location_detail: string | null
           ops_data: Json | null
           photos: Json | null
+          post_likelihood: number | null
+          post_severity: number | null
           severity: number | null
           updated_at: string | null
         }
@@ -411,6 +420,7 @@ export type Database = {
           description: string
           exposed_workers?: Json | null
           id?: string
+          legal_basis_override?: string | null
           level?: Database["public"]["Enums"]["risk_level"] | null
           level_standardized?: Database["public"]["Enums"]["risk_level"] | null
           library_item_id?: string | null
@@ -418,6 +428,8 @@ export type Database = {
           location_detail?: string | null
           ops_data?: Json | null
           photos?: Json | null
+          post_likelihood?: number | null
+          post_severity?: number | null
           severity?: number | null
           updated_at?: string | null
         }
@@ -428,6 +440,7 @@ export type Database = {
           description?: string
           exposed_workers?: Json | null
           id?: string
+          legal_basis_override?: string | null
           level?: Database["public"]["Enums"]["risk_level"] | null
           level_standardized?: Database["public"]["Enums"]["risk_level"] | null
           library_item_id?: string | null
@@ -435,6 +448,8 @@ export type Database = {
           location_detail?: string | null
           ops_data?: Json | null
           photos?: Json | null
+          post_likelihood?: number | null
+          post_severity?: number | null
           severity?: number | null
           updated_at?: string | null
         }
@@ -444,6 +459,13 @@ export type Database = {
             columns: ["assessment_id"]
             isOneToOne: false
             referencedRelation: "assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hazards_library_item_id_fkey"
+            columns: ["library_item_id"]
+            isOneToOne: false
+            referencedRelation: "hazard_library"
             referencedColumns: ["id"]
           },
         ]

@@ -40,7 +40,7 @@ function Hazards() {
   async function submit() {
     setSaving(true);
     const rows = [
-      ...library.filter(l => selected[l.id]).map(l => ({ assessment_id: id, description: l.description })),
+      ...library.filter(l => selected[l.id]).map(l => ({ assessment_id: id, description: l.description, library_item_id: l.id })),
       ...custom.map(c => ({ assessment_id: id, description: c })),
     ];
     if (rows.length === 0) { toast.error("최소 1개 이상의 유해·위험요인을 선택하세요"); setSaving(false); return; }

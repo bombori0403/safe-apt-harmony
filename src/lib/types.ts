@@ -54,6 +54,14 @@ export const RISK_ORDER: Record<RiskLevel, number> = {
   매우낮음: 1, 낮음: 2, 보통: 3, 높음: 4, 매우높음: 5,
 };
 
+export function scoreToRiskLevel(score: number): RiskLevel {
+  if (score <= 4) return "매우낮음";
+  if (score <= 8) return "낮음";
+  if (score <= 12) return "보통";
+  if (score <= 16) return "높음";
+  return "매우높음";
+}
+
 export function riskLevelClass(level?: string | null) {
   switch (level) {
     case "매우높음":

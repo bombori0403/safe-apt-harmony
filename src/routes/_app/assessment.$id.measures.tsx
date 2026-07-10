@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RISK_ORDER, riskLevelClass, type RiskLevel } from "@/lib/types";
+import { RISK_ORDER, riskLevelClass, scoreToRiskLevel, type RiskLevel } from "@/lib/types";
 import { toast } from "sonner";
 import { Pencil, Trash2, Check, X, Printer } from "lucide-react";
 
@@ -64,6 +64,12 @@ function Measures() {
     if (error) { console.error(error); toast.error(error.message); return; }
     if (!data || data.length === 0) { toast.error("권한이 없어 수정할 수 없습니다"); return; }
     toast.success("저장되었습니다"); load();
+  }
+
+  async function updatePostRisk(hid: string, patch: { post_likelihood?: number; post_severity?: number }) {
+    const { error } = await supabase.from("hazards").update(patch).eq("id", hid);
+    if (error) { toast.error(error.message); return; }
+    load();
   }
 
   async function deleteMeasure(mid: string) {
@@ -126,6 +132,9 @@ function Measures() {
                 ))}
               </div>
             )}
+            {h.measures?.length > 0 && (
+              <PostRiskEditor hazard={h} onChange={(p) => updatePostRisk(h.id, p)} />
+            )}
           </CardContent></Card>
         ));
       })()}
@@ -133,6 +142,35 @@ function Measures() {
       <div className="flex justify-end">
         <Button onClick={complete}>협의·공유 단계로</Button>
       </div>
+    </div>
+  );
+}
+
+function PostRiskEditor({ hazard, onChange }: { hazard: any; onChange: (p: { post_likelihood?: number; post_severity?: number }) => void }) {
+  const score = hazard.post_likelihood && hazard.post_severity ? hazard.post_likelihood * hazard.post_severity : null;
+  const level = score ? scoreToRiskLevel(score) : null;
+  return (
+    <div className="border-t pt-3 mt-1 space-y-2 text-sm">
+      <div className="text-xs font-medium text-muted-foreground">개선 후 위험성</div>
+      <div className="flex items-center gap-2">
+        <span className="w-16 text-muted-foreground">가능성</span>
+        {[1,2,3,4,5].map(n => (
+          <button key={n} type="button" onClick={() => onChange({ post_likelihood: n })}
+            className={`w-8 h-8 rounded border text-xs ${hazard.post_likelihood===n?"bg-primary text-primary-foreground border-primary":""}`}>{n}</button>
+        ))}
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="w-16 text-muted-foreground">중대성</span>
+        {[1,2,3,4,5].map(n => (
+          <button key={n} type="button" onClick={() => onChange({ post_severity: n })}
+            className={`w-8 h-8 rounded border text-xs ${hazard.post_severity===n?"bg-primary text-primary-foreground border-primary":""}`}>{n}</button>
+        ))}
+      </div>
+      {score && level && (
+        <div className="text-sm">
+          점수: <strong>{score}</strong>점 → <span className={`px-2 py-0.5 rounded text-xs ${riskLevelClass(level)}`}>{level}</span>
+        </div>
+      )}
     </div>
   );
 }
@@ -187,7 +225,7 @@ function MeasureRow({ m, onUpdate, onDelete }: { m: any; onUpdate: (p: any) => v
           <span className="font-medium flex-1">[{displayMeasureType(m.type)}] {m.content}</span>
           <select
             value={m.status ?? "대기"}
-            onChange={e => onUpdate({ status: e.target.value })}
+            onChange={e => onUpdate({ status: e.target.value, completed_at: e.target.value === "완료" ? new Date().toISOString() : null })}
             className={`h-7 px-1.5 rounded border text-xs ${statusColor}`}
           >
             {MEASURE_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}

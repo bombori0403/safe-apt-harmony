@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Printer, ArrowLeft } from "lucide-react";
+import { Printer, ArrowLeft, FileText } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { riskLevelClass, type RiskLevel } from "@/lib/types";
 import { useAuth } from "@/hooks/use-auth";
@@ -63,7 +63,12 @@ function Report() {
     <div className="bg-white text-foreground">
       <div className="print:hidden p-4 max-w-4xl mx-auto flex justify-between items-center border-b">
         <Link to="/assessment/$id" params={{ id }}><Button variant="outline" size="sm" className="gap-1"><ArrowLeft className="h-4 w-4" />돌아가기</Button></Link>
-        <Button onClick={() => window.print()} className="gap-2"><Printer className="h-4 w-4" />PDF 저장 / 인쇄</Button>
+        <div className="flex gap-2">
+          <Link to="/assessment/$id/kras-report" params={{ id }}>
+            <Button variant="outline" className="gap-2"><FileText className="h-4 w-4" />KRAS 양식으로 출력</Button>
+          </Link>
+          <Button onClick={() => window.print()} className="gap-2"><Printer className="h-4 w-4" />PDF 저장 / 인쇄</Button>
+        </div>
       </div>
 
       <div className="max-w-4xl mx-auto p-8 print:p-0 print:max-w-none">

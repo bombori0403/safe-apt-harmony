@@ -38,6 +38,7 @@ import { Route as AppAssessmentIdResultsRouteImport } from './routes/_app/assess
 import { Route as AppAssessmentIdReportRouteImport } from './routes/_app/assessment.$id.report'
 import { Route as AppAssessmentIdMeasuresReportRouteImport } from './routes/_app/assessment.$id.measures-report'
 import { Route as AppAssessmentIdMeasuresRouteImport } from './routes/_app/assessment.$id.measures'
+import { Route as AppAssessmentIdKrasReportRouteImport } from './routes/_app/assessment.$id.kras-report'
 import { Route as AppAssessmentIdInputsRouteImport } from './routes/_app/assessment.$id.inputs'
 import { Route as AppAssessmentIdHazardsRouteImport } from './routes/_app/assessment.$id.hazards'
 
@@ -187,6 +188,12 @@ const AppAssessmentIdMeasuresRoute = AppAssessmentIdMeasuresRouteImport.update({
   path: '/assessment/$id/measures',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAssessmentIdKrasReportRoute =
+  AppAssessmentIdKrasReportRouteImport.update({
+    id: '/assessment/$id/kras-report',
+    path: '/assessment/$id/kras-report',
+    getParentRoute: () => AppRoute,
+  } as any)
 const AppAssessmentIdInputsRoute = AppAssessmentIdInputsRouteImport.update({
   id: '/assessment/$id/inputs',
   path: '/assessment/$id/inputs',
@@ -223,6 +230,7 @@ export interface FileRoutesByFullPath {
   '/work-stop-records/ledger': typeof AppWorkStopRecordsLedgerRoute
   '/assessment/$id/hazards': typeof AppAssessmentIdHazardsRoute
   '/assessment/$id/inputs': typeof AppAssessmentIdInputsRoute
+  '/assessment/$id/kras-report': typeof AppAssessmentIdKrasReportRoute
   '/assessment/$id/measures': typeof AppAssessmentIdMeasuresRoute
   '/assessment/$id/measures-report': typeof AppAssessmentIdMeasuresReportRoute
   '/assessment/$id/report': typeof AppAssessmentIdReportRoute
@@ -255,6 +263,7 @@ export interface FileRoutesByTo {
   '/work-stop-records/ledger': typeof AppWorkStopRecordsLedgerRoute
   '/assessment/$id/hazards': typeof AppAssessmentIdHazardsRoute
   '/assessment/$id/inputs': typeof AppAssessmentIdInputsRoute
+  '/assessment/$id/kras-report': typeof AppAssessmentIdKrasReportRoute
   '/assessment/$id/measures': typeof AppAssessmentIdMeasuresRoute
   '/assessment/$id/measures-report': typeof AppAssessmentIdMeasuresReportRoute
   '/assessment/$id/report': typeof AppAssessmentIdReportRoute
@@ -289,6 +298,7 @@ export interface FileRoutesById {
   '/_app/work-stop-records_/ledger': typeof AppWorkStopRecordsLedgerRoute
   '/_app/assessment/$id/hazards': typeof AppAssessmentIdHazardsRoute
   '/_app/assessment/$id/inputs': typeof AppAssessmentIdInputsRoute
+  '/_app/assessment/$id/kras-report': typeof AppAssessmentIdKrasReportRoute
   '/_app/assessment/$id/measures': typeof AppAssessmentIdMeasuresRoute
   '/_app/assessment/$id/measures-report': typeof AppAssessmentIdMeasuresReportRoute
   '/_app/assessment/$id/report': typeof AppAssessmentIdReportRoute
@@ -323,6 +333,7 @@ export interface FileRouteTypes {
     | '/work-stop-records/ledger'
     | '/assessment/$id/hazards'
     | '/assessment/$id/inputs'
+    | '/assessment/$id/kras-report'
     | '/assessment/$id/measures'
     | '/assessment/$id/measures-report'
     | '/assessment/$id/report'
@@ -355,6 +366,7 @@ export interface FileRouteTypes {
     | '/work-stop-records/ledger'
     | '/assessment/$id/hazards'
     | '/assessment/$id/inputs'
+    | '/assessment/$id/kras-report'
     | '/assessment/$id/measures'
     | '/assessment/$id/measures-report'
     | '/assessment/$id/report'
@@ -388,6 +400,7 @@ export interface FileRouteTypes {
     | '/_app/work-stop-records_/ledger'
     | '/_app/assessment/$id/hazards'
     | '/_app/assessment/$id/inputs'
+    | '/_app/assessment/$id/kras-report'
     | '/_app/assessment/$id/measures'
     | '/_app/assessment/$id/measures-report'
     | '/_app/assessment/$id/report'
@@ -610,6 +623,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAssessmentIdMeasuresRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/assessment/$id/kras-report': {
+      id: '/_app/assessment/$id/kras-report'
+      path: '/assessment/$id/kras-report'
+      fullPath: '/assessment/$id/kras-report'
+      preLoaderRoute: typeof AppAssessmentIdKrasReportRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/assessment/$id/inputs': {
       id: '/_app/assessment/$id/inputs'
       path: '/assessment/$id/inputs'
@@ -659,6 +679,7 @@ interface AppRouteChildren {
   AppWorkStopRecordsLedgerRoute: typeof AppWorkStopRecordsLedgerRoute
   AppAssessmentIdHazardsRoute: typeof AppAssessmentIdHazardsRoute
   AppAssessmentIdInputsRoute: typeof AppAssessmentIdInputsRoute
+  AppAssessmentIdKrasReportRoute: typeof AppAssessmentIdKrasReportRoute
   AppAssessmentIdMeasuresRoute: typeof AppAssessmentIdMeasuresRoute
   AppAssessmentIdMeasuresReportRoute: typeof AppAssessmentIdMeasuresReportRoute
   AppAssessmentIdReportRoute: typeof AppAssessmentIdReportRoute
@@ -685,6 +706,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppWorkStopRecordsLedgerRoute: AppWorkStopRecordsLedgerRoute,
   AppAssessmentIdHazardsRoute: AppAssessmentIdHazardsRoute,
   AppAssessmentIdInputsRoute: AppAssessmentIdInputsRoute,
+  AppAssessmentIdKrasReportRoute: AppAssessmentIdKrasReportRoute,
   AppAssessmentIdMeasuresRoute: AppAssessmentIdMeasuresRoute,
   AppAssessmentIdMeasuresReportRoute: AppAssessmentIdMeasuresReportRoute,
   AppAssessmentIdReportRoute: AppAssessmentIdReportRoute,

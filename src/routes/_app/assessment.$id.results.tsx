@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import type { RiskLevel } from "@/lib/types";
-import { RISK_ORDER, riskLevelClass } from "@/lib/types";
+import { RISK_ORDER, riskLevelClass, scoreToRiskLevel } from "@/lib/types";
 import { toast } from "sonner";
 import { PhotoUpload } from "@/components/photo-upload";
 import { useAuth } from "@/hooks/use-auth";
@@ -74,12 +74,7 @@ function Results() {
 
   function standardize(method: string, level?: RiskLevel | null, likelihood?: number, severity?: number, ops_data?: any): RiskLevel | null {
     if (method === "빈도강도법" && likelihood && severity) {
-      const s = likelihood * severity;
-      if (s <= 4) return "매우낮음";
-      if (s <= 8) return "낮음";
-      if (s <= 12) return "보통";
-      if (s <= 16) return "높음";
-      return "매우높음";
+      return scoreToRiskLevel(likelihood * severity);
     }
     if (method === "OPS") {
       const n = ops_data?.factors?.length ?? 0;
