@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { riskLevelClass, type RiskLevel } from "@/lib/types";
-import { ListChecks, ShieldCheck, Users, FileText, Printer, Pencil, Trash2 } from "lucide-react";
+import { ListChecks, ShieldCheck, Users, FileText, Printer, Pencil, Trash2, Check, X } from "lucide-react";
 import { deleteAssessment, updateAssessment } from "@/lib/assessment.functions";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -43,8 +43,32 @@ function Detail() {
   const [delOpen, setDelOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  const [editHazardId, setEditHazardId] = useState<string | null>(null);
+  const [editHazardDesc, setEditHazardDesc] = useState("");
+
   const upd = useServerFn(updateAssessment);
   const del = useServerFn(deleteAssessment);
+
+  async function saveHazardDesc(hid: string) {
+    if (!editHazardDesc.trim()) { toast.error("내용을 입력하세요"); return; }
+    const { data, error } = await supabase.from("hazards").update({ description: editHazardDesc.trim() }).eq("id", hid).select();
+    if (error) { toast.error(error.message); return; }
+    if (!data || data.length === 0) { toast.error("권한이 없어 수정할 수 없습니다"); return; }
+    toast.success("저장되었습니다");
+    setEditHazardId(null);
+    await load();
+  }
+
+  async function deleteHazard(hid: string) {
+    if (!confirm("이 유해·위험요인을 삭제하시겠습니까? 관련 감소대책도 함께 삭제됩니다.")) return;
+    const { error: mErr } = await supabase.from("measures").delete().eq("hazard_id", hid);
+    if (mErr) { toast.error(mErr.message); return; }
+    const { data, error } = await supabase.from("hazards").delete().eq("id", hid).select();
+    if (error) { toast.error(error.message); return; }
+    if (!data || data.length === 0) { toast.error("권한이 없어 삭제할 수 없습니다"); return; }
+    toast.success("삭제되었습니다");
+    await load();
+  }
 
   const load = async () => {
     const { data: ass } = await supabase.from("assessments").select("*").eq("id", id).maybeSingle();
@@ -152,15 +176,31 @@ function Detail() {
           <div className="divide-y">
             {hazards.map(h => (
               <div key={h.id} className="p-4 flex flex-wrap items-center justify-between gap-3 text-sm">
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium">{h.description}</div>
-                  <div className="text-xs text-muted-foreground mt-0.5">
-                    감소대책 {h.measures?.length ?? 0}건
-                    {h.likelihood && h.severity && ` · ${h.likelihood}×${h.severity}=${h.likelihood * h.severity}점`}
+                {editHazardId === h.id ? (
+                  <div className="flex-1 flex gap-2">
+                    <Input value={editHazardDesc} onChange={e => setEditHazardDesc(e.target.value)} className="h-9" />
+                    <Button size="sm" variant="outline" onClick={() => saveHazardDesc(h.id)}><Check className="h-4 w-4" /></Button>
+                    <Button size="sm" variant="ghost" onClick={() => setEditHazardId(null)}><X className="h-4 w-4" /></Button>
                   </div>
-                </div>
-                {h.level && (
-                  <span className={`px-2 py-1 rounded text-xs font-medium ${riskLevelClass(h.level as RiskLevel)}`}>{h.level}</span>
+                ) : (
+                  <>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium">{h.description}</div>
+                      <div className="text-xs text-muted-foreground mt-0.5">
+                        감소대책 {h.measures?.length ?? 0}건
+                        {h.likelihood && h.severity && ` · ${h.likelihood}×${h.severity}=${h.likelihood * h.severity}점`}
+                      </div>
+                    </div>
+                    {h.level && (
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${riskLevelClass(h.level as RiskLevel)}`}>{h.level}</span>
+                    )}
+                    {canManage && (
+                      <div className="flex gap-1">
+                        <Button size="sm" variant="ghost" className="h-8 px-2" onClick={() => { setEditHazardId(h.id); setEditHazardDesc(h.description); }}><Pencil className="h-3.5 w-3.5" /></Button>
+                        <Button size="sm" variant="ghost" className="h-8 px-2 text-destructive hover:text-destructive" onClick={() => deleteHazard(h.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             ))}
