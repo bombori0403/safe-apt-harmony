@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { WORK_CATEGORIES, CATEGORY_LABEL, type WorkCategory } from "@/lib/types";
+import { suggestLegalBasis } from "@/lib/legal-basis-keywords";
 import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
 
@@ -48,7 +49,7 @@ function Hazards() {
     setSaving(true);
     const rows = [
       ...library.filter(l => selected[l.id]).map(l => ({ assessment_id: id, description: l.description, library_item_id: l.id })),
-      ...custom.map(c => ({ assessment_id: id, description: c })),
+      ...custom.map(c => ({ assessment_id: id, description: c, legal_basis_override: suggestLegalBasis(c)?.legal_basis ?? null })),
     ];
     if (rows.length === 0) { toast.error("최소 1개 이상의 유해·위험요인을 선택하세요"); setSaving(false); return; }
     const { error } = await supabase.from("hazards").insert(rows);
@@ -106,11 +107,23 @@ function Hazards() {
               <Plus className="h-4 w-4" />
             </Button>
           </div>
+          {newCustom.trim() && (
+            <p className="text-xs text-muted-foreground mt-1">
+              {suggestLegalBasis(newCustom)
+                ? `예상 법적기준: ${suggestLegalBasis(newCustom)!.legal_basis}`
+                : "일치하는 법적기준을 찾지 못했어요. 추가 후 필요하면 수동으로 보완하세요."}
+            </p>
+          )}
           {custom.length > 0 && (
             <ul className="mt-2 space-y-1">
               {custom.map((c, i) => (
                 <li key={i} className="flex items-center justify-between text-sm bg-muted/40 rounded px-3 py-1.5">
-                  <span>{c}</span>
+                  <div>
+                    <div>{c}</div>
+                    {suggestLegalBasis(c) && (
+                      <div className="text-[11px] text-muted-foreground mt-0.5">{suggestLegalBasis(c)!.legal_basis}</div>
+                    )}
+                  </div>
                   <button type="button" onClick={() => setCustom(custom.filter((_, j) => j !== i))}><Trash2 className="h-3.5 w-3.5 text-danger" /></button>
                 </li>
               ))}
