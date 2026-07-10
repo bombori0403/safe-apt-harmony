@@ -39,7 +39,7 @@ function History() {
   const upd = useServerFn(updateAssessment);
 
   const load = () => {
-    supabase.from("assessments").select("*").order("assessment_date", { ascending: false }).then(({ data }) => {
+    supabase.from("assessments").select("*").order("created_at", { ascending: false, nullsFirst: false }).then(({ data }) => {
       setItems(data ?? []);
     });
   };
