@@ -13,7 +13,7 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { MessageCircle, Search, Pencil } from "lucide-react";
+import { MessageCircle, Search, Pencil, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { riskLevelClass, type RiskLevel } from "@/lib/types";
 import { updateAssessment } from "@/lib/assessment.functions";
@@ -100,11 +100,23 @@ function History() {
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-5">
-      <div>
-        <h1 className="text-2xl font-bold">평가 이력</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          위험성평가 결과는 5년간 보존하여야 합니다 (산업안전보건법 시행규칙 제37조).
-        </p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">평가 이력</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            위험성평가 결과는 5년간 보존하여야 합니다 (산업안전보건법 시행규칙 제37조).
+          </p>
+        </div>
+        <Link
+          to="/kras-report-all"
+          search={{
+            complexId: complexId || undefined,
+            type: typeFilter || undefined,
+            q: q || undefined,
+          }}
+        >
+          <Button variant="outline" className="gap-2 shrink-0"><FileText className="h-4 w-4" />전체 KRAS 양식 출력</Button>
+        </Link>
       </div>
 
       <div className="flex flex-wrap items-end gap-3">
