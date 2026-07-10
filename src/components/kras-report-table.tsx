@@ -44,7 +44,7 @@ export function KrasReportTable({ workName, hazards }: { workName: string; hazar
           return (
             <tr key={h.id} className="align-top">
               <td className="border p-1 text-center">{i + 1}</td>
-              <td className="border p-1">{workName}</td>
+              <td className="border p-1">{h.work_name ?? workName}</td>
               <td className="border p-1">{h.description}</td>
               <td className="border p-1 text-center">{h.likelihood ?? "-"}</td>
               <td className="border p-1 text-center">{h.severity ?? "-"}</td>

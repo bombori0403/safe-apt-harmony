@@ -63,21 +63,17 @@ function KrasReportAll() {
           <p className="text-muted-foreground">출력할 평가 이력이 없습니다.</p>
         ) : (
           <>
-            <header className="text-center border-b-2 border-foreground pb-4 mb-6 print:hidden">
+            <header className="text-center border-b-2 border-foreground pb-4 mb-6">
               <div className="text-sm text-muted-foreground">위험성평가표 (KRAS 양식) — 전체 이력</div>
               <h1 className="text-2xl font-bold mt-1">총 {assessments.length}건</h1>
             </header>
 
-            {assessments.map((a) => (
-              <section key={a.id} className="kras-section mb-10">
-                <header className="border-b-2 border-foreground pb-3 mb-4">
-                  <div className="text-xs text-muted-foreground">위험성평가표 (KRAS 양식)</div>
-                  <h2 className="text-lg font-bold mt-0.5">{a.work_name}</h2>
-                  <div className="text-xs mt-1">평가일: {a.assessment_date ?? "-"} · 평가종류: {a.assessment_type ?? "-"}</div>
-                </header>
-                <KrasReportTable workName={a.work_name} hazards={hazardsByAssessment[a.id] ?? []} />
-              </section>
-            ))}
+            <KrasReportTable
+              workName=""
+              hazards={assessments.flatMap((a) =>
+                (hazardsByAssessment[a.id] ?? []).map((h) => ({ ...h, work_name: a.work_name }))
+              )}
+            />
 
             <p className="text-[10px] text-muted-foreground mt-4">
               ※ 관련근거 법적기준은 등록된 유해·위험요인 항목을 기준으로 자동 표시되며, 실제 법령 적용 여부는 별도 검토가 필요합니다.
