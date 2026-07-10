@@ -1,5 +1,14 @@
 import { riskLevelClass, scoreToRiskLevel } from "@/lib/types";
 
+// Pull the "제N조" article number out of a full legal-basis string, so
+// manually-entered hazards (which only store the full text) still show
+// an article number in the KRAS table.
+function extractArticleNo(text?: string | null): string | null {
+  if (!text) return null;
+  const m = text.match(/제\s*\d+조/);
+  return m ? m[0] : null;
+}
+
 // Shared KRAS-format table for one assessment. Used by both the single-report
 // page and the whole-history batch export.
 export function KrasReportTable({ workName, hazards }: { workName: string; hazards: any[] }) {
@@ -40,7 +49,7 @@ export function KrasReportTable({ workName, hazards }: { workName: string; hazar
           const postLevel = postScore ? scoreToRiskLevel(postScore) : null;
           const measures = h.measures ?? [];
           const legalBasis = h.legal_basis_override || h.hazard_library?.legal_basis || "-";
-          const articleNo = h.hazard_library?.article_no || "-";
+          const articleNo = h.hazard_library?.article_no || extractArticleNo(h.legal_basis_override) || "-";
           return (
             <tr key={h.id} className="align-top">
               <td className="border p-1 text-center">{i + 1}</td>
