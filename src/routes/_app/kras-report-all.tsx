@@ -47,6 +47,10 @@ function KrasReportAll() {
     })();
   }, [complexId, type, q]);
 
+  const allHazards = assessments.flatMap((a) =>
+    (hazardsByAssessment[a.id] ?? []).map((h) => ({ ...h, work_name: a.work_name }))
+  );
+
   return (
     <div className="bg-white text-foreground">
       <div className="print:hidden p-4 max-w-6xl mx-auto flex justify-between items-center border-b">
@@ -65,15 +69,12 @@ function KrasReportAll() {
           <>
             <header className="text-center border-b-2 border-foreground pb-4 mb-6 print:hidden">
               <div className="text-sm text-muted-foreground">위험성평가표 (KRAS 양식) — 전체 이력</div>
-              <h1 className="text-2xl font-bold mt-1">총 {assessments.length}건</h1>
+              <h1 className="text-2xl font-bold mt-1">
+                평가 {assessments.length}건 · 유해·위험요인 {allHazards.length}건
+              </h1>
             </header>
 
-            <KrasReportTable
-              workName=""
-              hazards={assessments.flatMap((a) =>
-                (hazardsByAssessment[a.id] ?? []).map((h) => ({ ...h, work_name: a.work_name }))
-              )}
-            />
+            <KrasReportTable workName="" hazards={allHazards} />
 
             <p className="text-[10px] text-muted-foreground mt-4">
               ※ 관련근거 법적기준은 등록된 유해·위험요인 항목을 기준으로 자동 표시되며, 실제 법령 적용 여부는 별도 검토가 필요합니다.
