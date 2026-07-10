@@ -31,7 +31,7 @@ export type Database = {
           shared_at: string | null
           status: Database["public"]["Enums"]["assessment_status"] | null
           updated_at: string | null
-          work_category: Database["public"]["Enums"]["work_category"] | null
+          work_category: string | null
           work_name: string
         }
         Insert: {
@@ -50,7 +50,7 @@ export type Database = {
           shared_at?: string | null
           status?: Database["public"]["Enums"]["assessment_status"] | null
           updated_at?: string | null
-          work_category?: Database["public"]["Enums"]["work_category"] | null
+          work_category?: string | null
           work_name: string
         }
         Update: {
@@ -69,7 +69,7 @@ export type Database = {
           shared_at?: string | null
           status?: Database["public"]["Enums"]["assessment_status"] | null
           updated_at?: string | null
-          work_category?: Database["public"]["Enums"]["work_category"] | null
+          work_category?: string | null
           work_name?: string
         }
         Relationships: [

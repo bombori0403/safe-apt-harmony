@@ -18,6 +18,7 @@ function Hazards() {
   const navigate = useNavigate();
   const [assessment, setAssessment] = useState<any>(null);
   const [category, setCategory] = useState<WorkCategory>("승강기_점검정비");
+  const [customCategory, setCustomCategory] = useState("");
   const [library, setLibrary] = useState<{ id: string; description: string }[]>([]);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [custom, setCustom] = useState<string[]>([]);
@@ -27,7 +28,13 @@ function Hazards() {
   useEffect(() => {
     supabase.from("assessments").select("*").eq("id", id).maybeSingle().then(({ data }) => {
       setAssessment(data);
-      if (data?.work_category) setCategory(data.work_category);
+      if (data?.work_category) {
+        if ((WORK_CATEGORIES as string[]).includes(data.work_category)) {
+          setCategory(data.work_category as WorkCategory);
+        } else {
+          setCustomCategory(data.work_category);
+        }
+      }
     });
   }, [id]);
 
@@ -46,7 +53,7 @@ function Hazards() {
     if (rows.length === 0) { toast.error("최소 1개 이상의 유해·위험요인을 선택하세요"); setSaving(false); return; }
     const { error } = await supabase.from("hazards").insert(rows);
     if (error) { toast.error(error.message); setSaving(false); return; }
-    await supabase.from("assessments").update({ work_category: category }).eq("id", id);
+    await supabase.from("assessments").update({ work_category: customCategory.trim() || category }).eq("id", id);
     toast.success(`${rows.length}건 추가됨. 위험성 결정 단계로 이동합니다.`);
     navigate({ to: "/assessment/$id/results", params: { id } });
   }
@@ -63,10 +70,17 @@ function Hazards() {
       <Card><CardContent className="p-5 space-y-4">
         <div>
           <Label>작업 카테고리</Label>
+          <p className="text-xs text-muted-foreground mt-1 mb-1.5">표준 항목을 고르면 관련 유해·위험요인이 아래에 자동 제안됩니다. 목록에 없으면 직접 입력하세요.</p>
           <select value={category} onChange={e=>setCategory(e.target.value as WorkCategory)}
-            className="w-full h-10 px-3 rounded-md border bg-background text-sm mt-1">
+            className="w-full h-10 px-3 rounded-md border bg-background text-sm">
             {WORK_CATEGORIES.map(c => <option key={c} value={c}>{CATEGORY_LABEL[c]}</option>)}
           </select>
+          <Input
+            value={customCategory}
+            onChange={e=>setCustomCategory(e.target.value)}
+            placeholder="목록에 없는 작업이면 직접 입력 (예: 배관 누수 보수)"
+            className="h-10 mt-2"
+          />
         </div>
 
         <div>
