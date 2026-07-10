@@ -63,7 +63,7 @@ function KrasReportAll() {
           <p className="text-muted-foreground">출력할 평가 이력이 없습니다.</p>
         ) : (
           <>
-            <header className="text-center border-b-2 border-foreground pb-4 mb-6">
+            <header className="text-center border-b-2 border-foreground pb-4 mb-6 print:hidden">
               <div className="text-sm text-muted-foreground">위험성평가표 (KRAS 양식) — 전체 이력</div>
               <h1 className="text-2xl font-bold mt-1">총 {assessments.length}건</h1>
             </header>

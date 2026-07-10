@@ -49,7 +49,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex w-full bg-background">
       {/* Sidebar - desktop only */}
-      <aside className="hidden md:flex w-60 shrink-0 flex-col border-r bg-sidebar text-sidebar-foreground">
+      <aside className="hidden md:flex w-60 shrink-0 flex-col border-r bg-sidebar text-sidebar-foreground print:hidden">
         <div className="flex items-center gap-2 px-5 h-16 border-b">
           <Shield className="h-6 w-6 text-primary" />
           <div className="min-w-0">
@@ -86,17 +86,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="md:hidden h-14 flex items-center justify-between px-4 border-b bg-card">
+        <header className="md:hidden h-14 flex items-center justify-between px-4 border-b bg-card print:hidden">
           <div className="flex items-center gap-2 font-bold min-w-0">
             <Shield className="h-5 w-5 text-primary shrink-0" />
             <span className="truncate">안전관리소{orgName && <span className="text-xs text-muted-foreground font-normal ml-1">· {orgName}</span>}</span>
           </div>
           <Button variant="ghost" size="sm" onClick={signOut}>로그아웃</Button>
         </header>
-        <main className="flex-1 pb-20 md:pb-0">{children}</main>
+        <main className="flex-1 pb-20 md:pb-0 print:pb-0">{children}</main>
 
         {/* Bottom tabbar - mobile */}
-        <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t flex">
+        <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t flex print:hidden">
           {visibleNav.filter(n => ["/dashboard","/history","/near-miss","/work-stop-right","/settings"].includes(n.to)).map(({ to, label, icon: Icon }) => {
             const active = path === to || path.startsWith(to + "/");
             return (
