@@ -1124,6 +1124,8 @@ export type Database = {
         | "소방시설"
         | "조경_외부작업"
         | "청소_미화_사무"
+        | "경비_보안"
+        | "주차관리"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1300,6 +1302,8 @@ export const Constants = {
         "소방시설",
         "조경_외부작업",
         "청소_미화_사무",
+        "경비_보안",
+        "주차관리",
       ],
     },
   },

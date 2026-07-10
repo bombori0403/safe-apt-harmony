@@ -12,7 +12,9 @@ export type WorkCategory =
   | "지하주차장_환기"
   | "소방시설"
   | "조경_외부작업"
-  | "청소_미화_사무";
+  | "청소_미화_사무"
+  | "경비_보안"
+  | "주차관리";
 
 export const WORK_CATEGORIES: WorkCategory[] = [
   "승강기_점검정비",
@@ -24,6 +26,8 @@ export const WORK_CATEGORIES: WorkCategory[] = [
   "소방시설",
   "조경_외부작업",
   "청소_미화_사무",
+  "경비_보안",
+  "주차관리",
 ];
 
 export const CATEGORY_LABEL: Record<WorkCategory, string> = {
@@ -36,6 +40,8 @@ export const CATEGORY_LABEL: Record<WorkCategory, string> = {
   "소방시설": "소방시설",
   "조경_외부작업": "조경·외부 작업",
   "청소_미화_사무": "청소·미화·사무",
+  "경비_보안": "경비·보안",
+  "주차관리": "주차관리",
 };
 
 export const METHOD_LABEL: Record<AssessmentMethod, string> = {
