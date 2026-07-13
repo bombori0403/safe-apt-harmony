@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Printer, ArrowLeft, Loader2 } from "lucide-react";
 import { getCurrentUserContext } from "@/lib/user-context";
 import { useAuth } from "@/hooks/use-auth";
+import { useSubscription } from "@/hooks/use-subscription";
+import { TrialWatermark, TrialExpiredBlock } from "@/components/trial-watermark";
 import { WORK_STOP_LAW_TITLE, WORK_STOP_LAW_TEXT, WORK_STOP_PROCEDURE } from "@/lib/work-stop-law";
 import { riskLevelClass, type RiskLevel } from "@/lib/types";
 
@@ -30,6 +32,7 @@ function fmtD(v?: string | null) {
 
 function PrintAll() {
   const { user } = useAuth();
+  const sub = useSubscription();
   const search = Route.useSearch();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -147,6 +150,7 @@ function PrintAll() {
     return <div className="p-8 flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />전체 자료를 불러오는 중...</div>;
   }
   if (error) return <div className="p-8 text-red-600 text-sm">{error}</div>;
+  if (sub.isExpired) return <TrialExpiredBlock what="전체 자료 출력" />;
 
   const totals = Object.values(dataByComplex).reduce((acc, d) => ({
     a: acc.a + d.assessments.length, n: acc.n + d.nearMiss.length,
@@ -155,6 +159,7 @@ function PrintAll() {
 
   return (
     <div className="bg-white text-black">
+      {sub.isTrial && <TrialWatermark expired={sub.isExpired} />}
       <div className="print:hidden p-4 max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-2 border-b">
         <Link to="/dashboard"><Button variant="ghost" size="sm" className="gap-1.5"><ArrowLeft className="h-4 w-4" />대시보드</Button></Link>
         <div className="text-sm text-muted-foreground">
