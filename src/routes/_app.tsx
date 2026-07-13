@@ -17,7 +17,7 @@ function AppLayout() {
   const [gate, setGate] = useState<OrgGate>("loading");
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/" });
+    if (!loading && !user) navigate({ to: "/login" });
   }, [user, loading, navigate]);
 
   useEffect(() => {

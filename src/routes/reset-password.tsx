@@ -72,7 +72,7 @@ function ResetPassword() {
                   메일을 다시 요청할 수 있습니다.
                 </p>
                 <Button asChild className="w-full">
-                  <Link to="/">로그인 화면으로</Link>
+                  <Link to="/login">로그인 화면으로</Link>
                 </Button>
               </div>
             ) : (

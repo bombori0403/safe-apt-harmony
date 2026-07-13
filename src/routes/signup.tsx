@@ -34,13 +34,13 @@ function Signup() {
       const isNewSignup = (data.user?.identities?.length ?? 0) > 0;
       if (!isNewSignup) {
         toast.error("이미 가입 신청된 이메일입니다. 인증 메일을 다시 확인해주세요.");
-        window.location.href = "/";
+        window.location.href = "/login";
         return;
       }
       notifyPendingSignup({ data: { orgName, repName: name, email } }).catch(() => {});
       if (!data.session) {
         toast.success("가입 신청 완료! 이메일의 인증 링크를 확인해주세요.");
-        window.location.href = "/";
+        window.location.href = "/login";
         return;
       }
       toast.success("회사 등록 완료! 관리자 승인 후 이용하실 수 있습니다.");
@@ -129,7 +129,7 @@ function Signup() {
               {loading ? "등록 중..." : "회사 등록 후 가입"}
             </Button>
           </form>
-          <Link to="/" className="block text-center mt-4 text-sm text-primary hover:underline">로그인으로 돌아가기</Link>
+          <Link to="/login" className="block text-center mt-4 text-sm text-primary hover:underline">로그인으로 돌아가기</Link>
 
           <p className="text-[11px] text-center text-muted-foreground mt-6 lg:hidden">
             14일 무료 체험 · 좌석 5명 기본 제공

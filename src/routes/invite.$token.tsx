@@ -72,7 +72,7 @@ function Invite() {
             {info && !info.valid && (
               <div className="space-y-3">
                 <div className="text-sm text-destructive">{info.reason ?? "유효하지 않은 초대입니다."}</div>
-                <Link to="/" className="block text-sm text-primary hover:underline">로그인으로 이동</Link>
+                <Link to="/login" className="block text-sm text-primary hover:underline">로그인으로 이동</Link>
               </div>
             )}
             {info?.valid && (
