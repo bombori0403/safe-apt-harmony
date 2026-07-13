@@ -79,10 +79,17 @@ function NewNearMiss() {
   async function submit() {
     if (!complexId) { toast.error("단지를 선택해주세요"); return; }
     if (!desc.trim()) { toast.error("사고 경위를 입력해주세요"); return; }
+    // Ensure the org id is present — RLS requires organization_id = current_user_org().
+    let effectiveOrg = orgId;
+    if (!effectiveOrg && user) {
+      const { data } = await supabase.from("users").select("organization_id").eq("auth_id", user.id).maybeSingle();
+      effectiveOrg = data?.organization_id ?? "";
+    }
+    if (!effectiveOrg) { toast.error("조직 정보를 불러오지 못했습니다. 새로고침 후 다시 시도해주세요."); return; }
     setSaving(true);
     const { error } = await (supabase as any).from("near_miss").insert({
       complex_id: complexId,
-      organization_id: orgId || null,
+      organization_id: effectiveOrg,
       reported_by: userRowId || null,
       occurred_at: new Date(occurredAt).toISOString(),
       incident_name: incidentName || null,
