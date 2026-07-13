@@ -43,7 +43,7 @@ function KrasReport() {
           <div className="text-sm mt-2">평가일: {a.assessment_date ?? "-"}</div>
         </header>
 
-        <KrasReportTable workName={a.work_name} hazards={hazards} />
+        <KrasReportTable workName={a.work_name} hazards={hazards} method={a.method} />
 
         <p className="text-[10px] text-muted-foreground mt-4">
           ※ 관련근거 법적기준은 등록된 유해·위험요인 항목을 기준으로 자동 표시되며, 실제 법령 적용 여부는 별도 검토가 필요합니다.

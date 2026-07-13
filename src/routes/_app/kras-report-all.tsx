@@ -48,7 +48,7 @@ function KrasReportAll() {
   }, [complexId, type, q]);
 
   const allHazards = assessments.flatMap((a) =>
-    (hazardsByAssessment[a.id] ?? []).map((h) => ({ ...h, work_name: a.work_name }))
+    (hazardsByAssessment[a.id] ?? []).map((h) => ({ ...h, work_name: a.work_name, _method: a.method }))
   );
 
   return (

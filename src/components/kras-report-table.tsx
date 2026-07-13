@@ -12,7 +12,7 @@ function extractArticleNo(text?: string | null): string | null {
 
 // Shared KRAS-format table for one assessment. Used by both the single-report
 // page and the whole-history batch export.
-export function KrasReportTable({ workName, hazards }: { workName: string; hazards: any[] }) {
+export function KrasReportTable({ workName, hazards, method }: { workName: string; hazards: any[]; method?: string }) {
   return (
     <table className="w-full text-[11px] border-collapse kras-table">
       <thead>
@@ -45,11 +45,15 @@ export function KrasReportTable({ workName, hazards }: { workName: string; hazar
           <tr><td colSpan={15} className="border p-3 text-center text-muted-foreground">등록된 유해·위험요인이 없습니다.</td></tr>
         )}
         {hazards.map((h, i) => {
+          const rowMethod = h._method ?? method ?? "빈도강도법";
+          const isFreq = rowMethod === "빈도강도법";
           const score = h.likelihood && h.severity ? h.likelihood * h.severity : null;
           const postScore = h.post_likelihood && h.post_severity ? h.post_likelihood * h.post_severity : null;
-          // Numeric score for 빈도강도법, otherwise the etc level (등급) picked per method.
-          const postRiskDisplay = postScore ?? h.post_level ?? null;
-          const postColorLevel = postScore ? scoreToRiskLevel(postScore) : (h.post_level ?? null);
+          // 빈도강도법: show 가능성/중대성 numbers + score. Other methods: 등급 only.
+          const curRiskDisplay = isFreq ? (score ?? h.level) : h.level;
+          const postLevelResolved = h.post_level ?? (postScore ? scoreToRiskLevel(postScore) : null);
+          const postRiskDisplay = isFreq ? postScore : postLevelResolved;
+          const postColorLevel = isFreq ? (postScore ? scoreToRiskLevel(postScore) : null) : postLevelResolved;
           const measures = h.measures ?? [];
           const suggested = suggestLegalBasis(h.description);
           const legalBasis = h.legal_basis_override || h.hazard_library?.legal_basis || suggested?.legal_basis || "-";
@@ -59,10 +63,10 @@ export function KrasReportTable({ workName, hazards }: { workName: string; hazar
               <td className="border p-1 text-center">{i + 1}</td>
               <td className="border p-1">{h.work_name ?? workName}</td>
               <td className="border p-1">{h.description}</td>
-              <td className="border p-1 text-center">{h.likelihood ?? "-"}</td>
-              <td className="border p-1 text-center">{h.severity ?? "-"}</td>
+              <td className="border p-1 text-center">{isFreq ? (h.likelihood ?? "-") : "-"}</td>
+              <td className="border p-1 text-center">{isFreq ? (h.severity ?? "-") : "-"}</td>
               <td className="border p-1 text-center">
-                {h.level ? <span className={`px-1 py-0.5 rounded ${riskLevelClass(h.level)}`}>{score ?? h.level}</span> : "-"}
+                {curRiskDisplay ? <span className={`px-1 py-0.5 rounded ${riskLevelClass(h.level)}`}>{curRiskDisplay}</span> : "-"}
               </td>
               <td className="border p-1">
                 {measures.length === 0 ? "-" : measures.map((m: any, mi: number) => (
@@ -84,8 +88,8 @@ export function KrasReportTable({ workName, hazards }: { workName: string; hazar
                   <div key={m.id} className={mi > 0 ? "border-t mt-1 pt-1" : ""}>{m.responsible_name ?? "-"}</div>
                 ))}
               </td>
-              <td className="border p-1 text-center">{h.post_likelihood ?? "-"}</td>
-              <td className="border p-1 text-center">{h.post_severity ?? "-"}</td>
+              <td className="border p-1 text-center">{isFreq ? (h.post_likelihood ?? "-") : "-"}</td>
+              <td className="border p-1 text-center">{isFreq ? (h.post_severity ?? "-") : "-"}</td>
               <td className="border p-1 text-center">
                 {postRiskDisplay ? <span className={`px-1 py-0.5 rounded ${riskLevelClass(postColorLevel)}`}>{postRiskDisplay}</span> : "-"}
               </td>
