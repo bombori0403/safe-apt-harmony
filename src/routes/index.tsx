@@ -24,9 +24,7 @@ function Landing() {
       <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-primary text-primary-foreground">
-              <Shield className="h-5 w-5" />
-            </div>
+            <img src="/logo-mark.png" alt="안전데스크" className="w-9 h-9 rounded-xl object-cover" />
             <span className="font-bold tracking-tight">안전데스크</span>
           </div>
           <div className="flex items-center gap-2">
@@ -132,7 +130,7 @@ function Landing() {
       <footer className="border-t">
         <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col md:flex-row items-center justify-between gap-3 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
-            <Shield className="h-4 w-4 text-primary" />
+            <img src="/logo-mark.png" alt="안전데스크" className="w-5 h-5 rounded object-cover" />
             <span className="font-medium text-foreground">안전데스크</span>
           </div>
           <div className="flex items-center gap-4">
