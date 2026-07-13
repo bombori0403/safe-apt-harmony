@@ -83,7 +83,7 @@ function Signup() {
               <Clock className="h-4 w-4 shrink-0" /> 14일 무료 체험 · 신용카드 불필요
             </li>
             <li className="flex items-center gap-2.5 text-primary-foreground/90">
-              <Users className="h-4 w-4 shrink-0" /> 좌석 5명 기본 제공
+              <Users className="h-4 w-4 shrink-0" /> 직원 초대 제한 없음
             </li>
             <li className="flex items-center gap-2.5 text-primary-foreground/90">
               <ShieldCheck className="h-4 w-4 shrink-0" /> 관리자 승인 기반 안전한 가입
@@ -132,7 +132,7 @@ function Signup() {
           <Link to="/login" className="block text-center mt-4 text-sm text-primary hover:underline">로그인으로 돌아가기</Link>
 
           <p className="text-[11px] text-center text-muted-foreground mt-6 lg:hidden">
-            14일 무료 체험 · 좌석 5명 기본 제공
+            14일 무료 체험 · 직원 초대 제한 없음
           </p>
         </div>
       </div>
