@@ -13,6 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { writeErrorMessage } from "@/lib/write-error";
+import { useSubscription } from "@/hooks/use-subscription";
+import { TrialWatermark } from "@/components/trial-watermark";
 import { Trash2, MessageCircle, Mic, Camera, Loader2, X, Users, Pencil, Printer } from "lucide-react";
 import { compressImage } from "@/lib/image-compress";
 
@@ -60,6 +62,7 @@ function toLocalInput(iso: string) {
 
 function EmployeeInputs() {
   const { user } = useAuth();
+  const sub = useSubscription();
   const [me, setMe] = useState<{ id: string; org_role: string; organization_id: string } | null>(null);
   const [complexes, setComplexes] = useState<{ id: string; name: string }[]>([]);
   const [filterComplex, setFilterComplex] = useState<string>("all");
@@ -274,6 +277,7 @@ function EmployeeInputs() {
 
   return (
     <div className={`employee-print-root p-4 md:p-8 max-w-5xl mx-auto space-y-5 ${printItemId ? "printing-single" : ""}`}>
+      {sub.isTrial && <TrialWatermark expired={sub.isExpired} />}
       <style>{`
         @media print {
           @page { size: A4 portrait; margin: 8mm; }

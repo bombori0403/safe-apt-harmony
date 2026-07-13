@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Printer, ArrowLeft } from "lucide-react";
 import { riskLevelClass, type RiskLevel } from "@/lib/types";
+import { useSubscription } from "@/hooks/use-subscription";
+import { TrialWatermark } from "@/components/trial-watermark";
 
 export const Route = createFileRoute("/_app/assessment/$id/measures-report")({
   component: MeasuresReport,
@@ -17,6 +19,7 @@ function displayType(t: string | null) {
 
 function MeasuresReport() {
   const { id } = Route.useParams();
+  const sub = useSubscription();
   const [a, setA] = useState<any>(null);
   const [complex, setComplex] = useState<any>(null);
   const [hazards, setHazards] = useState<any[]>([]);
@@ -74,6 +77,7 @@ function MeasuresReport() {
 
   return (
     <div className="bg-white text-foreground">
+      {sub.isTrial && <TrialWatermark expired={sub.isExpired} />}
       <div className="print:hidden p-4 max-w-4xl mx-auto flex justify-between items-center border-b">
         <Link to="/assessment/$id/measures" params={{ id }}>
           <Button variant="outline" size="sm" className="gap-1"><ArrowLeft className="h-4 w-4" />돌아가기</Button>

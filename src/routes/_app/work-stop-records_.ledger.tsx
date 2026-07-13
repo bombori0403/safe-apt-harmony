@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Printer } from "lucide-react";
+import { useSubscription } from "@/hooks/use-subscription";
+import { TrialWatermark } from "@/components/trial-watermark";
 
 export const Route = createFileRoute("/_app/work-stop-records_/ledger")({
   component: Ledger,
@@ -18,6 +20,7 @@ function fmt(d?: string | null) {
 }
 
 function Ledger() {
+  const sub = useSubscription();
   const [items, setItems] = useState<any[]>([]);
   const [complexes, setComplexes] = useState<any[]>([]);
   const [complexId, setComplexId] = useState<string>("");
@@ -66,6 +69,7 @@ function Ledger() {
 
   return (
     <div className="p-4 md:p-8 max-w-[1200px] mx-auto">
+      {sub.isTrial && <TrialWatermark expired={sub.isExpired} />}
       <div className="flex flex-wrap items-end gap-2 mb-4 print:hidden">
         <Link to="/work-stop-records">
           <Button variant="ghost" size="sm" className="gap-1.5"><ArrowLeft className="h-4 w-4" />목록</Button>

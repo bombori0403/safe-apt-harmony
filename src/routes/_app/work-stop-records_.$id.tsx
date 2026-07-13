@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Printer, ArrowLeft } from "lucide-react";
+import { useSubscription } from "@/hooks/use-subscription";
+import { TrialWatermark } from "@/components/trial-watermark";
 
 export const Route = createFileRoute("/_app/work-stop-records_/$id")({
   component: WorkStopRecordDetail,
@@ -10,6 +12,7 @@ export const Route = createFileRoute("/_app/work-stop-records_/$id")({
 
 function WorkStopRecordDetail() {
   const { id } = useParams({ strict: false }) as { id: string };
+  const sub = useSubscription();
   const [rec, setRec] = useState<any>(null);
   const [complex, setComplex] = useState<any>(null);
 
@@ -32,6 +35,7 @@ function WorkStopRecordDetail() {
 
   return (
     <div className="p-4 md:p-8 max-w-3xl mx-auto">
+      {sub.isTrial && <TrialWatermark expired={sub.isExpired} />}
       <div className="flex items-center justify-between mb-4 print:hidden">
         <Link to="/work-stop-records"><Button variant="ghost" size="sm" className="gap-1.5"><ArrowLeft className="h-4 w-4"/>목록</Button></Link>
         <Button onClick={() => window.print()} className="gap-1.5"><Printer className="h-4 w-4"/>인쇄 / PDF 저장</Button>

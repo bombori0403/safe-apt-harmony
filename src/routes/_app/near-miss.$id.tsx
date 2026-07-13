@@ -11,6 +11,8 @@ import { toast } from "sonner";
 import { writeErrorMessage } from "@/lib/write-error";
 import { compressImage } from "@/lib/image-compress";
 import { useAuth } from "@/hooks/use-auth";
+import { useSubscription } from "@/hooks/use-subscription";
+import { TrialWatermark } from "@/components/trial-watermark";
 
 export const Route = createFileRoute("/_app/near-miss/$id")({
   component: NearMissDetail,
@@ -28,6 +30,7 @@ function toDateTimeLocal(value: string) {
 function NearMissDetail() {
   const { id } = Route.useParams();
   const { user } = useAuth();
+  const sub = useSubscription();
   const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
   const incFileRef = useRef<HTMLInputElement>(null);
@@ -167,6 +170,7 @@ function NearMissDetail() {
 
   return (
     <div className="p-4 md:p-8 max-w-3xl mx-auto space-y-4">
+      {sub.isTrial && <TrialWatermark expired={sub.isExpired} />}
       <div className="flex items-center justify-between print:hidden">
         <Link to="/near-miss">
           <Button variant="ghost" size="sm" className="gap-1">

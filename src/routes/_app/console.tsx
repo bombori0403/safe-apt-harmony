@@ -6,6 +6,8 @@ import { Building2, AlertTriangle, TrendingUp, Users, Printer } from "lucide-rea
 import { Button } from "@/components/ui/button";
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from "recharts";
 import type { RiskLevel } from "@/lib/types";
+import { useSubscription } from "@/hooks/use-subscription";
+import { TrialWatermark } from "@/components/trial-watermark";
 
 export const Route = createFileRoute("/_app/console")({
   component: Console,
@@ -20,6 +22,7 @@ const RISK_COLORS: Record<RiskLevel, string> = {
 };
 
 function Console() {
+  const sub = useSubscription();
   const [complexes, setComplexes] = useState<any[]>([]);
   const [assessments, setAssessments] = useState<any[]>([]);
   const [hazards, setHazards] = useState<any[]>([]);
@@ -60,6 +63,7 @@ function Console() {
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-5">
+      {sub.isTrial && <TrialWatermark expired={sub.isExpired} />}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h1 className="text-2xl font-bold">본사 콘솔</h1>

@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Printer, Pencil, Save, X, RotateCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { useSubscription } from "@/hooks/use-subscription";
+import { TrialWatermark } from "@/components/trial-watermark";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/regulation")({
@@ -394,6 +396,7 @@ function ArticleSec({ no, k }: { no: string; k: string }) {
 
 function RegulationPage() {
   const reg = useRegulationData();
+  const sub = useSubscription();
   const [editing, setEditing] = useState(false);
   const [draft, setDraftState] = useState<Draft>({});
   const [saving, setSaving] = useState(false);
@@ -424,6 +427,7 @@ function RegulationPage() {
   return (
     <EditCtx.Provider value={{ editing, isAdmin: reg.isAdmin, get: reg.get, setDraft, draft }}>
       <div className="max-w-4xl mx-auto p-4 md:p-8 space-y-6">
+        {sub.isTrial && <TrialWatermark expired={sub.isExpired} />}
         <div className="flex items-center justify-between print:hidden gap-2 flex-wrap">
           <div>
             <h1 className="text-2xl font-bold">위험성평가 실시규정</h1>
