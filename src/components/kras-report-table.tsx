@@ -10,6 +10,22 @@ function extractArticleNo(text?: string | null): string | null {
   return m ? m[0] : null;
 }
 
+// Map the stored risk_level back to the label the assessment method uses:
+// 3단계 → 상/중/하, 체크리스트 → 적정/보완. Other methods show the level as-is.
+function displayLevel(level?: string | null, method?: string): string | null {
+  if (!level) return null;
+  if (method === "3단계_판단법") {
+    if (level === "매우높음" || level === "높음" || level === "상") return "상";
+    if (level === "보통" || level === "중") return "중";
+    if (level === "낮음" || level === "매우낮음" || level === "하") return "하";
+  }
+  if (method === "체크리스트법") {
+    if (level === "높음" || level === "매우높음" || level === "보완") return "보완";
+    if (level === "낮음" || level === "매우낮음" || level === "적정") return "적정";
+  }
+  return level;
+}
+
 // Shared KRAS-format table for one assessment. Used by both the single-report
 // page and the whole-history batch export.
 export function KrasReportTable({ workName, hazards, method }: { workName: string; hazards: any[]; method?: string }) {
@@ -49,10 +65,11 @@ export function KrasReportTable({ workName, hazards, method }: { workName: strin
           const isFreq = rowMethod === "빈도강도법";
           const score = h.likelihood && h.severity ? h.likelihood * h.severity : null;
           const postScore = h.post_likelihood && h.post_severity ? h.post_likelihood * h.post_severity : null;
-          // 빈도강도법: show 가능성/중대성 numbers + score. Other methods: 등급 only.
-          const curRiskDisplay = isFreq ? (score ?? h.level) : h.level;
+          // 빈도강도법: show 가능성/중대성 numbers + score. Other methods: 등급 only,
+          // relabeled to the method's own scale (상/중/하, 적정/보완).
+          const curRiskDisplay = isFreq ? (score ?? h.level) : displayLevel(h.level, rowMethod);
           const postLevelResolved = h.post_level ?? (postScore ? scoreToRiskLevel(postScore) : null);
-          const postRiskDisplay = isFreq ? postScore : postLevelResolved;
+          const postRiskDisplay = isFreq ? postScore : displayLevel(postLevelResolved, rowMethod);
           const postColorLevel = isFreq ? (postScore ? scoreToRiskLevel(postScore) : null) : postLevelResolved;
           const measures = h.measures ?? [];
           const suggested = suggestLegalBasis(h.description);
