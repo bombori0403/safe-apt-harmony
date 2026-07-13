@@ -626,16 +626,17 @@ function PrintAllDialog({ scopeComplexId, isAdmin }: { scopeComplexId: string; i
       <DialogTrigger asChild>
         <Button size="sm" className="gap-2">
           <Printer className="h-4 w-4" />
-          전체 인쇄 (PDF)
+          문서 출력 (PDF)
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>전체 자료집 인쇄</DialogTitle>
+          <DialogTitle>문서 출력</DialogTitle>
         </DialogHeader>
         <div className="space-y-3 text-sm">
           <p className="text-muted-foreground text-xs">
-            선택한 기간의 위험성평가 결과서, 아차사고 보고서, 작업중지 개선완료 확인서, 실적 관리대장, 직원참여 기록이 한 문서로 출력됩니다.
+            실시규정 · KRAS 위험성평가 · 아차사고 · 작업중지권 · 청취조사 · 오픈채팅 이력을 한 PDF로 출력합니다.
+            다음 화면에서 <b>체크박스로 필요한 문서만 골라</b> 출력할 수 있습니다.
             {isAdmin && scopeComplexId === "all" ? " (전체 단지)" : ""}
           </p>
           <div className="grid grid-cols-2 gap-3">

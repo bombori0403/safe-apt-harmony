@@ -7,8 +7,19 @@ import { getCurrentUserContext } from "@/lib/user-context";
 import { useAuth } from "@/hooks/use-auth";
 import { useSubscription } from "@/hooks/use-subscription";
 import { TrialWatermark, TrialExpiredBlock } from "@/components/trial-watermark";
-import { WORK_STOP_LAW_TITLE, WORK_STOP_LAW_TEXT, WORK_STOP_PROCEDURE } from "@/lib/work-stop-law";
-import { riskLevelClass, type RiskLevel } from "@/lib/types";
+import { KrasReportTable } from "@/components/kras-report-table";
+import { RegulationDocument, REGULATION_DEFAULTS } from "@/components/regulation-document";
+import { WORK_STOP_LAW_TITLE, WORK_STOP_LAW_TEXT } from "@/lib/work-stop-law";
+
+const DOC_TYPES = [
+  ["regulation", "실시규정"],
+  ["kras", "KRAS 양식(위험성평가)"],
+  ["nearMiss", "아차사고"],
+  ["workStop", "작업중지권"],
+  ["hearing", "청취조사"],
+  ["openchat", "오픈채팅 이력"],
+] as const;
+type DocKey = (typeof DOC_TYPES)[number][0];
 
 type Search = { complex?: string; from?: string; to?: string };
 
@@ -37,6 +48,10 @@ function PrintAll() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [complexes, setComplexes] = useState<any[]>([]);
+  const [regulation, setRegulation] = useState<any>(null);
+  const [docTypes, setDocTypes] = useState<Record<DocKey, boolean>>({
+    regulation: true, kras: true, nearMiss: true, workStop: true, hearing: true, openchat: true,
+  });
   const [dataByComplex, setDataByComplex] = useState<Record<string, {
     assessments: any[]; hazards: any[]; measures: any[];
     participants: any[]; signatures: any[]; assessmentInputs: any[];
@@ -80,6 +95,9 @@ function PrintAll() {
           .in("id", allowedIds).order("name");
         setComplexes(cs ?? []);
 
+        const { data: reg } = await supabase.from("regulation_content").select("*").maybeSingle();
+        setRegulation(reg);
+
         const from = search.from ? new Date(search.from + "T00:00:00").toISOString() : null;
         const to = search.to ? new Date(search.to + "T23:59:59").toISOString() : null;
 
@@ -98,7 +116,7 @@ function PrintAll() {
           let hazards: any[] = [], measures: any[] = [];
           let participants: any[] = [], signatures: any[] = [], assessmentInputs: any[] = [];
           if (aIds.length) {
-            const { data: h } = await supabase.from("hazards").select("*").in("assessment_id", aIds);
+            const { data: h } = await supabase.from("hazards").select("*, hazard_library:library_item_id(article_no, legal_basis)").in("assessment_id", aIds);
             hazards = h ?? [];
             const hIds = hazards.map((h: any) => h.id);
             if (hIds.length) {
@@ -160,12 +178,23 @@ function PrintAll() {
   return (
     <div className="bg-white text-black">
       {sub.isTrial && <TrialWatermark expired={sub.isExpired} />}
-      <div className="print:hidden p-4 max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-2 border-b">
-        <Link to="/dashboard"><Button variant="ghost" size="sm" className="gap-1.5"><ArrowLeft className="h-4 w-4" />대시보드</Button></Link>
-        <div className="text-sm text-muted-foreground">
-          {complexes.length}개 단지 · 위험성평가 {totals.a} · 아차사고 {totals.n} · 작업중지 {totals.w} · 직원참여 {totals.i}
+      <div className="print:hidden p-4 max-w-5xl mx-auto space-y-3 border-b">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <Link to="/dashboard"><Button variant="ghost" size="sm" className="gap-1.5"><ArrowLeft className="h-4 w-4" />대시보드</Button></Link>
+          <div className="text-sm text-muted-foreground">
+            {complexes.length}개 단지 · 위험성평가 {totals.a} · 아차사고 {totals.n} · 작업중지 {totals.w} · 직원참여 {totals.i}
+          </div>
+          <Button onClick={() => window.print()} className="gap-1.5"><Printer className="h-4 w-4" />선택 문서 인쇄 / PDF 저장</Button>
         </div>
-        <Button onClick={() => window.print()} className="gap-1.5"><Printer className="h-4 w-4" />전체 인쇄 / PDF 저장</Button>
+        <div className="flex flex-wrap items-center gap-3 rounded-md bg-muted/40 px-3 py-2">
+          <span className="text-xs font-medium text-muted-foreground">출력할 문서:</span>
+          {DOC_TYPES.map(([k, label]) => (
+            <label key={k} className="flex items-center gap-1.5 text-sm cursor-pointer">
+              <input type="checkbox" checked={docTypes[k]} onChange={(e) => setDocTypes((s) => ({ ...s, [k]: e.target.checked }))} />
+              {label}
+            </label>
+          ))}
+        </div>
       </div>
 
       <div id="print-area" className="max-w-[210mm] mx-auto p-8 print:p-0 print:max-w-none">
@@ -186,6 +215,18 @@ function PrintAll() {
             <div className="mt-16 text-xs text-gray-500">출력일: {new Date().toLocaleString("ko-KR")}</div>
           </div>
         </section>
+
+        {/* 위험성평가 실시규정 (조직 공통, 1회) */}
+        {docTypes.regulation && (() => {
+          const overrides = (regulation?.overrides && typeof regulation.overrides === "object")
+            ? (regulation.overrides as Record<string, string>) : {};
+          const get = (k: string) => overrides[k] ?? REGULATION_DEFAULTS[k] ?? "";
+          return (
+            <section className="page">
+              <RegulationDocument get={get} />
+            </section>
+          );
+        })()}
 
         {complexes.map((c) => {
           const d = dataByComplex[c.id];
@@ -211,117 +252,30 @@ function PrintAll() {
                 </table>
               </section>
 
-              {/* 위험성평가 결과서 (건별) - 평가이력 결과서와 동일한 형식 */}
-              {d.assessments.map((a: any) => {
-                const hs = d.hazards.filter((h: any) => h.assessment_id === a.id);
+              {/* 위험성평가 (KRAS 양식, 건별) */}
+              {docTypes.kras && d.assessments.map((a: any) => {
+                const hs = d.hazards.filter((h: any) => h.assessment_id === a.id).map((h: any) => ({
+                  ...h,
+                  measures: d.measures.filter((m: any) => m.hazard_id === h.id),
+                  work_name: a.work_name,
+                  _method: a.method,
+                }));
                 const parts = d.participants.filter((p: any) => p.assessment_id === a.id);
                 const sigs = d.signatures.filter((s: any) => s.assessment_id === a.id);
-                const aInputs = d.assessmentInputs.filter((ei: any) => ei.assessment_id === a.id);
                 return (
-                  <section key={a.id} className="page">
-                    <header className="text-center border-b-2 border-black pb-4 mb-6">
-                      <div className="text-sm text-gray-600">공동주택 위험성평가 결과서</div>
+                  <section key={a.id} className="page kras-page">
+                    <header className="text-center border-b-2 border-black pb-4 mb-4">
+                      <div className="text-sm text-gray-600">위험성평가표 (KRAS 양식)</div>
                       <h1 className="text-2xl font-bold mt-1">{a.work_name}</h1>
-                      <div className="text-sm mt-2">산업안전보건법 제36조 · 고용노동부 고시 제2024-76호</div>
+                      <div className="text-xs mt-1">{c.name} · 평가일 {a.assessment_date} · {a.method}</div>
                     </header>
 
-                    <section className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm mb-6">
-                      <ReportRow label="단지명" value={c.name} />
-                      <ReportRow label="주소" value={c.address} />
-                      <ReportRow label="평가일자" value={a.assessment_date} />
-                      <ReportRow label="평가종류" value={a.assessment_type} />
-                      <ReportRow label="평가방법" value={a.method} />
-                      <ReportRow label="평가장소" value={a.location ?? "-"} />
-                      <ReportRow label="허용 위험성수준" value={a.allowable_level} />
-                      <ReportRow label="작업 카테고리" value={a.work_category ?? "-"} />
-                    </section>
-
                     <section className="mb-6">
-                      <h2 className="font-bold border-b pb-1 mb-3">1. 유해·위험요인 및 위험성 결정</h2>
-                      <table className="w-full text-sm border-collapse">
-                        <thead>
-                          <tr className="border-b-2 border-black">
-                            <th className="py-2 text-left w-10">번호</th>
-                            <th className="py-2 text-left">유해·위험요인</th>
-                            <th className="py-2 text-center w-24">위험성수준</th>
-                            <th className="py-2 text-center w-24">표준환산</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {hs.map((h: any, i: number) => (
-                            <tr key={h.id} className="border-b">
-                              <td className="py-2">{i + 1}</td>
-                              <td className="py-2">{h.description}</td>
-                              <td className="py-2 text-center">{h.level ?? "-"}</td>
-                              <td className="py-2 text-center">
-                                {h.level_standardized && <span className={`px-2 py-0.5 rounded text-xs ${riskLevelClass(h.level_standardized as RiskLevel)}`}>{h.level_standardized}</span>}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </section>
-
-                    <section className="mb-6">
-                      <h2 className="font-bold border-b pb-1 mb-3">2. 위험성 감소대책</h2>
-                      {hs.filter((h: any) => d.measures.some((m: any) => m.hazard_id === h.id)).length === 0 ? (
-                        <p className="text-sm text-gray-500">감소대책이 등록되지 않았습니다.</p>
-                      ) : (
-                        <table className="w-full text-sm border-collapse">
-                          <thead>
-                            <tr className="border-b-2 border-black">
-                              <th className="py-2 text-left">유해·위험요인</th>
-                              <th className="py-2 text-left w-20">유형</th>
-                              <th className="py-2 text-left">대책 내용</th>
-                              <th className="py-2 text-left w-24">책임자</th>
-                              <th className="py-2 text-left w-24">이행예정</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {hs.flatMap((h: any) => d.measures.filter((m: any) => m.hazard_id === h.id).map((m: any) => (
-                              <tr key={m.id} className="border-b">
-                                <td className="py-2">{h.description}</td>
-                                <td className="py-2">{m.type?.replace("_대책", "") ?? "-"}</td>
-                                <td className="py-2">{m.content}</td>
-                                <td className="py-2">{m.responsible_name ?? "-"}</td>
-                                <td className="py-2">{m.due_date ?? "-"}</td>
-                              </tr>
-                            )))}
-                          </tbody>
-                        </table>
-                      )}
-                    </section>
-
-                    <section className="mb-6">
-                      <h2 className="font-bold border-b pb-1 mb-3">3. 직원 참여 의견 (청취조사 · 오픈채팅 이력)</h2>
-                      {aInputs.length === 0 ? (
-                        <p className="text-sm text-gray-500">등록된 직원 의견이 없습니다.</p>
-                      ) : (
-                        <table className="w-full text-sm border-collapse">
-                          <thead>
-                            <tr className="border-b-2 border-black">
-                              <th className="py-2 text-left w-20">구분</th>
-                              <th className="py-2 text-left w-28">일시</th>
-                              <th className="py-2 text-left w-28">응답자/채팅방</th>
-                              <th className="py-2 text-left">내용</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {aInputs.map((it: any) => (
-                              <tr key={it.id} className="border-b align-top">
-                                <td className="py-2">{it.input_type === "hearing" ? "청취조사" : "오픈채팅"}</td>
-                                <td className="py-2 text-xs">{fmtDT(it.occurred_at)}</td>
-                                <td className="py-2">{[it.respondent_name, it.respondent_role].filter(Boolean).join(" / ") || "-"}</td>
-                                <td className="py-2 whitespace-pre-wrap">{it.content}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      )}
+                      <KrasReportTable workName={a.work_name} hazards={hs} method={a.method} />
                     </section>
 
                     <section>
-                      <h2 className="font-bold border-b pb-1 mb-3">4. 참여자 확인</h2>
+                      <h2 className="font-bold border-b pb-1 mb-3">참여자 확인</h2>
                       <table className="w-full text-sm border-collapse">
                         <thead>
                           <tr className="border-b-2 border-black">
@@ -353,17 +307,8 @@ function PrintAll() {
                       </table>
                     </section>
 
-                    <section className="mt-8">
-                      <h2 className="font-bold border-b pb-1 mb-3">[부록] {WORK_STOP_LAW_TITLE}</h2>
-                      <pre className="whitespace-pre-wrap text-xs leading-relaxed font-sans">{WORK_STOP_LAW_TEXT}</pre>
-                      <h3 className="font-semibold mt-4 mb-2 text-sm">행사 절차</h3>
-                      <ol className="text-xs space-y-1">
-                        {WORK_STOP_PROCEDURE.map((p, i) => (<li key={i}>{p}</li>))}
-                      </ol>
-                    </section>
-
                     <footer className="mt-8 pt-4 border-t text-[10px] text-gray-500 text-center">
-                      본 결과서는 산업안전보건법 시행규칙 제37조에 따라 5년간 보존됩니다.
+                      본 위험성평가표는 산업안전보건법 시행규칙 제37조에 따라 5년간 보존됩니다.
                     </footer>
                   </section>
                 );
@@ -371,7 +316,7 @@ function PrintAll() {
 
 
               {/* 아차사고 (건별) */}
-              {d.nearMiss.map((n: any) => (
+              {docTypes.nearMiss && d.nearMiss.map((n: any) => (
                 <section key={n.id} className="page">
                   <div className="text-center border-b-2 border-black pb-3 mb-4">
                     <h1 className="text-xl font-bold">아차사고 보고서</h1>
@@ -397,7 +342,7 @@ function PrintAll() {
               ))}
 
               {/* 작업중지 개선완료 확인서 (건별) */}
-              {d.workStops.map((w: any) => (
+              {docTypes.workStop && d.workStops.map((w: any) => (
                 <section key={w.id} className="page">
                   <div className="text-center border-b-2 border-black pb-3 mb-4">
                     <h1 className="text-xl font-bold">작업중지 개선완료 확인서</h1>
@@ -424,7 +369,7 @@ function PrintAll() {
               ))}
 
               {/* 작업중지 실적 관리대장 */}
-              {d.workStops.length > 0 && (
+              {docTypes.workStop && d.workStops.length > 0 && (
                 <section className="page">
                   <h1 className="text-center text-lg font-bold mb-2">근로자 작업중지 실적 관리대장</h1>
                   <div className="text-sm mb-2">○ 부서명 : {c.name} 관리사무소</div>
@@ -456,37 +401,47 @@ function PrintAll() {
                 </section>
               )}
 
-              {/* 직원참여 (건별) - 청취조사/오픈채팅 정식 보고서 형식 */}
-              {d.inputs.map((it: any) => (
+              {/* 청취조사 (건별) */}
+              {docTypes.hearing && d.inputs.filter((it: any) => it.input_type === "hearing").map((it: any) => (
                 <section key={it.id} className="page">
-                  {it.input_type === "hearing"
-                    ? <HearingReportSheet item={it} complexName={c.name} />
-                    : <OpenChatReportSheet item={it} complexName={c.name} />}
+                  <HearingReportSheet item={it} complexName={c.name} />
+                </section>
+              ))}
+
+              {/* 오픈채팅 이력 (건별) */}
+              {docTypes.openchat && d.inputs.filter((it: any) => it.input_type !== "hearing").map((it: any) => (
+                <section key={it.id} className="page">
+                  <OpenChatReportSheet item={it} complexName={c.name} />
                 </section>
               ))}
             </div>
           );
         })}
 
-        {/* 부록 */}
-        <section className="page">
-          <h2 className="font-bold border-b pb-1 mb-3 text-lg">[부록] {WORK_STOP_LAW_TITLE}</h2>
-          <pre className="whitespace-pre-wrap text-xs leading-relaxed font-sans">{WORK_STOP_LAW_TEXT}</pre>
-          <p className="text-[10px] text-gray-500 mt-4">본 자료는 산업안전보건법 시행규칙 제37조에 따라 5년간 보존됩니다.</p>
-        </section>
+        {/* 부록 — 작업중지권 안내 (작업중지권 문서 선택 시) */}
+        {docTypes.workStop && (
+          <section className="page">
+            <h2 className="font-bold border-b pb-1 mb-3 text-lg">[부록] {WORK_STOP_LAW_TITLE}</h2>
+            <pre className="whitespace-pre-wrap text-xs leading-relaxed font-sans">{WORK_STOP_LAW_TEXT}</pre>
+            <p className="text-[10px] text-gray-500 mt-4">본 자료는 산업안전보건법 시행규칙 제37조에 따라 5년간 보존됩니다.</p>
+          </section>
+        )}
       </div>
 
       <style>{`
         .page { break-after: page; page-break-after: always; min-height: 260mm; }
         .page:last-child { break-after: auto; page-break-after: auto; }
         @media print {
-          @page { size: A4; margin: 12mm; }
+          @page { size: A4 portrait; margin: 12mm; }
+          @page kras { size: A4 landscape; margin: 10mm; }
+          .kras-page { page: kras; }
           body * { visibility: hidden; }
           #print-area, #print-area * { visibility: visible; }
           #print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 0; }
           .print\\:hidden { display: none !important; }
           img { break-inside: avoid; page-break-inside: avoid; }
           table, tr, td, th { break-inside: avoid; page-break-inside: avoid; }
+          .kras-table, .kras-table tr, .kras-table td, .kras-table th { break-inside: avoid; page-break-inside: avoid; }
         }
       `}</style>
     </div>
@@ -499,15 +454,6 @@ function Info({ label, value }: { label: string; value?: any }) {
       <th className="bg-gray-100 px-2 py-1.5 w-32 text-left border-r border-black/70">{label}</th>
       <td className="px-2 py-1.5">{value || "-"}</td>
     </tr>
-  );
-}
-
-function ReportRow({ label, value }: { label: string; value?: string | null }) {
-  return (
-    <div className="flex border-b pb-1">
-      <span className="w-28 text-gray-600">{label}</span>
-      <span className="flex-1 font-medium">{value ?? "-"}</span>
-    </div>
   );
 }
 
