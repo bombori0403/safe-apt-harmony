@@ -76,6 +76,18 @@ function PlatformAdmin() {
     load();
   }
 
+  async function revertToTrial(id: string) {
+    if (!window.confirm("이 회사를 다시 14일 체험 상태로 되돌릴까요? (오늘부터 14일)")) return;
+    const expires = new Date(Date.now() + 14 * 86400000).toISOString();
+    const { error } = await supabase
+      .from("organizations")
+      .update({ subscription_status: "trial", expires_at: expires })
+      .eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("14일 체험 상태로 전환했습니다");
+    load();
+  }
+
   async function remove(id: string, name: string) {
     if (!window.confirm(`"${name}" 회사를 완전히 삭제할까요? 이 회사의 단지/평가 데이터와 소속 계정(로그인 포함)도 모두 삭제되며 되돌릴 수 없습니다.`)) return;
     try {
@@ -157,34 +169,55 @@ function PlatformAdmin() {
           </div>
 
           <div>
-            <h2 className="text-sm font-semibold text-muted-foreground mb-2">처리 완료</h2>
+            <h2 className="text-sm font-semibold text-muted-foreground mb-2">전체 조직 · 구독 관리 ({decided.length})</h2>
+            <p className="text-xs text-muted-foreground mb-3">체험 기간과 상관없이 언제든 정식 전환하거나 체험으로 되돌릴 수 있습니다.</p>
             <div className="space-y-2">
-              {decided.map((o) => (
-                <div key={o.id} className="flex items-center justify-between text-sm py-2 border-b gap-3">
-                  <div>
-                    <div>{o.name}</div>
-                    <Badge variant={o.approval_status === "approved" ? "default" : "destructive"} className="mt-1">
-                      {o.approval_status === "approved" ? "승인됨" : "거절됨"}
-                    </Badge>
+              {decided.map((o) => {
+                const s = subInfo(o);
+                return (
+                  <div key={o.id} className="flex flex-wrap items-center justify-between text-sm py-2.5 border-b gap-3">
+                    <div className="min-w-0">
+                      <div className="font-medium">{o.name}</div>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <Badge className={s.cls}>{s.label}</Badge>
+                        {o.approval_status === "rejected" && <Badge variant="destructive">거절됨</Badge>}
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2 shrink-0">
+                      {o.subscription_status !== "active" ? (
+                        <Button size="sm" onClick={() => activate(o.id)}>정식 활성화</Button>
+                      ) : (
+                        <Button size="sm" variant="outline" onClick={() => revertToTrial(o.id)}>체험으로 전환</Button>
+                      )}
+                      {o.approval_status !== "rejected" ? (
+                        <Button size="sm" variant="ghost" onClick={() => decide(o.id, "rejected")}>거절</Button>
+                      ) : (
+                        <Button size="sm" variant="ghost" onClick={() => decide(o.id, "approved")}>거절 해제</Button>
+                      )}
+                      <Button size="sm" variant="ghost" onClick={() => remove(o.id, o.name)} aria-label="삭제">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex gap-2 shrink-0">
-                    {o.approval_status !== "approved" && (
-                      <Button size="sm" variant="outline" onClick={() => decide(o.id, "approved")}>승인</Button>
-                    )}
-                    {o.approval_status !== "rejected" && (
-                      <Button size="sm" variant="outline" onClick={() => decide(o.id, "rejected")}>거절</Button>
-                    )}
-                    <Button size="sm" variant="ghost" onClick={() => decide(o.id, "pending")}>취소(대기로)</Button>
-                    <Button size="sm" variant="ghost" onClick={() => remove(o.id, o.name)} aria-label="삭제">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </>
       )}
     </div>
   );
+}
+
+function subInfo(o: OrgRow): { label: string; cls: string } {
+  if (o.subscription_status === "active") return { label: "정식", cls: "bg-success/15 text-success" };
+  if (o.subscription_status === "past_due") return { label: "결제 필요", cls: "bg-warning/15 text-warning-foreground" };
+  if (o.subscription_status === "canceled") return { label: "해지됨", cls: "bg-muted text-muted-foreground" };
+  // trial
+  const expMs = o.expires_at ? new Date(o.expires_at).getTime() : null;
+  if (expMs != null && expMs > Date.now()) {
+    const d = Math.ceil((expMs - Date.now()) / 86400000);
+    return { label: `체험 D-${d}`, cls: "bg-primary/10 text-primary" };
+  }
+  return { label: "체험 종료", cls: "bg-danger/10 text-danger" };
 }
