@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { useSubscription } from "@/hooks/use-subscription";
 import { getCurrentUserContext } from "@/lib/user-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -52,6 +53,7 @@ function effectiveNextDate(c: ComplexRow): string | null {
 
 function Dashboard() {
   const { user } = useAuth();
+  const sub = useSubscription();
   const [userRow, setUserRow] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [myComplexId, setMyComplexId] = useState<string | null>(null);
@@ -313,6 +315,21 @@ function Dashboard() {
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
+      {sub.isTrial && (
+        <div className={cn(
+          "rounded-lg border px-4 py-3 flex flex-wrap items-center justify-between gap-2 text-sm",
+          sub.isExpired ? "border-danger/40 bg-danger/10 text-danger" : "border-primary/30 bg-primary/5 text-foreground"
+        )}>
+          <div className="flex items-center gap-2">
+            <CalendarClock className="h-4 w-4 shrink-0" />
+            {sub.isExpired ? (
+              <span><strong>체험 기간이 종료되었습니다.</strong> 출력물에 체험판 표시가 적용됩니다. 계속 이용하려면 정식 전환이 필요합니다.</span>
+            ) : (
+              <span>무료 체험 중 · <strong>{sub.daysLeft}일</strong> 남았습니다. 체험 기간에는 출력물에 체험판 표시가 적용됩니다.</span>
+            )}
+          </div>
+        </div>
+      )}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold flex flex-wrap items-center gap-2">

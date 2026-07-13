@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Printer, ArrowLeft } from "lucide-react";
 import { KrasReportTable, KRAS_PRINT_STYLE } from "@/components/kras-report-table";
+import { TrialWatermark } from "@/components/trial-watermark";
+import { useSubscription } from "@/hooks/use-subscription";
 
 export const Route = createFileRoute("/_app/assessment/$id/kras-report")({
   component: KrasReport,
@@ -11,6 +13,7 @@ export const Route = createFileRoute("/_app/assessment/$id/kras-report")({
 
 function KrasReport() {
   const { id } = Route.useParams();
+  const sub = useSubscription();
   const [a, setA] = useState<any>(null);
   const [hazards, setHazards] = useState<any[]>([]);
 
@@ -31,6 +34,7 @@ function KrasReport() {
 
   return (
     <div className="bg-white text-foreground">
+      {sub.isTrial && <TrialWatermark expired={sub.isExpired} />}
       <div className="print:hidden p-4 max-w-6xl mx-auto flex justify-between items-center border-b">
         <Link to="/assessment/$id/report" params={{ id }}><Button variant="outline" size="sm" className="gap-1"><ArrowLeft className="h-4 w-4" />결과서로 돌아가기</Button></Link>
         <Button onClick={() => window.print()} className="gap-2"><Printer className="h-4 w-4" />PDF 저장 / 인쇄</Button>

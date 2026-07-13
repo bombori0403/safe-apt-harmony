@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Printer, ArrowLeft } from "lucide-react";
 import { KrasReportTable, KRAS_PRINT_STYLE } from "@/components/kras-report-table";
+import { TrialWatermark } from "@/components/trial-watermark";
+import { useSubscription } from "@/hooks/use-subscription";
 
 export const Route = createFileRoute("/_app/kras-report-all")({
   validateSearch: (s: Record<string, unknown>) => ({
@@ -16,6 +18,7 @@ export const Route = createFileRoute("/_app/kras-report-all")({
 
 function KrasReportAll() {
   const { complexId, type, q } = Route.useSearch();
+  const sub = useSubscription();
   const [assessments, setAssessments] = useState<any[]>([]);
   const [hazardsByAssessment, setHazardsByAssessment] = useState<Record<string, any[]>>({});
   const [loading, setLoading] = useState(true);
@@ -53,6 +56,7 @@ function KrasReportAll() {
 
   return (
     <div className="bg-white text-foreground">
+      {sub.isTrial && <TrialWatermark expired={sub.isExpired} />}
       <div className="print:hidden p-4 max-w-6xl mx-auto flex justify-between items-center border-b">
         <Link to="/history"><Button variant="outline" size="sm" className="gap-1"><ArrowLeft className="h-4 w-4" />평가 이력으로</Button></Link>
         <Button onClick={() => window.print()} className="gap-2" disabled={loading || assessments.length === 0}>

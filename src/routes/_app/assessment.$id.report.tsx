@@ -7,6 +7,8 @@ import { Link } from "@tanstack/react-router";
 import { riskLevelClass, type RiskLevel } from "@/lib/types";
 import { useAuth } from "@/hooks/use-auth";
 import { WORK_STOP_LAW_TITLE, WORK_STOP_LAW_TEXT, WORK_STOP_PROCEDURE } from "@/lib/work-stop-law";
+import { TrialWatermark } from "@/components/trial-watermark";
+import { useSubscription } from "@/hooks/use-subscription";
 
 export const Route = createFileRoute("/_app/assessment/$id/report")({
   component: Report,
@@ -15,6 +17,7 @@ export const Route = createFileRoute("/_app/assessment/$id/report")({
 function Report() {
   const { id } = Route.useParams();
   const { user } = useAuth();
+  const sub = useSubscription();
   const [role, setRole] = useState<string | null>(null);
   const [a, setA] = useState<any>(null);
   const [complex, setComplex] = useState<any>(null);
@@ -61,6 +64,7 @@ function Report() {
 
   return (
     <div className="bg-white text-foreground">
+      {sub.isTrial && <TrialWatermark expired={sub.isExpired} />}
       <div className="print:hidden p-4 max-w-4xl mx-auto flex justify-between items-center border-b">
         <Link to="/assessment/$id" params={{ id }}><Button variant="outline" size="sm" className="gap-1"><ArrowLeft className="h-4 w-4" />돌아가기</Button></Link>
         <div className="flex gap-2">
