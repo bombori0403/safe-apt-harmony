@@ -712,6 +712,7 @@ export type Database = {
       }
       organizations: {
         Row: {
+          activation_requested_at: string | null
           address: string | null
           approval_status: Database["public"]["Enums"]["org_approval_status"]
           business_number: string | null
@@ -727,6 +728,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          activation_requested_at?: string | null
           address?: string | null
           approval_status?: Database["public"]["Enums"]["org_approval_status"]
           business_number?: string | null
@@ -742,6 +744,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          activation_requested_at?: string | null
           address?: string | null
           approval_status?: Database["public"]["Enums"]["org_approval_status"]
           business_number?: string | null

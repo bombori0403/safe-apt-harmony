@@ -12,10 +12,13 @@ export function TrialExpiredBlock({ what = "이 기능" }: { what?: string }) {
       </div>
       <h1 className="text-xl font-bold">체험 기간이 종료되었습니다</h1>
       <p className="text-sm text-muted-foreground leading-relaxed">
-        14일 무료 체험이 끝나 {what}은(는) 잠겼습니다. 새 평가 작성과 출력은 정식 전환 후 이용할 수 있어요.
+        14일 무료 체험이 끝나 {what}은(는) 잠겼습니다. 정식 등록 후 승인되면 제한 없이 이용할 수 있어요.
         기존에 작성한 데이터는 계속 조회할 수 있습니다.
       </p>
-      <Link to="/dashboard"><Button variant="outline">대시보드로 돌아가기</Button></Link>
+      <div className="flex flex-col sm:flex-row gap-2 justify-center pt-1">
+        <Link to="/activate"><Button className="w-full sm:w-auto">정식 등록하고 계속 사용하기</Button></Link>
+        <Link to="/dashboard"><Button variant="outline" className="w-full sm:w-auto">대시보드로 돌아가기</Button></Link>
+      </div>
     </div>
   );
 }

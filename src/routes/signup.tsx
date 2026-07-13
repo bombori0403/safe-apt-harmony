@@ -13,7 +13,6 @@ export const Route = createFileRoute("/signup")({ component: Signup });
 
 function Signup() {
   const [orgName, setOrgName] = useState("");
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -21,29 +20,30 @@ function Signup() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
+    const repName = email.split("@")[0] || orgName;
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: window.location.origin,
-          data: { signup_type: "org_admin", org_name: orgName, name },
+          data: { signup_type: "org_admin", org_name: orgName, name: repName },
         },
       });
       if (error) throw error;
       const isNewSignup = (data.user?.identities?.length ?? 0) > 0;
       if (!isNewSignup) {
-        toast.error("이미 가입 신청된 이메일입니다. 인증 메일을 다시 확인해주세요.");
+        toast.error("이미 가입된 이메일입니다. 로그인해주세요.");
         window.location.href = "/login";
         return;
       }
-      notifyPendingSignup({ data: { orgName, repName: name, email } }).catch(() => {});
+      notifyPendingSignup({ data: { orgName, repName, email } }).catch(() => {});
       if (!data.session) {
-        toast.success("가입 신청 완료! 이메일의 인증 링크를 확인해주세요.");
+        toast.success("가입 완료! 이메일의 인증 링크를 확인해주세요.");
         window.location.href = "/login";
         return;
       }
-      toast.success("회사 등록 완료! 관리자 승인 후 이용하실 수 있습니다.");
+      toast.success("14일 무료 체험이 시작되었습니다!");
       window.location.href = "/dashboard";
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "오류가 발생했습니다");
@@ -69,22 +69,23 @@ function Signup() {
 
         <div className="relative space-y-6">
           <h2 className="text-3xl font-bold leading-snug tracking-tight">
-            지금 등록하고
+            이메일만 있으면
             <br />
-            14일 무료로 체험하세요
+            지금 바로 시작
           </h2>
           <p className="text-sm text-primary-foreground/80 max-w-sm leading-relaxed">
-            회사를 등록하면 관리자 권한으로 바로 시작할 수 있어요. 별도 설치나 결제 정보 없이 체험 가능합니다.
+            복잡한 절차 없이 14일 무료 체험을 시작하세요. 결제 정보도, 승인 대기도 없습니다.
+            체험이 끝나면 그때 정식 등록하면 됩니다.
           </p>
           <ul className="space-y-3 text-sm">
             <li className="flex items-center gap-2.5 text-primary-foreground/90">
-              <Clock className="h-4 w-4 shrink-0" /> 14일 무료 체험 · 신용카드 불필요
+              <Clock className="h-4 w-4 shrink-0" /> 가입 즉시 14일 무료 체험 · 신용카드 불필요
             </li>
             <li className="flex items-center gap-2.5 text-primary-foreground/90">
               <Users className="h-4 w-4 shrink-0" /> 직원 초대 제한 없음
             </li>
             <li className="flex items-center gap-2.5 text-primary-foreground/90">
-              <ShieldCheck className="h-4 w-4 shrink-0" /> 관리자 승인 기반 안전한 가입
+              <ShieldCheck className="h-4 w-4 shrink-0" /> 체험 후 정식 등록 시에만 승인 절차
             </li>
           </ul>
         </div>
@@ -97,23 +98,19 @@ function Signup() {
             <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary text-primary-foreground mb-3 shadow-lg shadow-primary/20">
               <Building2 className="h-7 w-7" />
             </div>
-            <h1 className="text-2xl font-bold tracking-tight">회사 대표 가입</h1>
-            <p className="text-sm text-muted-foreground mt-1">새 조직을 만들고 관리자 권한으로 시작합니다</p>
+            <h1 className="text-2xl font-bold tracking-tight">14일 무료 체험 시작</h1>
+            <p className="text-sm text-muted-foreground mt-1">이메일과 단지명만 입력하면 바로 시작합니다</p>
           </div>
 
           <div className="mb-7 hidden lg:block">
-            <h1 className="text-2xl font-bold tracking-tight">회사 등록</h1>
-            <p className="text-sm text-muted-foreground mt-1.5">새 조직을 만들고 관리자 권한으로 시작합니다</p>
+            <h1 className="text-2xl font-bold tracking-tight">14일 무료 체험 시작</h1>
+            <p className="text-sm text-muted-foreground mt-1.5">이메일과 단지/회사명만 입력하면 바로 시작합니다</p>
           </div>
 
           <form onSubmit={submit} className="space-y-4">
             <div className="space-y-1.5">
-              <Label>회사(조직)명</Label>
-              <Input value={orgName} onChange={(e) => setOrgName(e.target.value)} required maxLength={200} placeholder="(주)○○관리" className="h-11" />
-            </div>
-            <div className="space-y-1.5">
-              <Label>대표자 이름</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} required maxLength={100} className="h-11" />
+              <Label>단지 / 회사명</Label>
+              <Input value={orgName} onChange={(e) => setOrgName(e.target.value)} required maxLength={200} placeholder="○○아파트 관리사무소" className="h-11" />
             </div>
             <div className="space-y-1.5">
               <Label>이메일</Label>
@@ -124,13 +121,13 @@ function Signup() {
               <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} className="h-11" />
             </div>
             <Button type="submit" disabled={loading} className="w-full h-11 text-base mt-1">
-              {loading ? "등록 중..." : "회사 등록 후 가입"}
+              {loading ? "시작 중..." : "무료로 시작하기"}
             </Button>
           </form>
           <Link to="/login" className="block text-center mt-4 text-sm text-primary hover:underline">로그인으로 돌아가기</Link>
 
-          <p className="text-[11px] text-center text-muted-foreground mt-6 lg:hidden">
-            14일 무료 체험 · 직원 초대 제한 없음
+          <p className="text-[11px] text-center text-muted-foreground mt-6">
+            가입 시 즉시 14일 체험이 시작됩니다 · 결제 정보 불필요
           </p>
         </div>
       </div>
