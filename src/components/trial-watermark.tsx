@@ -31,7 +31,7 @@ export function TrialWatermark({ expired }: { expired?: boolean }) {
   return (
     <div
       aria-hidden
-      className="pointer-events-none fixed inset-0 z-[100] overflow-hidden select-none"
+      className="trial-watermark-layer pointer-events-none fixed inset-0 z-[100] overflow-hidden select-none"
     >
       <div className="absolute inset-[-20%] grid grid-cols-3 gap-y-24 place-items-center opacity-[0.10]">
         {Array.from({ length: 24 }).map((_, i) => (
