@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { useSubscription } from "@/hooks/use-subscription";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,7 @@ export const Route = createFileRoute("/_app/assessment/new")({
 
 function NewAssessment() {
   const { user } = useAuth();
+  const sub = useSubscription();
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [complexId, setComplexId] = useState<string>("");
@@ -78,6 +80,13 @@ function NewAssessment() {
   async function submit() {
     if (!complexId) { toast.error("단지가 지정되지 않았습니다"); return; }
     if (!workStopConsent) { toast.error("작업중지권 안내 동의가 필요합니다"); return; }
+    if (sub.isTrial) {
+      const { count } = await supabase.from("assessments").select("id", { count: "exact", head: true });
+      if ((count ?? 0) >= 10) {
+        toast.error("체험판은 평가 10건까지 작성할 수 있습니다. 정식 전환 후 계속하세요.");
+        return;
+      }
+    }
     setSaving(true);
     try {
       const { data, error } = await supabase

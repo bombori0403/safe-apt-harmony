@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { useSubscription } from "@/hooks/use-subscription";
 import { createComplex, deleteComplex } from "@/lib/user-context.functions";
 import { leaveOrganization, deleteAccount, deleteOrganization } from "@/lib/account.functions";
 import { useServerFn } from "@tanstack/react-start";
@@ -32,6 +33,7 @@ const EMPTY_COMPLEX = {
 
 function Settings() {
   const { user, signOut } = useAuth();
+  const sub = useSubscription();
   const createComplexFn = useServerFn(createComplex);
   const deleteComplexFn = useServerFn(deleteComplex);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -87,6 +89,10 @@ function Settings() {
   async function handleCreate() {
     if (!newComplex.name?.trim()) { toast.error("단지명을 입력하세요"); return; }
     if (!newComplex.address?.trim()) { toast.error("주소를 입력하세요"); return; }
+    if (sub.isTrial && complexes.length >= 1) {
+      toast.error("체험판은 단지 1개까지 등록할 수 있습니다. 정식 전환 후 추가하세요.");
+      return;
+    }
     setCreating(true);
     try {
       await createComplexFn({ data: {
