@@ -27,7 +27,7 @@ function Landing() {
             <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-primary text-primary-foreground">
               <Shield className="h-5 w-5" />
             </div>
-            <span className="font-bold tracking-tight">위험성평가-리스크데스크</span>
+            <span className="font-bold tracking-tight">안전데스크</span>
           </div>
           <div className="flex items-center gap-2">
             <Link to="/login"><Button variant="ghost" size="sm">로그인</Button></Link>
@@ -133,7 +133,7 @@ function Landing() {
         <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col md:flex-row items-center justify-between gap-3 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <Shield className="h-4 w-4 text-primary" />
-            <span className="font-medium text-foreground">위험성평가-리스크데스크</span>
+            <span className="font-medium text-foreground">안전데스크</span>
           </div>
           <div className="flex items-center gap-4">
             <Link to="/login" className="hover:text-foreground">로그인</Link>

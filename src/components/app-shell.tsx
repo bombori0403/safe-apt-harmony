@@ -53,7 +53,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="flex items-center gap-2 px-5 h-16 border-b">
           <Shield className="h-6 w-6 text-primary" />
           <div className="min-w-0">
-            <div className="font-bold text-lg tracking-tight leading-tight">안전관리소</div>
+            <div className="font-bold text-lg tracking-tight leading-tight">안전데스크</div>
             {orgName && <div className="text-[11px] text-muted-foreground truncate">{orgName}</div>}
           </div>
         </div>
@@ -89,7 +89,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <header className="md:hidden h-14 flex items-center justify-between px-4 border-b bg-card print:hidden">
           <div className="flex items-center gap-2 font-bold min-w-0">
             <Shield className="h-5 w-5 text-primary shrink-0" />
-            <span className="truncate">안전관리소{orgName && <span className="text-xs text-muted-foreground font-normal ml-1">· {orgName}</span>}</span>
+            <span className="truncate">안전데스크{orgName && <span className="text-xs text-muted-foreground font-normal ml-1">· {orgName}</span>}</span>
           </div>
           <Button variant="ghost" size="sm" onClick={signOut}>로그아웃</Button>
         </header>

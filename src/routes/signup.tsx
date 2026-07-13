@@ -60,7 +60,7 @@ function Signup() {
           <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-white/15">
             <Building2 className="h-5 w-5" />
           </div>
-          <span className="font-bold tracking-tight">위험성평가-리스크데스크</span>
+          <span className="font-bold tracking-tight">안전데스크</span>
         </div>
 
         <div className="absolute inset-0 flex items-center justify-center opacity-90 pointer-events-none">

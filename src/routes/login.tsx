@@ -72,7 +72,7 @@ function Login() {
           <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-white/15">
             <Shield className="h-5 w-5" />
           </div>
-          <span className="font-bold tracking-tight">위험성평가-리스크데스크</span>
+          <span className="font-bold tracking-tight">안전데스크</span>
         </Link>
 
         <div className="absolute inset-0 flex items-center justify-center opacity-90 pointer-events-none">
@@ -111,7 +111,7 @@ function Login() {
             <Link to="/" className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary text-primary-foreground mb-3 shadow-lg shadow-primary/20">
               <Shield className="h-7 w-7" />
             </Link>
-            <h1 className="text-2xl font-bold tracking-tight">위험성평가-리스크데스크</h1>
+            <h1 className="text-2xl font-bold tracking-tight">안전데스크</h1>
             <p className="text-sm text-muted-foreground mt-1">공동주택 위험성평가 통합 관리 플랫폼</p>
           </div>
 

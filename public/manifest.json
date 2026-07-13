@@ -1,6 +1,6 @@
 {
-  "name": "위험성평가-리스크데스크",
-  "short_name": "리스크데스크",
+  "name": "안전데스크",
+  "short_name": "안전데스크",
   "description": "공동주택 위험성평가 통합 관리 플랫폼",
   "start_url": "/",
   "scope": "/",

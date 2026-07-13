@@ -61,10 +61,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1" },
-      { title: "안전관리소 — 공동주택 위험성평가 SaaS" },
+      { title: "안전데스크 — 공동주택 위험성평가 SaaS" },
       { name: "description", content: "한국 공동주택 관리사무소 전용 위험성평가 통합 관리 플랫폼. 산업안전보건법 제36조, 고용노동부 고시 제2024-76호 기반." },
-      { property: "og:title", content: "안전관리소 — 공동주택 위험성평가 SaaS" },
-      { name: "twitter:title", content: "안전관리소 — 공동주택 위험성평가 SaaS" },
+      { property: "og:title", content: "안전데스크 — 공동주택 위험성평가 SaaS" },
+      { name: "twitter:title", content: "안전데스크 — 공동주택 위험성평가 SaaS" },
       { property: "og:description", content: "한국 공동주택 관리사무소 전용 위험성평가 통합 관리 플랫폼. 산업안전보건법 제36조, 고용노동부 고시 제2024-76호 기반." },
       { name: "twitter:description", content: "한국 공동주택 관리사무소 전용 위험성평가 통합 관리 플랫폼. 산업안전보건법 제36조, 고용노동부 고시 제2024-76호 기반." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/bc455ff5-fc97-47f9-af6b-cc296feeed59/id-preview-e47dee32--3d4c749f-5fc7-486e-8fbe-9a17f7a08560.lovable.app-1778465671922.png" },
@@ -74,7 +74,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "theme-color", content: "#1E40AF" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
-      { name: "apple-mobile-web-app-title", content: "리스크데스크" },
+      { name: "apple-mobile-web-app-title", content: "안전데스크" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
