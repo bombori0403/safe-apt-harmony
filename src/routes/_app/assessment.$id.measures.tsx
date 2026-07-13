@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RISK_ORDER, riskLevelClass, scoreToRiskLevel, type RiskLevel } from "@/lib/types";
 import { toast } from "sonner";
+import { writeErrorMessage } from "@/lib/write-error";
 import { Pencil, Trash2, Check, X, Printer } from "lucide-react";
 
 const MEASURE_TYPES = ["본질적_대책", "공학적_대책", "관리적_대책", "개인보호구"] as const;
@@ -54,14 +55,14 @@ function Measures() {
 
   async function addMeasure(hid: string, payload: any) {
     const { data, error } = await supabase.from("measures").insert({ hazard_id: hid, ...payload }).select();
-    if (error) { console.error(error); toast.error(error.message); return; }
+    if (error) { console.error(error); toast.error(writeErrorMessage(error)); return; }
     if (!data || data.length === 0) { toast.error("권한이 없어 추가할 수 없습니다"); return; }
     toast.success("대책 추가됨"); load();
   }
 
   async function updateMeasure(mid: string, patch: any) {
     const { data, error } = await supabase.from("measures").update(patch).eq("id", mid).select();
-    if (error) { console.error(error); toast.error(error.message); return; }
+    if (error) { console.error(error); toast.error(writeErrorMessage(error)); return; }
     if (!data || data.length === 0) { toast.error("권한이 없어 수정할 수 없습니다"); return; }
     toast.success("저장되었습니다"); load();
   }
@@ -76,14 +77,14 @@ function Measures() {
       if (pl && ps) merged.post_level = scoreToRiskLevel(pl * ps);
     }
     const { error } = await supabase.from("hazards").update(merged).eq("id", hid);
-    if (error) { toast.error(error.message); return; }
+    if (error) { toast.error(writeErrorMessage(error)); return; }
     load();
   }
 
   async function deleteMeasure(mid: string) {
     if (!confirm("이 감소대책을 삭제하시겠습니까?")) return;
     const { data, error } = await supabase.from("measures").delete().eq("id", mid).select();
-    if (error) { console.error(error); toast.error(error.message); return; }
+    if (error) { console.error(error); toast.error(writeErrorMessage(error)); return; }
     if (!data || data.length === 0) { toast.error("권한이 없어 삭제할 수 없습니다"); return; }
     toast.success("삭제되었습니다"); load();
   }

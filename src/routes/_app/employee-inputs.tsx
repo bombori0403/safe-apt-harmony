@@ -12,6 +12,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { writeErrorMessage } from "@/lib/write-error";
 import { Trash2, MessageCircle, Mic, Camera, Loader2, X, Users, Pencil, Printer } from "lucide-react";
 import { compressImage } from "@/lib/image-compress";
 
@@ -175,7 +176,7 @@ function EmployeeInputs() {
       meta: hearing as any,
     } as any);
     setSaving(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) { toast.error(writeErrorMessage(error)); return; }
     toast.success("청취조사가 등록되었습니다");
     setHearing({ ...EMPTY_HEARING });
     setHearingFiles([]);
@@ -201,7 +202,7 @@ function EmployeeInputs() {
       meta: chat as any,
     } as any);
     setSaving(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) { toast.error(writeErrorMessage(error)); return; }
     toast.success("오픈채팅 이력이 등록되었습니다");
     setChat({ ...EMPTY_CHAT });
     setChatFiles([]);
@@ -212,7 +213,7 @@ function EmployeeInputs() {
   async function del(rowId: string) {
     if (!confirm("삭제하시겠습니까?")) return;
     const { error } = await supabase.from("employee_inputs").delete().eq("id", rowId);
-    if (error) toast.error(error.message); else { toast.success("삭제됨"); load(); }
+    if (error) toast.error(writeErrorMessage(error)); else { toast.success("삭제됨"); load(); }
   }
 
   async function saveEdit() {
@@ -236,7 +237,7 @@ function EmployeeInputs() {
     }
     const { error } = await supabase.from("employee_inputs").update(patch).eq("id", editing.id);
     setSaving(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) { toast.error(writeErrorMessage(error)); return; }
     toast.success("수정되었습니다");
     setEditing(null);
     load();

@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Camera, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
+import { writeErrorMessage } from "@/lib/write-error";
 import { compressImage } from "@/lib/image-compress";
 import { getCurrentUserContext } from "@/lib/user-context";
 
@@ -103,7 +104,7 @@ function NewNearMiss() {
       countermeasure_completed: false,
     });
     setSaving(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) { toast.error(writeErrorMessage(error)); return; }
     toast.success("아차사고가 등록되었습니다");
     navigate({ to: "/near-miss" });
   }

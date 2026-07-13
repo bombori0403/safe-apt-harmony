@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Camera, Loader2, Pencil, Printer, X } from "lucide-react";
 import { toast } from "sonner";
+import { writeErrorMessage } from "@/lib/write-error";
 import { compressImage } from "@/lib/image-compress";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -138,7 +139,7 @@ function NearMissDetail() {
       .maybeSingle();
     setSaving(false);
     if (error) {
-      toast.error(error.message);
+      toast.error(writeErrorMessage(error));
       return;
     }
     if (!updated) {
@@ -155,7 +156,7 @@ function NearMissDetail() {
     if (!confirm("삭제하시겠습니까?")) return;
     const { error } = await (supabase as any).from("near_miss").delete().eq("id", id);
     if (error) {
-      toast.error(error.message);
+      toast.error(writeErrorMessage(error));
       return;
     }
     toast.success("삭제되었습니다");

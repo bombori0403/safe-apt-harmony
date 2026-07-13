@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { WORK_CATEGORIES, CATEGORY_LABEL, type WorkCategory } from "@/lib/types";
 import { suggestLegalBasis } from "@/lib/legal-basis-keywords";
 import { toast } from "sonner";
+import { writeErrorMessage } from "@/lib/write-error";
 import { Plus, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/_app/assessment/$id/hazards")({
@@ -53,7 +54,7 @@ function Hazards() {
     ];
     if (rows.length === 0) { toast.error("최소 1개 이상의 유해·위험요인을 선택하세요"); setSaving(false); return; }
     const { error } = await supabase.from("hazards").insert(rows);
-    if (error) { toast.error(error.message); setSaving(false); return; }
+    if (error) { toast.error(writeErrorMessage(error)); setSaving(false); return; }
     await supabase.from("assessments").update({ work_category: customCategory.trim() || category }).eq("id", id);
     toast.success(`${rows.length}건 추가됨. 위험성 결정 단계로 이동합니다.`);
     navigate({ to: "/assessment/$id/results", params: { id } });

@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Plus, ShieldAlert, Camera, X, Loader2, CheckCircle2, Printer, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { writeErrorMessage } from "@/lib/write-error";
 import { getCurrentUserContext } from "@/lib/user-context";
 import { compressImage } from "@/lib/image-compress";
 
@@ -186,7 +187,7 @@ function WorkStopRecords() {
       ? await (supabase as any).from("work_stop_records").update(payload).eq("id", editId)
       : await (supabase as any).from("work_stop_records").insert({ ...payload, reported_by: userRowId || null, reflected_in_assessment: false });
     setSaving(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) { toast.error(writeErrorMessage(error)); return; }
     toast.success(editId ? "수정되었습니다" : "등록되었습니다");
     setOpen(false);
     resetForm();
@@ -198,7 +199,7 @@ function WorkStopRecords() {
     setDeleting(true);
     const { error } = await (supabase as any).from("work_stop_records").delete().eq("id", deleteId);
     setDeleting(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) { toast.error(writeErrorMessage(error)); return; }
     toast.success("삭제되었습니다");
     setDeleteId(null);
     load();
@@ -216,7 +217,7 @@ function WorkStopRecords() {
       resolution_photos: resumePhotos,
     }).eq("id", resumeId);
     setResumeSaving(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) { toast.error(writeErrorMessage(error)); return; }
     toast.success("작업 재개 처리되었습니다");
     setResumeId(null); setResumeDetail(""); setResumePhotos([]); setBeforeFixPhotos([]); setExistingCausePhotos([]);
     load();

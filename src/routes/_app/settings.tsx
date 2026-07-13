@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useSubscription } from "@/hooks/use-subscription";
+import { writeErrorMessage } from "@/lib/write-error";
 import { createComplex, deleteComplex } from "@/lib/user-context.functions";
 import { leaveOrganization, deleteAccount, deleteOrganization } from "@/lib/account.functions";
 import { useServerFn } from "@tanstack/react-start";
@@ -77,7 +78,7 @@ function Settings() {
         .select("*")
         .in("id", complexIds)
         .order("created_at", { ascending: true });
-      if (error) toast.error(error.message);
+      if (error) toast.error(writeErrorMessage(error));
       setComplexes(list ?? []);
       setShowNewForm(isAdmin && (list ?? []).length === 0);
     }
@@ -108,7 +109,7 @@ function Settings() {
       setShowNewForm(false);
       await reload();
     } catch (e: any) {
-      toast.error(e?.message ?? "단지 등록에 실패했습니다");
+      toast.error(writeErrorMessage(e, "단지 등록에 실패했습니다"));
     } finally {
       setCreating(false);
     }
@@ -121,7 +122,7 @@ function Settings() {
       name: userRow.name, job_title: userRow.job_title, phone: userRow.phone,
     }).eq("id", userRow.id);
     setSavingUser(false);
-    if (error) toast.error(error.message); else toast.success("프로필이 저장되었습니다");
+    if (error) toast.error(writeErrorMessage(error)); else toast.success("프로필이 저장되었습니다");
   }
 
   async function saveOrg() {
@@ -136,7 +137,7 @@ function Settings() {
       representative_name: org.representative_name?.trim() || null,
     }).eq("id", org.id);
     setSavingOrg(false);
-    if (error) toast.error(error.message); else toast.success("본사 정보가 저장되었습니다");
+    if (error) toast.error(writeErrorMessage(error)); else toast.success("본사 정보가 저장되었습니다");
   }
 
   async function handleDelete(c: any) {
@@ -162,7 +163,7 @@ function Settings() {
       initial_assessment_date: c.initial_assessment_date || null,
     }).eq("id", c.id);
     setSavingId(null);
-    if (error) toast.error(error.message); else toast.success("단지 정보가 저장되었습니다");
+    if (error) toast.error(writeErrorMessage(error)); else toast.success("단지 정보가 저장되었습니다");
   }
 
   function updateComplex(id: string, patch: any) {
