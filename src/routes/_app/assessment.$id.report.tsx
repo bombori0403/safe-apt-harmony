@@ -7,7 +7,7 @@ import { Link } from "@tanstack/react-router";
 import { riskLevelClass, type RiskLevel } from "@/lib/types";
 import { useAuth } from "@/hooks/use-auth";
 import { WORK_STOP_LAW_TITLE, WORK_STOP_LAW_TEXT, WORK_STOP_PROCEDURE } from "@/lib/work-stop-law";
-import { TrialWatermark } from "@/components/trial-watermark";
+import { TrialWatermark, TrialExpiredBlock } from "@/components/trial-watermark";
 import { useSubscription } from "@/hooks/use-subscription";
 
 export const Route = createFileRoute("/_app/assessment/$id/report")({
@@ -61,6 +61,7 @@ function Report() {
     );
   }
   if (!a) return <div className="p-8 text-muted-foreground">불러오는 중...</div>;
+  if (sub.isExpired) return <TrialExpiredBlock what="결과서 출력" />;
 
   return (
     <div className="bg-white text-foreground">

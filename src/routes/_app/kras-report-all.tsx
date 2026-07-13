@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Printer, ArrowLeft } from "lucide-react";
 import { KrasReportTable, KRAS_PRINT_STYLE } from "@/components/kras-report-table";
-import { TrialWatermark } from "@/components/trial-watermark";
+import { TrialWatermark, TrialExpiredBlock } from "@/components/trial-watermark";
 import { useSubscription } from "@/hooks/use-subscription";
 
 export const Route = createFileRoute("/_app/kras-report-all")({
@@ -53,6 +53,8 @@ function KrasReportAll() {
   const allHazards = assessments.flatMap((a) =>
     (hazardsByAssessment[a.id] ?? []).map((h) => ({ ...h, work_name: a.work_name, _method: a.method }))
   );
+
+  if (sub.isExpired) return <TrialExpiredBlock what="KRAS 양식 출력" />;
 
   return (
     <div className="bg-white text-foreground">

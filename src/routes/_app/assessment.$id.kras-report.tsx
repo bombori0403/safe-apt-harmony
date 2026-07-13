@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Printer, ArrowLeft } from "lucide-react";
 import { KrasReportTable, KRAS_PRINT_STYLE } from "@/components/kras-report-table";
-import { TrialWatermark } from "@/components/trial-watermark";
+import { TrialWatermark, TrialExpiredBlock } from "@/components/trial-watermark";
 import { useSubscription } from "@/hooks/use-subscription";
 
 export const Route = createFileRoute("/_app/assessment/$id/kras-report")({
@@ -31,6 +31,7 @@ function KrasReport() {
   }, [id]);
 
   if (!a) return <div className="p-8 text-muted-foreground">불러오는 중...</div>;
+  if (sub.isExpired) return <TrialExpiredBlock what="KRAS 양식 출력" />;
 
   return (
     <div className="bg-white text-foreground">

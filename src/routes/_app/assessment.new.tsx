@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useSubscription } from "@/hooks/use-subscription";
+import { TrialExpiredBlock } from "@/components/trial-watermark";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -126,6 +127,8 @@ function NewAssessment() {
       setSaving(false);
     }
   }
+
+  if (sub.isExpired) return <TrialExpiredBlock what="새 평가 작성" />;
 
   return (
     <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-5">
