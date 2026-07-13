@@ -9,7 +9,6 @@ import { useSubscription } from "@/hooks/use-subscription";
 import { TrialWatermark, TrialExpiredBlock } from "@/components/trial-watermark";
 import { KrasReportTable } from "@/components/kras-report-table";
 import { RegulationDocument, REGULATION_DEFAULTS } from "@/components/regulation-document";
-import { WORK_STOP_LAW_TITLE, WORK_STOP_LAW_TEXT } from "@/lib/work-stop-law";
 
 const DOC_TYPES = [
   ["regulation", "실시규정"],
@@ -383,15 +382,6 @@ function PrintAll() {
             </div>
           );
         })}
-
-        {/* 부록 — 작업중지권 안내 (작업중지권 문서 선택 시) */}
-        {docTypes.workStop && (
-          <section className="page">
-            <h2 className="font-bold border-b pb-1 mb-3 text-lg">[부록] {WORK_STOP_LAW_TITLE}</h2>
-            <pre className="whitespace-pre-wrap text-xs leading-relaxed font-sans">{WORK_STOP_LAW_TEXT}</pre>
-            <p className="text-[10px] text-gray-500 mt-4">본 자료는 산업안전보건법 시행규칙 제37조에 따라 5년간 보존됩니다.</p>
-          </section>
-        )}
       </div>
 
       <style>{`
