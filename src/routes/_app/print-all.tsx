@@ -252,67 +252,33 @@ function PrintAll() {
                 </table>
               </section>
 
-              {/* 위험성평가 (KRAS 양식, 건별) */}
-              {docTypes.kras && d.assessments.map((a: any) => {
-                const hs = d.hazards.filter((h: any) => h.assessment_id === a.id).map((h: any) => ({
-                  ...h,
-                  measures: d.measures.filter((m: any) => m.hazard_id === h.id),
-                  work_name: a.work_name,
-                  _method: a.method,
-                }));
-                const parts = d.participants.filter((p: any) => p.assessment_id === a.id);
-                const sigs = d.signatures.filter((s: any) => s.assessment_id === a.id);
+              {/* 위험성평가 (KRAS 양식, 전체 — No.1~N 연속 표) */}
+              {docTypes.kras && (() => {
+                const allHs = d.assessments.flatMap((a: any) =>
+                  d.hazards.filter((h: any) => h.assessment_id === a.id).map((h: any) => ({
+                    ...h,
+                    measures: d.measures.filter((m: any) => m.hazard_id === h.id),
+                    work_name: a.work_name,
+                    _method: a.method,
+                  }))
+                );
+                if (allHs.length === 0) return null;
                 return (
-                  <section key={a.id} className="page kras-page">
+                  <section className="page kras-page">
                     <header className="text-center border-b-2 border-black pb-4 mb-4">
-                      <div className="text-sm text-gray-600">위험성평가표 (KRAS 양식)</div>
-                      <h1 className="text-2xl font-bold mt-1">{a.work_name}</h1>
-                      <div className="text-xs mt-1">{c.name} · 평가일 {a.assessment_date} · {a.method}</div>
+                      <div className="text-sm text-gray-600">위험성평가표 (KRAS 양식) — 전체</div>
+                      <h1 className="text-xl font-bold mt-1">{c.name}</h1>
+                      <div className="text-xs mt-1">평가 {d.assessments.length}건 · 유해·위험요인 {allHs.length}건</div>
                     </header>
 
-                    <section className="mb-6">
-                      <KrasReportTable workName={a.work_name} hazards={hs} method={a.method} />
-                    </section>
+                    <KrasReportTable workName={c.name} hazards={allHs} />
 
-                    <section>
-                      <h2 className="font-bold border-b pb-1 mb-3">참여자 확인</h2>
-                      <table className="w-full text-sm border-collapse">
-                        <thead>
-                          <tr className="border-b-2 border-black">
-                            <th className="py-2 text-left">성명</th>
-                            <th className="py-2 text-left">직책</th>
-                            <th className="py-2 text-left">참여구분</th>
-                            <th className="py-2 text-left w-32">서명</th>
-                            <th className="py-2 text-left w-32">확인일시</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {parts.map((p: any) => {
-                            const sig = sigs.find((s: any) => s.participant_id === p.id);
-                            return (
-                              <tr key={p.id} className="border-b">
-                                <td className="py-2">{p.name}</td>
-                                <td className="py-2">{p.role ?? "-"}</td>
-                                <td className="py-2">{p.participation_role}</td>
-                                <td className="py-2">
-                                  {sig?.signature_image?.startsWith("data:image") ? (
-                                    <img src={sig.signature_image} alt="서명" className="h-10 w-24 object-contain" />
-                                  ) : sig ? "확인됨" : "—"}
-                                </td>
-                                <td className="py-2 text-xs">{sig ? fmtDT(sig.signed_at) : "-"}</td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </section>
-
-                    <footer className="mt-8 pt-4 border-t text-[10px] text-gray-500 text-center">
-                      본 위험성평가표는 산업안전보건법 시행규칙 제37조에 따라 5년간 보존됩니다.
-                    </footer>
+                    <p className="text-[10px] text-gray-500 mt-4">
+                      ※ 관련근거 법적기준은 등록된 유해·위험요인 항목을 기준으로 자동 표시되며, 실제 법령 적용 여부는 별도 검토가 필요합니다.
+                    </p>
                   </section>
                 );
-              })}
+              })()}
 
 
               {/* 아차사고 (건별) */}
