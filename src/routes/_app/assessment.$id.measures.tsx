@@ -66,8 +66,16 @@ function Measures() {
     toast.success("저장되었습니다"); load();
   }
 
-  async function updatePostRisk(hid: string, patch: { post_likelihood?: number; post_severity?: number }) {
-    const { error } = await supabase.from("hazards").update(patch).eq("id", hid);
+  async function updatePostRisk(hid: string, patch: { post_likelihood?: number; post_severity?: number; post_level?: RiskLevel }) {
+    const merged: any = { ...patch };
+    // 빈도강도법: derive the level from the entered 가능성×중대성 numbers.
+    if (patch.post_likelihood !== undefined || patch.post_severity !== undefined) {
+      const h = items.find((x) => x.id === hid);
+      const pl = patch.post_likelihood ?? h?.post_likelihood;
+      const ps = patch.post_severity ?? h?.post_severity;
+      if (pl && ps) merged.post_level = scoreToRiskLevel(pl * ps);
+    }
+    const { error } = await supabase.from("hazards").update(merged).eq("id", hid);
     if (error) { toast.error(error.message); return; }
     load();
   }
@@ -133,7 +141,7 @@ function Measures() {
               </div>
             )}
             {h.measures?.length > 0 && (
-              <PostRiskEditor hazard={h} onChange={(p) => updatePostRisk(h.id, p)} />
+              <PostRiskEditor hazard={h} method={a.method} onChange={(p) => updatePostRisk(h.id, p)} />
             )}
           </CardContent></Card>
         ));
@@ -146,29 +154,75 @@ function Measures() {
   );
 }
 
-function PostRiskEditor({ hazard, onChange }: { hazard: any; onChange: (p: { post_likelihood?: number; post_severity?: number }) => void }) {
+function PostRiskEditor({ hazard, method, onChange }: { hazard: any; method: string; onChange: (p: { post_likelihood?: number; post_severity?: number; post_level?: RiskLevel }) => void }) {
   const score = hazard.post_likelihood && hazard.post_severity ? hazard.post_likelihood * hazard.post_severity : null;
-  const level = score ? scoreToRiskLevel(score) : null;
+  const shownLevel = (score ? scoreToRiskLevel(score) : hazard.post_level) as RiskLevel | null;
+
   return (
     <div className="border-t pt-3 mt-1 space-y-2 text-sm">
-      <div className="text-xs font-medium text-muted-foreground">개선 후 위험성</div>
-      <div className="flex items-center gap-2">
-        <span className="w-16 text-muted-foreground">가능성</span>
-        {[1,2,3,4,5].map(n => (
-          <button key={n} type="button" onClick={() => onChange({ post_likelihood: n })}
-            className={`w-8 h-8 rounded border text-xs ${hazard.post_likelihood===n?"bg-primary text-primary-foreground border-primary":""}`}>{n}</button>
-        ))}
-      </div>
-      <div className="flex items-center gap-2">
-        <span className="w-16 text-muted-foreground">중대성</span>
-        {[1,2,3,4,5].map(n => (
-          <button key={n} type="button" onClick={() => onChange({ post_severity: n })}
-            className={`w-8 h-8 rounded border text-xs ${hazard.post_severity===n?"bg-primary text-primary-foreground border-primary":""}`}>{n}</button>
-        ))}
-      </div>
-      {score && level && (
+      <div className="text-xs font-medium text-muted-foreground">개선 후 위험성 (감소대책 실행 후)</div>
+
+      {method === "빈도강도법" && (
+        <>
+          <div className="flex items-center gap-2">
+            <span className="w-16 text-muted-foreground">가능성</span>
+            {[1,2,3,4,5].map(n => (
+              <button key={n} type="button" onClick={() => onChange({ post_likelihood: n })}
+                className={`w-8 h-8 rounded border text-xs ${hazard.post_likelihood===n?"bg-primary text-primary-foreground border-primary":""}`}>{n}</button>
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-16 text-muted-foreground">중대성</span>
+            {[1,2,3,4,5].map(n => (
+              <button key={n} type="button" onClick={() => onChange({ post_severity: n })}
+                className={`w-8 h-8 rounded border text-xs ${hazard.post_severity===n?"bg-primary text-primary-foreground border-primary":""}`}>{n}</button>
+            ))}
+          </div>
+        </>
+      )}
+
+      {method === "3단계_판단법" && (
+        <div className="grid grid-cols-3 gap-2">
+          {(["하","중","상"] as const).map(v => {
+            const lvl: RiskLevel = v === "상" ? "매우높음" : v === "중" ? "보통" : "낮음";
+            const sel = hazard.post_level === lvl;
+            return <button key={v} type="button" onClick={() => onChange({ post_level: lvl })}
+              className={`py-2 rounded-md border-2 text-sm font-semibold ${sel ? (v==="상"?"border-danger bg-danger/10 text-danger":v==="중"?"border-warning bg-warning/10 text-warning":"border-success bg-success/10 text-success") : "border-border"}`}>{v}</button>;
+          })}
+        </div>
+      )}
+
+      {method === "5단계_판단법" && (
+        <div className="grid grid-cols-5 gap-1.5">
+          {(["매우낮음","낮음","보통","높음","매우높음"] as RiskLevel[]).map(lvl => (
+            <button key={lvl} type="button" onClick={() => onChange({ post_level: lvl })}
+              className={`py-2 rounded-md border text-xs font-medium ${hazard.post_level===lvl?"border-primary bg-primary/10":"border-border"}`}>{lvl}</button>
+          ))}
+        </div>
+      )}
+
+      {method === "체크리스트법" && (
+        <div className="flex gap-2">
+          <button type="button" onClick={() => onChange({ post_level: "낮음" })}
+            className={`flex-1 py-2.5 rounded-md border-2 ${hazard.post_level==="낮음"?"border-success bg-success/10 text-success":"border-border"}`}>○ 적정</button>
+          <button type="button" onClick={() => onChange({ post_level: "높음" })}
+            className={`flex-1 py-2.5 rounded-md border-2 ${hazard.post_level==="높음"?"border-danger bg-danger/10 text-danger":"border-border"}`}>× 보완</button>
+        </div>
+      )}
+
+      {method === "OPS" && (
+        <div className="grid grid-cols-5 gap-1.5">
+          {(["매우낮음","낮음","보통","높음","매우높음"] as RiskLevel[]).map(lvl => (
+            <button key={lvl} type="button" onClick={() => onChange({ post_level: lvl })}
+              className={`py-2 rounded-md border text-xs font-medium ${hazard.post_level===lvl?"border-primary bg-primary/10":"border-border"}`}>{lvl}</button>
+          ))}
+        </div>
+      )}
+
+      {shownLevel && (
         <div className="text-sm">
-          점수: <strong>{score}</strong>점 → <span className={`px-2 py-0.5 rounded text-xs ${riskLevelClass(level)}`}>{level}</span>
+          개선 후: {score && <><strong>{score}</strong>점 → </>}
+          <span className={`px-2 py-0.5 rounded text-xs ${riskLevelClass(shownLevel)}`}>{shownLevel}</span>
         </div>
       )}
     </div>

@@ -47,7 +47,9 @@ export function KrasReportTable({ workName, hazards }: { workName: string; hazar
         {hazards.map((h, i) => {
           const score = h.likelihood && h.severity ? h.likelihood * h.severity : null;
           const postScore = h.post_likelihood && h.post_severity ? h.post_likelihood * h.post_severity : null;
-          const postLevel = postScore ? scoreToRiskLevel(postScore) : null;
+          // Numeric score for 빈도강도법, otherwise the etc level (등급) picked per method.
+          const postRiskDisplay = postScore ?? h.post_level ?? null;
+          const postColorLevel = postScore ? scoreToRiskLevel(postScore) : (h.post_level ?? null);
           const measures = h.measures ?? [];
           const suggested = suggestLegalBasis(h.description);
           const legalBasis = h.legal_basis_override || h.hazard_library?.legal_basis || suggested?.legal_basis || "-";
@@ -85,7 +87,7 @@ export function KrasReportTable({ workName, hazards }: { workName: string; hazar
               <td className="border p-1 text-center">{h.post_likelihood ?? "-"}</td>
               <td className="border p-1 text-center">{h.post_severity ?? "-"}</td>
               <td className="border p-1 text-center">
-                {postLevel ? <span className={`px-1 py-0.5 rounded ${riskLevelClass(postLevel)}`}>{postScore}</span> : "-"}
+                {postRiskDisplay ? <span className={`px-1 py-0.5 rounded ${riskLevelClass(postColorLevel)}`}>{postRiskDisplay}</span> : "-"}
               </td>
               <td className="border p-1 text-center">{articleNo}</td>
               <td className="border p-1">{legalBasis}</td>
