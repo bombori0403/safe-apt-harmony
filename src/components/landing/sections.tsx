@@ -91,24 +91,28 @@ export function RiskSection() {
           <div className="px-6 py-4 border-b border-border/70 bg-muted/40">
             <h3 className="font-bold text-[15px]">실제로 처벌까지 간 사례</h3>
             <p className="text-xs text-muted-foreground mt-0.5">
-              단지명·업체명은 밝히지 않았습니다. 언론에 보도된 사건입니다.
+              단지명·업체명은 밝히지 않았습니다. 판결과 언론 보도로 확인된 사건이며, 출처는 아래에 있습니다.
             </p>
           </div>
           <ul className="divide-y divide-border/70">
             {REAL_CASES.map((c) => (
-              <li key={c.when} className="px-6 py-5 grid gap-2 sm:grid-cols-[7.5rem_1fr_auto] sm:items-center sm:gap-4">
-                <div className="text-xs font-semibold text-muted-foreground">
-                  {c.when}
-                  <div className="font-normal">{c.where}</div>
+              <li key={c.when} className="px-6 py-5 space-y-2.5">
+                <div className="grid gap-2 sm:grid-cols-[7.5rem_1fr_auto] sm:items-center sm:gap-4">
+                  <div className="text-xs font-semibold text-muted-foreground">
+                    {c.when}
+                    <div className="font-normal">{c.where}</div>
+                  </div>
+                  <div className="text-sm">{c.what}</div>
+                  <div
+                    className={`justify-self-start sm:justify-self-end rounded-lg px-3 py-1.5 text-xs font-bold ${
+                      c.severe ? "bg-danger/10 text-danger" : "bg-warning/15 text-warning-foreground"
+                    }`}
+                  >
+                    {c.result}
+                  </div>
                 </div>
-                <div className="text-sm">{c.what}</div>
-                <div
-                  className={`justify-self-start sm:justify-self-end rounded-lg px-3 py-1.5 text-xs font-bold whitespace-nowrap ${
-                    c.severe ? "bg-danger/10 text-danger" : "bg-warning/15 text-warning-foreground"
-                  }`}
-                >
-                  {c.result}
-                </div>
+                {/* 함께 처벌받은 사람들 — 형량을 정확히 적어야 신뢰가 유지된다 */}
+                <p className="text-xs text-muted-foreground leading-relaxed sm:pl-[8.5rem]">{c.sub}</p>
               </li>
             ))}
           </ul>

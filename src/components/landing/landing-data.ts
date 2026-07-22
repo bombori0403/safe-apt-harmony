@@ -2,8 +2,9 @@
 // legal claims live in one auditable place — every item here must be traceable
 // to a real statute or a published source (see SOURCES at the bottom).
 
-// TODO(안전데스크): 실제 카카오톡 채널/오픈채팅 주소로 교체할 것.
-export const KAKAO_CHANNEL_URL = "https://pf.kakao.com/_안전데스크";
+// 문의 창구. 오픈채팅 1:1 방이라 개인 카톡 프로필이 노출되지 않는다.
+// 방을 삭제하면 링크가 죽으므로, 바꿀 일이 생기면 여기 한 곳만 고치면 된다.
+export const KAKAO_CHANNEL_URL = "https://open.kakao.com/o/sE3A6dFi";
 
 /** 법정 보존기간은 3년, 안전데스크 자체 보관은 5년. 이 둘을 섞지 말 것. */
 export const RETENTION = { legalYears: 3, productYears: 5 } as const;
@@ -37,39 +38,38 @@ export const RISK_FACTS = [
     desc: "상시근로자 5~50인 미만 사업장까지 중대재해처벌법이 확대됐습니다. 관리사무소는 소장·경리·기전·미화를 합쳐 대개 6명을 넘습니다.",
   },
   {
-    stat: "37%",
-    label: "건물관리업 사망사고 중 떨어짐",
-    desc: "최근 5년간 건물관리 관련 사업 사망사고의 37%가 추락이었습니다. 옥상 난간, 사다리, 승강기 피트 — 관리사무소의 일상 업무입니다.",
+    stat: "33.6%",
+    label: "산재 사고사망 원인 1위 — 떨어짐",
+    desc: "2024년 재해조사 대상 사고사망자 중 떨어짐이 278명으로 가장 많았습니다. 옥상 난간, 사다리, 승강기 피트 — 관리사무소의 일상 업무입니다.",
   },
   {
-    stat: "입대의 회장",
-    label: "자치관리 단지의 책임 주체",
-    desc: "위탁관리가 아닌 자치관리 단지에서는 입주자대표회의 회장이 사업장 대표자로서 중대재해 책임을 지게 됩니다.",
+    stat: "소장도 · 회장도",
+    label: "처벌은 대표에서 끝나지 않습니다",
+    desc: "한 아파트 추락 사망사고에서 관리소장은 징역 10개월 실형, 입주자대표회의 회장도 징역형(집행유예)을 선고받았습니다. 관리업체 대표만의 문제가 아닙니다.",
   },
 ] as const;
 
-/** 실제 판결·기소 사례. 단지명·업체명은 쓰지 않고 지역 단위로만 익명 인용. */
+/**
+ * 실제 판결 사례. 단지명·업체명은 쓰지 않고 지역 단위로만 익명 인용한다.
+ * 형량과 적용 법률은 판결·보도로 확인된 것만 적는다 — 여기서 하나라도 틀리면
+ * 이 페이지의 다른 사실들까지 신뢰를 잃는다.
+ */
 export const REAL_CASES = [
+  {
+    when: "2022. 7.",
+    where: "경기 양주시 아파트",
+    what: "지하에서 사다리 작업 중 추락해 사망",
+    result: "관리소장 징역 10개월 (실형)",
+    sub: "관리업체 대표 징역 8개월·집행유예 2년(중대재해처벌법), 법인 벌금 5,000만원, 입주자대표회의 회장 징역 5개월·집행유예 1년",
+    severe: true,
+  },
   {
     when: "2022. 4.",
     where: "서울 동대문구 아파트",
-    what: "설비과장이 안전모 없이 사다리에서 작업하다 추락",
-    result: "관리업체 대표 징역 8개월 (집행유예 2년)",
+    what: "안전모 없이 사다리에 올라 누수를 점검하다 추락해 사망",
+    result: "관리업체 대표 징역 1년·집행유예 3년",
+    sub: "중대재해처벌법 위반, 벌금 2,000만원 병과 (1심)",
     severe: true,
-  },
-  {
-    when: "2022. 6.",
-    where: "서울 성북구 아파트",
-    what: "직원이 작업 중 추락해 사망",
-    result: "관리업체 대표 기소",
-    severe: true,
-  },
-  {
-    when: "2023. 10.",
-    where: "경기 용인시 아파트",
-    what: "직원이 단독 작업 중 추락해 사망",
-    result: "중대재해 조사 대상",
-    severe: false,
   },
 ] as const;
 
@@ -149,11 +149,11 @@ export const SCREENSHOTS = [
     desc: "고시가 요구하는 사업장 자체 규정을 단지명만 넣으면 완성된 문서로 만들어 줍니다.",
   },
   {
-    id: "team",
-    tab: "직원 · 협업",
-    src: "/shots/shot-team.png",
-    title: "권한 · 초대 · 서명 확인",
-    desc: "관리자·매니저·직원 권한을 나누고 초대 링크로 참여시킵니다. 근로자 참여는 법이 요구하는 절차입니다.",
+    id: "share",
+    tab: "협의 · 서명",
+    src: "/shots/shot-share.png",
+    title: "근로자 참여를 기록으로 남깁니다",
+    desc: "QR이나 링크로 접속해 본인이 직접 서명하면 참여자 확인이 완료됩니다. 산업안전보건법 제36조 제2항이 요구하는 근로자 참여 기록으로 보존됩니다.",
   },
 ] as const;
 
@@ -224,5 +224,7 @@ export const FAQS = [
 export const SOURCES = [
   { label: "산업안전보건법 제36조 · 시행규칙 제37조", href: "https://www.law.go.kr/법령/산업안전보건법" },
   { label: "사업장 위험성평가에 관한 지침 (고용노동부고시 제2024-76호)", href: "https://www.law.go.kr/LSW/admRulLsInfoP.do?admRulSeq=2100000223682" },
-  { label: "중대재해법 적용 확대 관련 보도 · 사망사고 통계 — 아파트관리신문", href: "http://www.aptn.co.kr/news/articleView.html?idxno=105470" },
+  { label: "의정부지방법원 2024고단4 판결 (2024. 8. 27. 선고) — 경기 양주시 사건", href: "https://casenote.kr/의정부지방법원/2024고단4" },
+  { label: "아파트 사다리 추락 사망사고 판결 보도 — 서울신문", href: "https://m.seoul.co.kr/news/world/crime-law/2024/08/29/20240829500216" },
+  { label: "중대재해법 적용 확대와 관리업계 — 아파트관리신문", href: "http://www.aptn.co.kr/news/articleView.html?idxno=105470" },
 ] as const;
