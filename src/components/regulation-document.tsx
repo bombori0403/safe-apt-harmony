@@ -3,11 +3,11 @@ import { createContext, useContext } from "react";
 // ============ 기본 텍스트 (조직 override가 없으면 사용) ============
 export const REGULATION_DEFAULTS: Record<string, string> = {
   doc_title: "위험성평가 실시규정",
-  header_site: "○○○○상록아파트 관리사무소",
+  header_site: "{{사업장}}",
   header_date: "○○○○년 ○○월 ○○일",
   policy_heading: "안전보건경영방침 및 추진목표",
   policy_intro:
-    "공무원연금공단은 국민의 생명과 안전을 경영의 최우선 가치로 두며 이를 위해 최선의 노력을 다한다.",
+    "{{사업장}}은(는) 근로자와 입주민의 생명과 안전을 최우선 가치로 두며 이를 위해 최선의 노력을 다한다.",
   policy_bullets: `근로자의 참여와 협의를 바탕으로 안전보건경영 시스템을 구축·운영한다.
 잠재적 유해·위험요인을 선제적으로 발굴하고 지속적으로 개선한다.
 관계 수급업체를 비롯한 이해관계자의 안전협력체계를 유지하고 성숙한 안전문화를 조성한다.
@@ -15,13 +15,13 @@ export const REGULATION_DEFAULTS: Record<string, string> = {
   policy_goal: "위험성평가 중심의 「자기규율 예방체계」 확립 (중대재해 Zero, 산업재해 Zero)",
 
   article_1_title: "목적",
-  article_1: `이 실시규정은 공무원연금공단 ○○○○상록아파트(이하 "공단 임대주택"이라 한다) 전체의 유해·위험요인을 파악하고, 그 유해·위험요인별 위험성의 수준을 결정한 후 위험성을 감소시키기 위해 필요한 조치를 마련하여 실시함을 목적으로 한다. 이 규정에서 정하지 않는 사항에 대해서는 고용노동부의 「사업장 위험성평가에 관한 지침」 및 「새로운 위험성평가 안내서」를 적용한다.`,
+  article_1: `이 실시규정은 {{사업장}}(이하 "본 사업장"이라 한다) 전체의 유해·위험요인을 파악하고, 그 유해·위험요인별 위험성의 수준을 결정한 후 위험성을 감소시키기 위해 필요한 조치를 마련하여 실시함을 목적으로 한다. 이 규정에서 정하지 않는 사항에 대해서는 고용노동부의 「사업장 위험성평가에 관한 지침」 및 「새로운 위험성평가 안내서」를 적용한다.`,
 
   article_2_title: "적용",
-  article_2: `이 실시규정은 공단 임대주택에서 수행하는 모든 작업, 설비 및 공정, 업무에 대한 활동, 또한 외부환경에서 발생할 수 있는 유해·위험요인 위험성평가에 대한 범위, 절차, 책임과 권한에 대하여 적용한다.`,
+  article_2: `이 실시규정은 본 사업장에서 수행하는 모든 작업, 설비 및 공정, 업무에 대한 활동, 또한 외부환경에서 발생할 수 있는 유해·위험요인 위험성평가에 대한 범위, 절차, 책임과 권한에 대하여 적용한다.`,
 
   article_3_title: "조직의 구성",
-  article_3: `위험성평가 실시 담당 조직의 구성은 아래 조직도와 같이 하되, 공단 임대주택의 특성을 고려하여 구성하며, 담당자는 위·수탁용역업체 내부지침에 따른다.`,
+  article_3: `위험성평가 실시 담당 조직의 구성은 아래 조직도와 같이 하되, 본 사업장의 특성을 고려하여 구성하며, 담당자는 위·수탁용역업체 내부지침에 따른다.`,
   org_lead_role: "총괄 책임자",
   org_lead_name: "관리용역 위탁사 대표",
   org_safety_role: "안전보건관리 책임자",
@@ -78,7 +78,7 @@ export const REGULATION_DEFAULTS: Record<string, string> = {
   5. 사업장 내에서 발생이 확인된 아차사고`,
 
   article_6_title: "실시시기",
-  article_6: `공단 임대주택 위험성평가 실시 시기는 다음과 같다.
+  article_6: `본 사업장 위험성평가 실시 시기는 다음과 같다.
   1. 최초평가 : 처음으로 실시하는 위험성평가를 말하며 전체 사업장의 모든 작업을 대상으로 ○○○○년 ○○월 ○○일까지 실시한다.
   2. 정기평가 : 최초평가를 실시한 날로부터 1년이 되는 날 이전까지 실시하고, 이후 매 1년마다 매년 실시한다.
     - 정기평가는 최초평가 및 그간의 수시평가 결과를 전반적으로 재검토하는 방법으로 실시하며, 기존 위험성 감소대책이 잘 유지되고 있는지 점검한다.
@@ -111,7 +111,7 @@ export const REGULATION_DEFAULTS: Record<string, string> = {
     - 위험성평가를 수행한 결과를 관계자들에게 교육하거나 공유하기 위하여 기록한다.`,
 
   article_9_title: "위험성평가의 방법",
-  article_9: `공단 임대주택의 위험성평가 방법은 3단계 판단법을 사용한다.`,
+  article_9: `본 사업장의 위험성평가 방법은 3단계 판단법을 사용한다.`,
 
   article_10_title: "위험성의 수준 판단 기준",
   article_10: `위험성 수준과 그 판단 기준은 다음과 같다.`,
@@ -135,7 +135,7 @@ export const REGULATION_DEFAULTS: Record<string, string> = {
   3. 작업 전 안전점검회의 시 위험성평가 내용 포함`,
 
   article_12_title: "근로자의 참여 방법",
-  article_12: `공단 임대주택의 위험성평가 대상 작업(공정)의 모든 과정에 근로자 1명 이상 참여하도록 한다.`,
+  article_12: `본 사업장의 위험성평가 대상 작업(공정)의 모든 과정에 근로자 1명 이상 참여하도록 한다.`,
 
   article_13_title: "유의사항",
   article_13: `① 산업안전보건법 기타 요구사항에 적합한 상태인지를 확인하고 미달하고 있는 경우에는 사업주에게 보고한 후 위험성 수준이 높은 것부터 우선적으로 위험성 감소대책을 반영하여 개선한다.
@@ -156,7 +156,7 @@ export const REGULATION_DEFAULTS: Record<string, string> = {
 
   article_15_title: "기록",
   article_15: `① 위험성평가 기록은 사업주에게 승인을 받는다.
-② 위험성평가 기록은 공단 안전보건 기록 관련 규정에 준하여 보관하되 5년 이상 보관한다.
+② 위험성평가 기록은 사업장 안전보건 기록 관련 규정에 준하여 보관하되 5년 이상 보관한다.
 ③ 위험성평가 기록물은 연 1회 정도 정기적으로 검토하고, 수정·보완이 필요한 경우에는 근로자의 의견을 반영한 후에 변경 여부를 결정하며, 모든 근로자가 알 수 있도록 배부 또는 게시한다.`,
 
   article_16_title: "재평가",
@@ -184,6 +184,13 @@ export const REGULATION_DEFAULTS: Record<string, string> = {
 9. 기기 사용환경 / 근원: 먼지·안개, 전자기 방해, 번개, 습도, 오염, 눈, 물, 바람, 산소부족 / 결과: 화상, 미끄러짐·넘어짐, 질식, 경미한 질병
 10. 복합요소 / 근원: 반복작업 + 힘든 작업 + 고온환경 / 결과: 탈수, 기절, 열사병`,
 };
+
+// 기본 문구의 {{사업장}} 자리표시자를 조직(단지)명으로 치환한다.
+// 조직이 직접 저장한 문구(overrides)에는 자리표시자가 없으므로 그대로 통과한다.
+export function resolveOrgTokens(text: string, orgName?: string | null): string {
+  const name = (orgName ?? "").trim() || "○○아파트 관리사무소";
+  return (text ?? "").replace(/\{\{사업장\}\}/g, name);
+}
 
 // ============ 읽기 전용 렌더 (인쇄/문서 출력용) ============
 const GetCtx = createContext<(k: string) => string>((k) => REGULATION_DEFAULTS[k] ?? "");
@@ -273,9 +280,10 @@ function ArticleSec({ no, k }: { no: string; k: string }) {
   );
 }
 
-export function RegulationDocument({ get }: { get: (k: string) => string }) {
+export function RegulationDocument({ get, orgName }: { get: (k: string) => string; orgName?: string | null }) {
+  const g = (k: string) => resolveOrgTokens(get(k), orgName);
   return (
-    <GetCtx.Provider value={get}>
+    <GetCtx.Provider value={g}>
       <div className="space-y-8 text-black">
         <header className="text-center border-b pb-4">
           <h1 className="text-2xl font-bold"><F k="doc_title" /></h1>
@@ -289,7 +297,7 @@ export function RegulationDocument({ get }: { get: (k: string) => string }) {
           <h2 className="font-bold text-lg"><F k="policy_heading" /></h2>
           <div className="text-sm leading-7"><F k="policy_intro" /></div>
           <ul className="list-disc pl-5 space-y-1 text-sm leading-7">
-            {get("policy_bullets").split("\n").filter(Boolean).map((line, i) => (
+            {g("policy_bullets").split("\n").filter(Boolean).map((line, i) => (
               <li key={i}>{line}</li>
             ))}
           </ul>

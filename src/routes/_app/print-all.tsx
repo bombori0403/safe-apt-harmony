@@ -48,6 +48,7 @@ function PrintAll() {
   const [error, setError] = useState<string | null>(null);
   const [complexes, setComplexes] = useState<any[]>([]);
   const [regulation, setRegulation] = useState<any>(null);
+  const [orgName, setOrgName] = useState<string | null>(null);
   const [docTypes, setDocTypes] = useState<Record<DocKey, boolean>>({
     regulation: true, kras: true, nearMiss: true, workStop: true, hearing: true, openchat: true,
   });
@@ -96,6 +97,12 @@ function PrintAll() {
 
         const { data: reg } = await supabase.from("regulation_content").select("*").maybeSingle();
         setRegulation(reg);
+
+        if (userRow?.organization_id) {
+          const { data: o } = await supabase
+            .from("organizations").select("name").eq("id", userRow.organization_id).maybeSingle();
+          setOrgName(o?.name ?? null);
+        }
 
         const from = search.from ? new Date(search.from + "T00:00:00").toISOString() : null;
         const to = search.to ? new Date(search.to + "T23:59:59").toISOString() : null;
@@ -222,7 +229,7 @@ function PrintAll() {
           const get = (k: string) => overrides[k] ?? REGULATION_DEFAULTS[k] ?? "";
           return (
             <section className="page">
-              <RegulationDocument get={get} />
+              <RegulationDocument get={get} orgName={orgName} />
             </section>
           );
         })()}

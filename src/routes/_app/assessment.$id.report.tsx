@@ -217,7 +217,7 @@ function Report() {
         </section>
 
         <footer className="mt-10 pt-4 border-t text-[10px] text-muted-foreground text-center">
-          본 결과서는 산업안전보건법 시행규칙 제37조에 따라 5년간 보존됩니다.
+          본 결과서는 산업안전보건법 시행규칙 제37조(3년)의 법정 보존기간을 충족하며, 사업장 위험성평가 규정 제15조에 따라 5년간 보존됩니다.
         </footer>
       </div>
 

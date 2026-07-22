@@ -104,7 +104,7 @@ function History() {
         <div>
           <h1 className="text-2xl font-bold">평가 이력</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            위험성평가 결과는 5년간 보존하여야 합니다 (산업안전보건법 시행규칙 제37조).
+            위험성평가 결과는 법정 3년 이상 보존해야 하며(산업안전보건법 시행규칙 제37조), 안전데스크는 자체 규정에 따라 5년간 보관합니다.
           </p>
         </div>
         <Link

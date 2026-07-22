@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useSubscription } from "@/hooks/use-subscription";
 import { TrialWatermark } from "@/components/trial-watermark";
-import { REGULATION_DEFAULTS } from "@/components/regulation-document";
+import { REGULATION_DEFAULTS, resolveOrgTokens } from "@/components/regulation-document";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/regulation")({
@@ -32,6 +32,7 @@ const EditCtx = createContext<{
 function useRegulationData() {
   const { user } = useAuth();
   const [orgId, setOrgId] = useState<string | null>(null);
+  const [orgName, setOrgName] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [overrides, setOverrides] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
@@ -47,6 +48,12 @@ function useRegulationData() {
       if (!u?.organization_id) { setLoading(false); return; }
       setOrgId(u.organization_id);
       setIsAdmin(u.org_role === "admin");
+      const { data: o } = await supabase
+        .from("organizations")
+        .select("name")
+        .eq("id", u.organization_id)
+        .maybeSingle();
+      setOrgName(o?.name ?? null);
       const { data: row } = await supabase
         .from("regulation_content")
         .select("overrides")
@@ -85,7 +92,9 @@ function useRegulationData() {
     toast.success("모든 내용을 기본값으로 되돌렸습니다");
   };
 
-  const get = (k: string) => overrides[k] ?? DEFAULTS[k] ?? "";
+  // 기본 문구의 {{사업장}}은 우리 조직(단지)명으로 치환해서 보여준다.
+  // (편집 시작 시 seed에도 치환된 값이 들어가므로 저장하면 실제 이름으로 굳는다.)
+  const get = (k: string) => resolveOrgTokens(overrides[k] ?? DEFAULTS[k] ?? "", orgName);
 
   return { get, saveAll, resetAll, isAdmin, loading, overrides };
 }
