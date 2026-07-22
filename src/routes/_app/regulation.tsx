@@ -68,9 +68,11 @@ function useRegulationData() {
 
   const saveAll = async (next: Record<string, string>) => {
     if (!orgId) return false;
-    // 기본값과 같으면 제거
+    // draft에는 "실제로 손댄 항목"만 들어오므로 기존 저장값과 병합한다.
+    // 손대지 않은 항목은 기본값(=자리표시자)으로 남아 사업장명 변경을 계속 따라간다.
+    const merged = { ...overrides, ...next };
     const cleaned: Record<string, string> = {};
-    for (const [k, v] of Object.entries(next)) {
+    for (const [k, v] of Object.entries(merged)) {
       if (v !== undefined && v !== null && v !== DEFAULTS[k]) cleaned[k] = v;
     }
     const { error } = await supabase
@@ -92,11 +94,10 @@ function useRegulationData() {
     toast.success("모든 내용을 기본값으로 되돌렸습니다");
   };
 
-  // 기본 문구의 {{사업장}}은 우리 조직(단지)명으로 치환해서 보여준다.
-  // (편집 시작 시 seed에도 치환된 값이 들어가므로 저장하면 실제 이름으로 굳는다.)
-  const get = (k: string) => resolveOrgTokens(overrides[k] ?? DEFAULTS[k] ?? "", orgName);
+  // 치환 전 원본(자리표시자 포함). 실제 표시용 get은 사업장명을 아는 화면단에서 만든다.
+  const rawGet = (k: string) => overrides[k] ?? DEFAULTS[k] ?? "";
 
-  return { get, saveAll, resetAll, isAdmin, loading, overrides };
+  return { rawGet, orgName, saveAll, resetAll, isAdmin, loading, overrides };
 }
 
 // ============ Editable field ============
@@ -230,11 +231,16 @@ function RegulationPage() {
 
   const setDraft = (k: string, v: string) => setDraftState((d) => ({ ...d, [k]: v }));
 
+  // 맨 위 "사업장명"이 문서 전체의 사업장 표기를 결정한다.
+  // 편집 중에는 입력값(draft)을 즉시 반영해 본문이 실시간으로 따라 바뀐다.
+  const siteName = resolveOrgTokens(draft.header_site ?? reg.rawGet("header_site"), reg.orgName);
+  // 손대지 않은 항목은 자리표시자가 살아있어 사업장명 변경을 계속 따라간다.
+  const get = (k: string) => resolveOrgTokens(reg.rawGet(k), siteName);
+
   const startEdit = () => {
-    // seed draft from current values (overrides ?? defaults)
-    const seed: Draft = {};
-    for (const key of Object.keys(DEFAULTS)) seed[key] = reg.get(key);
-    setDraftState(seed);
+    // 미리 채우지 않는다. 실제로 수정한 항목만 draft에 담겨야
+    // 나머지 본문이 사업장명 변경을 계속 따라갈 수 있다.
+    setDraftState({});
     setEditing(true);
   };
   const cancelEdit = () => { setEditing(false); setDraftState({}); };
@@ -252,7 +258,7 @@ function RegulationPage() {
   };
 
   return (
-    <EditCtx.Provider value={{ editing, isAdmin: reg.isAdmin, get: reg.get, setDraft, draft }}>
+    <EditCtx.Provider value={{ editing, isAdmin: reg.isAdmin, get, setDraft, draft }}>
       <div className="max-w-4xl mx-auto p-4 md:p-8 space-y-6">
         {sub.isTrial && <TrialWatermark expired={sub.isExpired} />}
         <div className="flex items-center justify-between print:hidden gap-2 flex-wrap">
@@ -331,7 +337,7 @@ function RegulationPage() {
                   </>
                 ) : (
                   <ul className="list-disc pl-5 space-y-1">
-                    {reg.get("policy_bullets").split("\n").filter(Boolean).map((line, i) => (
+                    {get("policy_bullets").split("\n").filter(Boolean).map((line, i) => (
                       <li key={i}>{line}</li>
                     ))}
                   </ul>
