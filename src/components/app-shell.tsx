@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { SupportFab } from "@/components/support-fab";
 
 const NAV = [
   { to: "/dashboard", label: "대시보드", icon: LayoutDashboard, adminOnly: false },
@@ -114,6 +115,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           })}
         </nav>
       </div>
+
+      <SupportFab />
     </div>
   );
 }

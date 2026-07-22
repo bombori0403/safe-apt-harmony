@@ -2,9 +2,8 @@
 // legal claims live in one auditable place — every item here must be traceable
 // to a real statute or a published source (see SOURCES at the bottom).
 
-// 문의 창구. 오픈채팅 1:1 방이라 개인 카톡 프로필이 노출되지 않는다.
-// 방을 삭제하면 링크가 죽으므로, 바꿀 일이 생기면 여기 한 곳만 고치면 된다.
-export const KAKAO_CHANNEL_URL = "https://open.kakao.com/o/sE3A6dFi";
+// 문의 링크는 앱 쪽(app-shell)에서도 쓰므로 src/lib/contact.ts가 원본이다.
+export { KAKAO_CHANNEL_URL } from "@/lib/contact";
 
 /** 법정 보존기간은 3년, 안전데스크 자체 보관은 5년. 이 둘을 섞지 말 것. */
 export const RETENTION = { legalYears: 3, productYears: 5 } as const;
