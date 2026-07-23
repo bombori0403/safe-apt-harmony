@@ -33,16 +33,19 @@ function ImportPage() {
 
   useEffect(() => {
     if (!user) return;
-    getCurrentUserContext(user.id).then(async ({ userId, complexId }) => {
+    getCurrentUserContext(user.id).then(async ({ userId, userRow, complexId }) => {
       if (userId) setUserRowId(userId);
-      const { data: members } = await supabase.from("complex_members").select("complex_id").eq("user_id", userId ?? "");
-      const ids = [...new Set((members ?? []).map((m: any) => m.complex_id).filter(Boolean))];
-      const { data: list } = ids.length
-        ? await supabase.from("complexes").select("id, name").in("id", ids).order("created_at", { ascending: true })
-        : { data: [] as any[] };
-      setComplexes(list ?? []);
+      let list: any[] = [];
+      if (userRow?.org_role === "admin") {
+        list = (await supabase.from("complexes").select("id, name").order("name")).data ?? [];
+      } else {
+        const { data: members } = await supabase.from("complex_members").select("complex_id").eq("user_id", userId ?? "");
+        const ids = [...new Set((members ?? []).map((m: any) => m.complex_id).filter(Boolean))];
+        list = ids.length ? (await supabase.from("complexes").select("id, name").in("id", ids).order("name")).data ?? [] : [];
+      }
+      setComplexes(list);
       if (complexId) setComplexId(complexId);
-      else if ((list ?? [])[0]) setComplexId((list ?? [])[0].id);
+      else if (list[0]) setComplexId(list[0].id);
     });
   }, [user]);
 

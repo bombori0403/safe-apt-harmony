@@ -46,18 +46,21 @@ function NewAssessment() {
 
   useEffect(() => {
     if (!user) return;
-    getCurrentUserContext(user.id).then(async ({ userId, complexId }) => {
+    getCurrentUserContext(user.id).then(async ({ userId, userRow, complexId }) => {
       if (userId) setUserRowId(userId);
-      const { data: members } = await supabase
-        .from("complex_members")
-        .select("complex_id")
-        .eq("user_id", userId ?? "");
-
-      const complexIds = [...new Set((members ?? []).map((m: any) => m.complex_id).filter(Boolean))];
-      const { data: list } = complexIds.length > 0
-        ? await supabase.from("complexes").select("id, name").in("id", complexIds).order("created_at", { ascending: true })
-        : { data: [] };
-      const availableComplexes = list ?? [];
+      let availableComplexes: any[] = [];
+      if (userRow?.org_role === "admin") {
+        // 관리자: 조직 전체 단지 (RLS가 조직별로 제한)
+        const { data } = await supabase.from("complexes").select("id, name").order("name");
+        availableComplexes = data ?? [];
+      } else {
+        // 매니저/일반: 배정된 단지만
+        const { data: members } = await supabase.from("complex_members").select("complex_id").eq("user_id", userId ?? "");
+        const ids = [...new Set((members ?? []).map((m: any) => m.complex_id).filter(Boolean))];
+        availableComplexes = ids.length
+          ? (await supabase.from("complexes").select("id, name").in("id", ids).order("name")).data ?? []
+          : [];
+      }
       setComplexes(availableComplexes);
       if (complexId) setComplexId(complexId);
       else if (availableComplexes[0]) setComplexId(availableComplexes[0].id);
