@@ -13,7 +13,7 @@ import { METHOD_INFO, recommendMethod } from "@/lib/method-recommend";
 import { ASSESSMENT_METHODS, METHOD_LABEL, type AssessmentMethod, type AssessmentType, type RiskLevel } from "@/lib/types";
 import { getCurrentUserContext } from "@/lib/user-context";
 import { toast } from "sonner";
-import { Star, AlertTriangle, ShieldAlert, ChevronDown, ChevronUp } from "lucide-react";
+import { Star, AlertTriangle, ShieldAlert, ChevronDown, ChevronUp, History } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { WORK_STOP_LAW_TITLE, WORK_STOP_LAW_TEXT } from "@/lib/work-stop-law";
 
@@ -40,6 +40,8 @@ function NewAssessment() {
   const [nearMiss, setNearMiss] = useState<any[]>([]);
   const [nmExpanded, setNmExpanded] = useState(false);
   const [complexPhone, setComplexPhone] = useState<string>("");
+  const [prevList, setPrevList] = useState<any[]>([]);
+  const [sourceId, setSourceId] = useState<string>("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -74,6 +76,13 @@ function NewAssessment() {
       .then(({ data }: any) => setNearMiss(data ?? []));
     supabase.from("complexes").select("manager_phone").eq("id", complexId).maybeSingle()
       .then(({ data }) => setComplexPhone(data?.manager_phone ?? ""));
+    // 정기 재검토용: 이 단지의 과거 평가 목록 + 위험요인 수
+    supabase.from("assessments")
+      .select("id, work_name, assessment_date, method, hazards(count)")
+      .eq("complex_id", complexId)
+      .order("assessment_date", { ascending: false })
+      .then(({ data }) => setPrevList(data ?? []));
+    setSourceId("");
   }, [complexId]);
 
   const recommended = workName ? recommendMethod(workName) : null;
@@ -119,7 +128,37 @@ function NewAssessment() {
         );
       }
 
-      toast.success("평가 생성 완료. 유해·위험요인 파악 단계로 이동합니다.");
+      // 정기 재검토: 이전 평가의 위험요인 + 감소대책을 그대로 불러오기(전체, 완료/미완료 유지)
+      let copied = 0;
+      if (sourceId) {
+        const { data: src } = await supabase.from("hazards")
+          .select("description, likelihood, severity, level, level_standardized, legal_basis_override, library_item_id, post_likelihood, post_severity, post_level, checklist_result, ops_data, measures(content, type, due_date, status, completed_at, responsible_name)")
+          .eq("assessment_id", sourceId)
+          .order("created_at", { ascending: true });
+        if (src && src.length) {
+          const hzIns = src.map((h: any) => ({
+            assessment_id: data.id,
+            description: h.description, likelihood: h.likelihood, severity: h.severity,
+            level: h.level, level_standardized: h.level_standardized,
+            legal_basis_override: h.legal_basis_override, library_item_id: h.library_item_id,
+            post_likelihood: h.post_likelihood, post_severity: h.post_severity, post_level: h.post_level,
+            checklist_result: h.checklist_result, ops_data: h.ops_data,
+          }));
+          const { data: newHz } = await supabase.from("hazards").insert(hzIns).select("id");
+          const mIns: any[] = [];
+          (newHz ?? []).forEach((nh: any, i: number) => {
+            for (const m of (src[i]?.measures ?? [])) {
+              mIns.push({ hazard_id: nh.id, content: m.content, type: m.type, due_date: m.due_date, status: m.status, completed_at: m.completed_at, responsible_name: m.responsible_name });
+            }
+          });
+          if (mIns.length) await supabase.from("measures").insert(mIns).then(() => {}, () => {});
+          copied = hzIns.length;
+        }
+      }
+
+      toast.success(copied
+        ? `평가 생성 완료 · 이전 평가에서 ${copied}건 불러옴. 검토·추가 후 진행하세요.`
+        : "평가 생성 완료. 유해·위험요인 파악 단계로 이동합니다.");
       navigate({ to: "/assessment/$id/hazards", params: { id: data.id } });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "오류");
@@ -174,6 +213,27 @@ function NewAssessment() {
                 ))}
               </div>
             )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* 정기 재검토: 이전 평가 불러오기 */}
+      {complexId && prevList.length > 0 && (
+        <Card>
+          <CardContent className="p-4 space-y-2.5">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-md bg-primary/10 text-primary"><History className="h-4 w-4" /></div>
+              <div>
+                <div className="text-sm font-semibold">이전 평가 재검토 (정기평가)</div>
+                <div className="text-xs text-muted-foreground">작년 위험요인·감소대책을 전부 불러와 검토합니다. 완료/미완료 상태도 그대로 유지되고, 이어서 신규 위험요인을 추가할 수 있어요.</div>
+              </div>
+            </div>
+            <select value={sourceId} onChange={e => setSourceId(e.target.value)} className="w-full h-10 px-3 rounded-md border bg-background text-sm">
+              <option value="">불러오지 않음 (새로 작성)</option>
+              {prevList.map((p: any) => (
+                <option key={p.id} value={p.id}>{p.work_name} · {p.assessment_date} · 위험요인 {p.hazards?.[0]?.count ?? 0}건</option>
+              ))}
+            </select>
           </CardContent>
         </Card>
       )}

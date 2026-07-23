@@ -71,7 +71,16 @@ function Hazards() {
       })),
       ...custom.map(c => ({ assessment_id: id, description: c, legal_basis_override: suggestLegalBasis(c)?.legal_basis ?? null })),
     ];
-    if (rows.length === 0) { toast.error("최소 1개 이상의 유해·위험요인을 선택하세요"); setSaving(false); return; }
+    if (rows.length === 0) {
+      // 재검토 등으로 이미 위험요인이 등록돼 있으면 추가 없이 다음 단계로 진행
+      const { count } = await supabase.from("hazards").select("id", { count: "exact", head: true }).eq("assessment_id", id);
+      if ((count ?? 0) > 0) {
+        await supabase.from("assessments").update({ work_category: customCategory.trim() || category }).eq("id", id);
+        navigate({ to: "/assessment/$id/results", params: { id } });
+        return;
+      }
+      toast.error("최소 1개 이상의 유해·위험요인을 선택하세요"); setSaving(false); return;
+    }
     const { data: inserted, error } = await supabase.from("hazards").insert(rows).select("id, library_item_id");
     if (error) { toast.error(writeErrorMessage(error)); setSaving(false); return; }
 
