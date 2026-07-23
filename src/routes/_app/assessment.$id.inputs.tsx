@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SignedImg } from "@/components/signed-img";
+import { compressImage } from "@/lib/image-compress";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -80,10 +81,12 @@ function Inputs() {
     const urls = [...existing];
     try {
       for (const file of Array.from(files)) {
-        const ext = file.name.split(".").pop() || "jpg";
+        const isImage = file.type.startsWith("image/");
+        const body = isImage ? await compressImage(file) : file;
+        const ext = isImage ? "jpg" : (file.name.split(".").pop() || "bin");
         const path = `${id}/inputs/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
-        const { error } = await supabase.storage.from("assessment-photos").upload(path, file, {
-          contentType: file.type, upsert: false,
+        const { error } = await supabase.storage.from("assessment-photos").upload(path, body, {
+          contentType: isImage ? "image/jpeg" : file.type, upsert: false,
         });
         if (error) throw error;
         const { data } = supabase.storage.from("assessment-photos").getPublicUrl(path);

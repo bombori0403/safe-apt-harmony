@@ -12,6 +12,23 @@ async function requirePlatformAdmin(authUid: string) {
   if (error || !data?.is_platform_admin) throw new Error("플랫폼 관리자만 사용할 수 있습니다.");
 }
 
+// Supabase 실사용량(DB·스토리지·카운트) — 플랫폼 관리자 전용.
+export const getPlatformUsage = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await requirePlatformAdmin(context.userId);
+    const { data, error } = await supabaseAdmin.rpc("get_platform_usage");
+    if (error) throw new Error(error.message);
+    return data as {
+      db_bytes: number;
+      storage_bytes: number;
+      photo_count: number;
+      assessments: number;
+      organizations: number;
+      users: number;
+    };
+  });
+
 const schema = z.object({ orgId: z.string().uuid() });
 
 // Fully delete an organization: dependent data, member accounts, and the org itself.

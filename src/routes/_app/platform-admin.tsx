@@ -1,12 +1,96 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { platformDeleteOrganization } from "@/lib/platform-admin.functions";
+import { platformDeleteOrganization, getPlatformUsage } from "@/lib/platform-admin.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trash2 } from "lucide-react";
+import { Trash2, Database, HardDrive, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+
+interface Usage {
+  db_bytes: number; storage_bytes: number; photo_count: number;
+  assessments: number; organizations: number; users: number;
+}
+const FREE_DB = 500 * 1024 * 1024;      // Supabase 무료 DB 500MB
+const FREE_STORAGE = 1024 * 1024 * 1024; // Supabase 무료 저장 1GB
+
+function fmtBytes(n: number): string {
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+  if (n < 1024 * 1024 * 1024) return `${(n / 1024 / 1024).toFixed(1)} MB`;
+  return `${(n / 1024 / 1024 / 1024).toFixed(2)} GB`;
+}
+
+function UsageBar({ label, icon: Icon, used, limit }: { label: string; icon: any; used: number; limit: number }) {
+  const pct = Math.min(100, Math.round((used / limit) * 100));
+  const tier = pct >= 90 ? "bg-danger" : pct >= 70 ? "bg-warning" : "bg-primary";
+  return (
+    <div>
+      <div className="flex items-center justify-between text-sm mb-1">
+        <span className="flex items-center gap-1.5 font-medium"><Icon className="h-4 w-4 text-muted-foreground" />{label}</span>
+        <span className="text-muted-foreground text-xs">{fmtBytes(used)} / {fmtBytes(limit)} <b className="text-foreground">({pct}%)</b></span>
+      </div>
+      <div className="h-2 rounded-full bg-muted overflow-hidden">
+        <div className={`h-full ${tier} transition-all`} style={{ width: `${Math.max(2, pct)}%` }} />
+      </div>
+    </div>
+  );
+}
+
+function UsagePanel() {
+  const fetchUsage = useServerFn(getPlatformUsage);
+  const [u, setU] = useState<Usage | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function load() {
+    setLoading(true); setErr(null);
+    try { setU(await fetchUsage() as Usage); }
+    catch (e) { setErr(e instanceof Error ? e.message : "사용량을 불러오지 못했습니다."); }
+    finally { setLoading(false); }
+  }
+  useEffect(() => { load(); }, []);
+
+  return (
+    <Card className="border-primary/20">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+        <CardTitle className="text-base">Supabase 실사용량</CardTitle>
+        <Button variant="ghost" size="sm" onClick={load} disabled={loading} className="gap-1.5 h-8">
+          <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />새로고침
+        </Button>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {err && <p className="text-sm text-destructive">{err} (마이그레이션 실행 여부를 확인하세요: get_platform_usage)</p>}
+        {!u && !err && <p className="text-sm text-muted-foreground">불러오는 중...</p>}
+        {u && (
+          <>
+            <UsageBar label="데이터베이스" icon={Database} used={u.db_bytes} limit={FREE_DB} />
+            <UsageBar label="사진 저장" icon={HardDrive} used={u.storage_bytes} limit={FREE_STORAGE} />
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-center">
+              {[
+                { k: "사진", v: u.photo_count },
+                { k: "평가", v: u.assessments },
+                { k: "조직", v: u.organizations },
+                { k: "계정", v: u.users },
+              ].map((x) => (
+                <div key={x.k} className="rounded-lg border bg-muted/20 py-2">
+                  <div className="text-lg font-bold">{x.v.toLocaleString()}</div>
+                  <div className="text-[11px] text-muted-foreground">{x.k}</div>
+                </div>
+              ))}
+            </div>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              무료 한도 기준(DB 500MB · 저장 1GB). 70% 넘으면 주황, 90% 넘으면 빨강으로 표시됩니다.
+              전송량(대역폭)은 SQL로 알 수 없어 Supabase 대시보드에서 확인하세요.
+            </p>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
 export const Route = createFileRoute("/_app/platform-admin")({
   component: PlatformAdmin,
@@ -129,6 +213,8 @@ function PlatformAdmin() {
         <h1 className="text-2xl font-bold tracking-tight">가입 승인 · 활성화 요청</h1>
         <p className="text-sm text-muted-foreground mt-1">가입 회사 검토와, 체험 종료 후 정식 사용(활성화) 신청을 처리합니다.</p>
       </div>
+
+      <UsagePanel />
 
       {loading ? (
         <p className="text-sm text-muted-foreground">불러오는 중...</p>
