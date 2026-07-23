@@ -22,6 +22,12 @@ export const Route = createFileRoute("/_app/work-stop-records")({
 
 const MIN_PHOTOS = 2;
 
+// datetime-local 입력은 "로컬" 벽시계 문자열을 다룬다. UTC(toISOString)를 그대로
+// 넣으면 시간대만큼 어긋나므로 로컬 기준 YYYY-MM-DDTHH:mm 으로 변환한다.
+function toLocalInput(d: Date): string {
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+}
+
 function PhotoPicker({
   label, photos, onChange, disabled,
 }: { label: string; photos: string[]; onChange: (urls: string[]) => void; disabled?: boolean }) {
@@ -88,7 +94,7 @@ function WorkStopRecords() {
   const [complexes, setComplexes] = useState<{id:string;name:string}[]>([]);
   const [complexId, setComplexId] = useState("");
 
-  const [exercisedAt, setExercisedAt] = useState(new Date().toISOString().slice(0,16));
+  const [exercisedAt, setExercisedAt] = useState(toLocalInput(new Date()));
   const [name, setName] = useState("");
   const [position, setPosition] = useState("");
   const [contractorName, setContractorName] = useState("");
@@ -139,7 +145,7 @@ function WorkStopRecords() {
 
   function resetForm() {
     setEditId(null);
-    setExercisedAt(new Date().toISOString().slice(0,16));
+    setExercisedAt(toLocalInput(new Date()));
     setName(""); setPosition(""); setContractorName(""); setWorkerName(""); setWorkDesc(""); setReason(""); setResultDetail(""); setSupName(""); setSupPhone("");
     setCausePhotos([]); setResolutionPhotos([]); setResult("작업중단");
   }
@@ -147,7 +153,7 @@ function WorkStopRecords() {
   function openEdit(it: any) {
     setEditId(it.id);
     setComplexId(it.complex_id ?? "");
-    setExercisedAt(new Date(it.exercised_at).toISOString().slice(0,16));
+    setExercisedAt(toLocalInput(new Date(it.exercised_at)));
     setName(it.exerciser_name ?? "");
     setPosition(it.exerciser_position ?? "");
     setContractorName(it.contractor_name ?? "");

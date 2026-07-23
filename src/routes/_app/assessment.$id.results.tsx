@@ -101,7 +101,8 @@ function Results() {
     const allow = (a.allowable_level as RiskLevel) ?? "낮음";
     const exceed = hazards.filter(h => h.level && RISK_ORDER[h.level as RiskLevel] > RISK_ORDER[allow]);
     if (exceed.length === 0) {
-      await supabase.from("assessments").update({ status: "협의중" }).eq("id", id);
+      const { data, error } = await supabase.from("assessments").update({ status: "협의중" }).eq("id", id).select("id");
+      if (error || !data?.length) { toast.error(writeErrorMessage(error, "체험 기간이 종료되었거나 권한이 없어 진행할 수 없습니다.")); setSaving(false); return; }
       toast.success("허용 수준 초과 항목이 없습니다. 협의·공유 단계로 이동합니다.");
       navigate({ to: "/assessment/$id/share", params: { id } });
     } else {

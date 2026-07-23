@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { SignaturePad } from "@/components/signature-pad";
 import { QrCode, MessageSquare, Link2, CheckCircle2, Printer } from "lucide-react";
 import { toast } from "sonner";
+import { writeErrorMessage } from "@/lib/write-error";
 
 export const Route = createFileRoute("/_app/assessment/$id/share")({
   component: Share,
@@ -69,7 +70,8 @@ function Share() {
   }
 
   async function finish() {
-    await supabase.from("assessments").update({ status: "완료" }).eq("id", id);
+    const { data, error } = await supabase.from("assessments").update({ status: "완료" }).eq("id", id).select("id");
+    if (error || !data?.length) { toast.error(writeErrorMessage(error, "체험 기간이 종료되었거나 권한이 없어 완료할 수 없습니다.")); return; }
     toast.success("평가가 완료되었습니다");
     load();
   }

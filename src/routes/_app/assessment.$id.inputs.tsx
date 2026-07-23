@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SignedImg } from "@/components/signed-img";
 import { compressImage } from "@/lib/image-compress";
+import { getSignedUrl } from "@/lib/storage";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -83,10 +84,11 @@ function Inputs() {
       for (const file of Array.from(files)) {
         const isImage = file.type.startsWith("image/");
         const body = isImage ? await compressImage(file) : file;
-        const ext = isImage ? "jpg" : (file.name.split(".").pop() || "bin");
+        const jpg = body !== file; // 압축 성공 시에만 jpeg (HEIC 등 실패 시 원본 유지)
+        const ext = jpg ? "jpg" : (file.name.split(".").pop() || "bin");
         const path = `${id}/inputs/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
         const { error } = await supabase.storage.from("assessment-photos").upload(path, body, {
-          contentType: isImage ? "image/jpeg" : file.type, upsert: false,
+          contentType: jpg ? "image/jpeg" : (file.type || "application/octet-stream"), upsert: false,
         });
         if (error) throw error;
         const { data } = supabase.storage.from("assessment-photos").getPublicUrl(path);
@@ -329,7 +331,8 @@ function List({ items, me, onDelete }: { items: any[]; me: any; onDelete: (id: s
                 {it.attachments?.length > 0 && (
                   <div className="flex flex-wrap gap-2 pt-1">
                     {it.attachments.map((url: string, i: number) => (
-                      <a key={i} href={url} target="_blank" rel="noreferrer">
+                      <a key={i} href={url} target="_blank" rel="noreferrer"
+                        onClick={async (e) => { e.preventDefault(); const s = await getSignedUrl(url); if (s) window.open(s, "_blank", "noopener"); }}>
                         <SignedImg src={url} alt="" className="w-20 h-20 object-cover rounded-md border" />
                       </a>
                     ))}

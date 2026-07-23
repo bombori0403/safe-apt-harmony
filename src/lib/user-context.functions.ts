@@ -44,6 +44,7 @@ export const createComplex = createServerFn({ method: "POST" })
   .inputValidator((input) => createComplexSchema.parse(input))
   .handler(async ({ data, context }) => {
     const u = await getUserRow(context.userId);
+    if (u.org_role !== "admin") throw new Error("단지 등록은 조직 관리자만 가능합니다.");
     const { data: complex, error } = await supabaseAdmin
       .from("complexes")
       .insert({
@@ -71,6 +72,7 @@ export const deleteComplex = createServerFn({ method: "POST" })
   .inputValidator((input) => deleteComplexSchema.parse(input))
   .handler(async ({ data, context }) => {
     const u = await getUserRow(context.userId);
+    if (u.org_role !== "admin") throw new Error("단지 삭제는 조직 관리자만 가능합니다.");
     const { data: cx } = await supabaseAdmin
       .from("complexes")
       .select("id, organization_id")

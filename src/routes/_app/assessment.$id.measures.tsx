@@ -90,7 +90,8 @@ function Measures() {
   }
 
   async function complete() {
-    await supabase.from("assessments").update({ status: "협의중" }).eq("id", id);
+    const { data, error } = await supabase.from("assessments").update({ status: "협의중" }).eq("id", id).select("id");
+    if (error || !data?.length) { toast.error(writeErrorMessage(error, "체험 기간이 종료되었거나 권한이 없어 진행할 수 없습니다.")); return; }
     navigate({ to: "/assessment/$id/share", params: { id } });
   }
 

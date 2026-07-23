@@ -24,10 +24,11 @@ export function PhotoUpload({ assessmentId, hazardId, photos, onChange }: Props)
       for (const file of Array.from(files)) {
         const isImage = file.type.startsWith("image/");
         const body = isImage ? await compressImage(file) : file;
-        const ext = isImage ? "jpg" : (file.name.split(".").pop() || "bin");
+        const jpg = body !== file; // 압축 성공 시에만 jpeg (HEIC 등 실패 시 원본 유지)
+        const ext = jpg ? "jpg" : (file.name.split(".").pop() || "bin");
         const path = `${assessmentId}/${hazardId}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
         const { error } = await supabase.storage.from("assessment-photos").upload(path, body, {
-          contentType: isImage ? "image/jpeg" : file.type, upsert: false,
+          contentType: jpg ? "image/jpeg" : (file.type || "application/octet-stream"), upsert: false,
         });
         if (error) throw error;
         const { data } = supabase.storage.from("assessment-photos").getPublicUrl(path);

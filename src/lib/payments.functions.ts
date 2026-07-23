@@ -97,6 +97,21 @@ export const confirmPaymentAndActivate = createServerFn({ method: "POST" })
       throw new Error("결제 설정이 완료되지 않았습니다(TOSS_SECRET_KEY). 관리자에게 문의하세요.");
     }
 
+    // 동시 요청·successUrl 재실행으로 인한 중복 활성화(만료 2배 연장)를 막기 위해
+    // ready 주문을 원자적으로 선점한다. 이미 선점/완료됐으면 승인·활성화를 재실행하지 않는다.
+    const { data: claim } = await supabaseAdmin
+      .from("payments")
+      .update({ status: "confirming" })
+      .eq("order_id", data.orderId)
+      .eq("status", "ready")
+      .select("id");
+    if (!claim?.length) {
+      const { data: cur } = await supabaseAdmin
+        .from("payments").select("status").eq("order_id", data.orderId).maybeSingle();
+      if (cur?.status === "paid") return { ok: true as const, already: true };
+      throw new Error("이미 처리 중인 결제입니다. 잠시 후 대시보드에서 상태를 확인해 주세요.");
+    }
+
     const res = await fetch("https://api.tosspayments.com/v1/payments/confirm", {
       method: "POST",
       headers: {
@@ -115,7 +130,8 @@ export const confirmPaymentAndActivate = createServerFn({ method: "POST" })
       receipt?: { url?: string };
     };
     if (!res.ok) {
-      await supabaseAdmin.from("payments").update({ status: "failed" }).eq("order_id", data.orderId);
+      // 우리가 선점한(confirming) 주문만 failed로 표시 — 이미 paid인 행을 덮어쓰지 않음.
+      await supabaseAdmin.from("payments").update({ status: "failed" }).eq("order_id", data.orderId).eq("status", "confirming");
       throw new Error(body?.message ?? "결제 승인에 실패했습니다.");
     }
 

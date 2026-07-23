@@ -30,7 +30,8 @@ function NewNearMiss() {
   const [orgId, setOrgId] = useState<string>("");
   const [complexes, setComplexes] = useState<{id:string;name:string}[]>([]);
   const [complexId, setComplexId] = useState("");
-  const [occurredAt, setOccurredAt] = useState(new Date().toISOString().slice(0,16));
+  // 로컬 벽시계로 초기화(UTC 그대로 넣으면 시간대만큼 어긋남).
+  const [occurredAt, setOccurredAt] = useState(() => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16));
   const [incidentName, setIncidentName] = useState("");
   const [locCat, setLocCat] = useState(LOC_OPTIONS[0]);
   const [locDetail, setLocDetail] = useState("");

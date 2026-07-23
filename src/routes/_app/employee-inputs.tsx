@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SignedImg } from "@/components/signed-img";
-import { getSignedUrls } from "@/lib/storage";
+import { getSignedUrls, getSignedUrl } from "@/lib/storage";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -615,7 +615,8 @@ function List({ items, me, onDelete, onEdit, onPrint, printItemId, complexNameBy
                 {it.attachments?.length > 0 && (
                   <div className="flex flex-wrap gap-2 pt-1">
                     {it.attachments.map((url: string, i: number) => (
-                      <a key={i} href={url} target="_blank" rel="noreferrer">
+                      <a key={i} href={url} target="_blank" rel="noreferrer"
+                        onClick={async (e) => { e.preventDefault(); const s = await getSignedUrl(url); if (s) window.open(s, "_blank", "noopener"); }}>
                         <SignedImg src={url} alt="" className="print-attachment-img w-20 h-20 object-cover rounded-md border" />
                       </a>
                     ))}

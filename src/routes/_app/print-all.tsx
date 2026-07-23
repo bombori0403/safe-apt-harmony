@@ -78,12 +78,17 @@ function PrintAll() {
             allowedIds = (data ?? []).map((r: any) => r.id);
           }
         } else {
-          allowedIds = complexId ? [complexId] : [];
-          if (targetComplex && !allowedIds.includes(targetComplex)) {
-            setError("해당 단지에 대한 권한이 없습니다.");
-            setLoading(false); return;
+          // 매니저/직원은 담당 단지 전체(complex_members)로 확장 — 첫 단지만 나오던 버그 수정.
+          const { data: members } = await supabase.from("complex_members").select("complex_id").eq("user_id", userRow?.id ?? "");
+          allowedIds = [...new Set((members ?? []).map((m: any) => m.complex_id).filter(Boolean))];
+          if (allowedIds.length === 0 && complexId) allowedIds = [complexId];
+          if (targetComplex) {
+            if (!allowedIds.includes(targetComplex)) {
+              setError("해당 단지에 대한 권한이 없습니다.");
+              setLoading(false); return;
+            }
+            allowedIds = [targetComplex];
           }
-          if (targetComplex) allowedIds = [targetComplex];
         }
 
         if (allowedIds.length === 0) {

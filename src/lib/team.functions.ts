@@ -67,11 +67,16 @@ export const listTeam = createServerFn({ method: "GET" })
 
     const myComplexId = me.org_role === "manager" ? await getMyComplexId(me.id) : null;
 
+    // 매니저는 본인이 만든 초대만 볼 수 있게 한다(관리자 QR 토큰 노출→권한상승 방지).
+    const visibleInvites = me.org_role === "admin"
+      ? (invites ?? [])
+      : (invites ?? []).filter((i) => i.invited_by === me.id);
+
     return {
       me: { id: me.id, role: me.org_role, complexId: myComplexId },
       members: members ?? [],
       memberComplexes: cmRows ?? [],
-      invitations: invites ?? [],
+      invitations: visibleInvites,
       complexes: complexes ?? [],
       organization: org ?? null,
     };
