@@ -24,6 +24,7 @@ export function PricingSection() {
               <th className="text-left font-medium px-5 py-3">단지 세대수</th>
               <th className="text-right font-medium px-5 py-3">연간 (단지당)</th>
               <th className="text-right font-medium px-5 py-3">월 (단지당)</th>
+              <th className="text-right font-medium px-5 py-3">사진 저장</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border/60">
@@ -37,6 +38,7 @@ export function PricingSection() {
                 <td className="px-5 py-4 text-right text-muted-foreground">
                   {formatKRW(t.monthly)} / 월
                 </td>
+                <td className="px-5 py-4 text-right text-muted-foreground">{t.storageGB}GB</td>
               </tr>
             ))}
           </tbody>
@@ -48,7 +50,7 @@ export function PricingSection() {
         <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-success" /> 직원(좌석) 무제한</span>
         <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-success" /> 연간 결제 시 2개월 할인</span>
         <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-success" /> 부가세 포함</span>
-        <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-success" /> 단지당 사진 저장 1GB 기본 (초과 시 추가요금)</span>
+        <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-success" /> 사진 저장 세대수 구간별 기본 제공 (초과 시 추가요금)</span>
       </div>
 
       <div className="mt-6 rounded-2xl border border-border/70 bg-muted/20 p-5 md:p-6">

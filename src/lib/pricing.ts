@@ -11,14 +11,6 @@
 // 실키로 전환하면 이 값을 true로 바꾸면 전체 공개된다.
 export const PAYMENTS_PUBLIC = false;
 
-// 단지당 기본 제공 사진 저장용량. 초과 시 추가 요금(협의). 실사용이 이보다 훨씬 낮아 여유가 크며,
-// 비정상 대용량 방지·계약상 근거 성격이다. 값 변경은 여기 한 곳만 수정하면 된다.
-export const STORAGE_LIMIT_PER_COMPLEX_BYTES = 1 * 1024 * 1024 * 1024; // 1GB
-export const STORAGE_LIMIT_PER_COMPLEX_LABEL = "1GB";
-// 저장용량 초과 안내 문구(사용량 화면·가입 고지에서 공통 사용).
-export const STORAGE_OVERAGE_NOTICE =
-  `단지당 사진 저장용량 ${STORAGE_LIMIT_PER_COMPLEX_LABEL}이 기본 제공됩니다. 초과 시 추가 요금이 발생할 수 있으며, 초과가 예상되면 사전에 안내드립니다.`;
-
 export type BillingCycle = "annual" | "monthly";
 
 export interface PricingTier {
@@ -28,15 +20,16 @@ export interface PricingTier {
   maxHouseholds: number | null;  // 상한 (이하, 포함). null = 무제한
   annual: number;                // 연간 단지당 단가(원)
   monthly: number;               // 월 단지당 단가(원)
+  storageGB: number;             // 단지당 기본 제공 사진 저장용량(GB). 초과 시 추가요금.
 }
 
-// ⚠️ 금액을 바꿀 땐 여기만 수정하면 전체에 반영된다.
+// ⚠️ 금액·용량을 바꿀 땐 여기만 수정하면 전체에 반영된다.
 export const PRICING_TIERS: PricingTier[] = [
-  { id: "t1", label: "~300세대",        minHouseholds: 0,    maxHouseholds: 300,  annual: 60000,  monthly: 6000 },
-  { id: "t2", label: "301~500세대",     minHouseholds: 301,  maxHouseholds: 500,  annual: 100000, monthly: 10000 },
-  { id: "t3", label: "501~1,000세대",   minHouseholds: 501,  maxHouseholds: 1000, annual: 150000, monthly: 15000 },
-  { id: "t4", label: "1,001~2,000세대", minHouseholds: 1001, maxHouseholds: 2000, annual: 250000, monthly: 25000 },
-  { id: "t5", label: "2,001세대~",      minHouseholds: 2001, maxHouseholds: null, annual: 350000, monthly: 35000 },
+  { id: "t1", label: "~300세대",        minHouseholds: 0,    maxHouseholds: 300,  annual: 60000,  monthly: 6000,  storageGB: 1 },
+  { id: "t2", label: "301~500세대",     minHouseholds: 301,  maxHouseholds: 500,  annual: 100000, monthly: 10000, storageGB: 2 },
+  { id: "t3", label: "501~1,000세대",   minHouseholds: 501,  maxHouseholds: 1000, annual: 150000, monthly: 15000, storageGB: 3 },
+  { id: "t4", label: "1,001~2,000세대", minHouseholds: 1001, maxHouseholds: 2000, annual: 250000, monthly: 25000, storageGB: 5 },
+  { id: "t5", label: "2,001세대~",      minHouseholds: 2001, maxHouseholds: null, annual: 350000, monthly: 35000, storageGB: 10 },
 ];
 
 /** 세대수가 속한 구간을 찾는다. 값이 없거나 음수면 최저 구간 처리. */
@@ -54,6 +47,23 @@ export function priceForHouseholds(households: number | null | undefined, cycle:
   const t = tierForHouseholds(households);
   return cycle === "annual" ? t.annual : t.monthly;
 }
+
+/** 단일 단지의 기본 제공 저장용량(바이트) — 세대수 구간별로 다르다. */
+export function storageLimitBytes(households: number | null | undefined): number {
+  return tierForHouseholds(households).storageGB * 1024 * 1024 * 1024;
+}
+
+/** 여러 단지의 총 기본 제공 저장용량(바이트) = 각 단지 구간 용량 합. */
+export function totalStorageLimitBytes(householdCounts: Array<number | null | undefined>): number {
+  return householdCounts.reduce<number>((sum, h) => sum + storageLimitBytes(h), 0);
+}
+
+// 최저~최고 구간 용량 라벨 (예: "1GB~10GB").
+export const STORAGE_RANGE_LABEL = `${Math.min(...PRICING_TIERS.map((t) => t.storageGB))}GB~${Math.max(...PRICING_TIERS.map((t) => t.storageGB))}GB`;
+
+// 저장용량 초과 안내 문구(사용량 화면·가입 고지에서 공통 사용).
+export const STORAGE_OVERAGE_NOTICE =
+  `사진 저장용량은 단지의 세대수 구간에 따라 ${STORAGE_RANGE_LABEL}이 기본 제공됩니다. 초과 시 추가 요금이 발생할 수 있으며, 초과가 예상되면 사전에 안내드립니다.`;
 
 /** 여러 단지의 세대수 배열 → 총 결제액(원). */
 export function totalPrice(householdCounts: Array<number | null | undefined>, cycle: BillingCycle): number {

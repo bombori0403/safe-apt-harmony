@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { getPlatformUsage, getUsageBreakdown, getMyOrgUsage } from "@/lib/platform-admin.functions";
-import { STORAGE_LIMIT_PER_COMPLEX_BYTES, STORAGE_LIMIT_PER_COMPLEX_LABEL, STORAGE_OVERAGE_NOTICE } from "@/lib/pricing";
+import { storageLimitBytes, totalStorageLimitBytes, STORAGE_RANGE_LABEL, STORAGE_OVERAGE_NOTICE } from "@/lib/pricing";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Database, HardDrive, RefreshCw, Info } from "lucide-react";
@@ -102,8 +102,7 @@ function OrgUsage() {
   useEffect(() => { load(); }, []);
 
   const complexes = [...(d?.complexes ?? [])].sort((a, b) => b.storage_bytes - a.storage_bytes);
-  const perQuota = STORAGE_LIMIT_PER_COMPLEX_BYTES;
-  const orgQuota = complexes.length * perQuota;
+  const orgQuota = totalStorageLimitBytes(complexes.map((c) => c.household_count));
   const orgUsed = d?.org?.storage_bytes ?? 0;
   const chart = complexes.map((c) => ({ name: c.name, MB: toMB(c.storage_bytes) }));
 
@@ -129,8 +128,8 @@ function OrgUsage() {
           <Card>
             <CardHeader className="pb-3"><CardTitle className="text-base">전체 저장용량 (기본 제공 대비)</CardTitle></CardHeader>
             <CardContent className="space-y-2">
-              <UsageBar label={`우리 회사 사진 저장 (단지 ${complexes.length}개 × ${STORAGE_LIMIT_PER_COMPLEX_LABEL})`} icon={HardDrive} used={orgUsed} limit={orgQuota} />
-              <p className="text-[11px] text-muted-foreground">기본 제공은 단지당 {STORAGE_LIMIT_PER_COMPLEX_LABEL}입니다. 70% 넘으면 주황, 90% 넘으면 빨강으로 표시됩니다.</p>
+              <UsageBar label={`우리 회사 사진 저장 (단지 ${complexes.length}개 기본 제공 합계)`} icon={HardDrive} used={orgUsed} limit={orgQuota} />
+              <p className="text-[11px] text-muted-foreground">기본 제공은 세대수 구간별 단지당 {STORAGE_RANGE_LABEL}입니다. 70% 넘으면 주황, 90% 넘으면 빨강으로 표시됩니다.</p>
             </CardContent>
           </Card>
 
@@ -153,11 +152,12 @@ function OrgUsage() {
               <table className="w-full text-sm min-w-[560px]">
                 <thead><tr className="text-muted-foreground text-left border-b">
                   <th className="py-2 pr-2">단지</th><th className="py-2 px-2 text-right">세대수</th><th className="py-2 px-2 text-right">평가</th>
-                  <th className="py-2 px-2 text-right">위험요인</th><th className="py-2 px-2 text-right">아차사고</th><th className="py-2 pl-2 min-w-[160px]">사진 저장 (기본 {STORAGE_LIMIT_PER_COMPLEX_LABEL})</th>
+                  <th className="py-2 px-2 text-right">위험요인</th><th className="py-2 px-2 text-right">아차사고</th><th className="py-2 pl-2 min-w-[170px]">사진 저장 (구간별 기본)</th>
                 </tr></thead>
                 <tbody className="divide-y">
                   {complexes.map((c) => {
-                    const pct = Math.min(100, Math.round((c.storage_bytes / perQuota) * 100));
+                    const limit = storageLimitBytes(c.household_count);
+                    const pct = Math.min(100, Math.round((c.storage_bytes / limit) * 100));
                     const tier = pct >= 90 ? "bg-danger" : pct >= 70 ? "bg-warning" : "bg-primary";
                     return (
                       <tr key={c.id}>
@@ -168,10 +168,10 @@ function OrgUsage() {
                         <td className="py-2 px-2 text-right">{c.near_miss}</td>
                         <td className="py-2 pl-2">
                           <div className="flex items-center gap-2">
-                            <div className="h-2 flex-1 rounded-full bg-muted overflow-hidden min-w-[70px]">
+                            <div className="h-2 flex-1 rounded-full bg-muted overflow-hidden min-w-[60px]">
                               <div className={`h-full ${tier}`} style={{ width: `${Math.max(2, pct)}%` }} />
                             </div>
-                            <span className="text-xs text-muted-foreground shrink-0 tabular-nums">{fmtBytes(c.storage_bytes)}</span>
+                            <span className="text-xs text-muted-foreground shrink-0 tabular-nums">{fmtBytes(c.storage_bytes)} / {fmtBytes(limit)}</span>
                           </div>
                         </td>
                       </tr>
