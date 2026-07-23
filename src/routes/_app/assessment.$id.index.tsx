@@ -145,21 +145,47 @@ function Detail() {
           {canManage && (
             <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="gap-1"><Pencil className="h-4 w-4" />수정</Button>
           )}
-          <Link to="/assessment/$id/hazards" params={{ id }}><Button variant="outline" size="sm">유해·위험요인</Button></Link>
-          {canManage && (
-            <Link to="/assessment/$id/results" params={{ id }}><Button variant="outline" size="sm">위험성 결정</Button></Link>
-          )}
-          <Link to="/assessment/$id/measures" params={{ id }}><Button variant="outline" size="sm">감소대책</Button></Link>
           <Link to="/assessment/$id/inputs" params={{ id }}><Button variant="outline" size="sm">직원 참여</Button></Link>
-          <Link to="/assessment/$id/share" params={{ id }}><Button size="sm">협의·공유</Button></Link>
-          {canManage && (
-            <Link to="/assessment/$id/report" params={{ id }}><Button size="sm" variant="secondary" className="gap-1"><Printer className="h-4 w-4" />결과서</Button></Link>
-          )}
           {canManage && (
             <Button variant="outline" size="sm" onClick={() => setDelOpen(true)} className="gap-1 text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" />삭제</Button>
           )}
         </div>
       </div>
+
+      {/* 진행 단계 스텝퍼 — 위험성평가 순서대로 */}
+      {(() => {
+        const total = hazards.length;
+        const leveled = total > 0 && hazards.every((h: any) => h.level);
+        const measured = hazards.reduce((s: number, h: any) => s + (h.measures?.length ?? 0), 0) > 0;
+        const steps = [
+          { label: "유해·위험요인 파악", to: "/assessment/$id/hazards", done: total > 0, show: true },
+          { label: "위험성 결정", to: "/assessment/$id/results", done: leveled, show: canManage },
+          { label: "감소대책", to: "/assessment/$id/measures", done: measured, show: true },
+          { label: "협의·공유", to: "/assessment/$id/share", done: sigCount > 0, show: true },
+          { label: "기록·결과서 출력", to: "/assessment/$id/report", done: false, show: canManage, output: true },
+        ].filter((s) => s.show);
+        const currentIdx = steps.findIndex((s) => !s.done && !(s as any).output);
+        return (
+          <div className="flex items-stretch gap-1.5 overflow-x-auto pb-1">
+            {steps.map((s, i) => (
+              <Link key={s.label} to={s.to as any} params={{ id }} className="shrink-0">
+                <div className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
+                  i === currentIdx ? "border-primary bg-primary/5"
+                    : s.done ? "border-success/40 bg-success/5"
+                    : (s as any).output ? "border-secondary bg-secondary/40"
+                    : "border-border hover:bg-muted/40"}`}>
+                  <span className={`flex items-center justify-center w-5 h-5 rounded-full text-[11px] font-bold shrink-0 ${
+                    s.done ? "bg-success text-white" : i === currentIdx ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+                    {s.done ? <Check className="h-3 w-3" /> : i + 1}
+                  </span>
+                  <span className="whitespace-nowrap font-medium">{s.label}</span>
+                  {i < steps.length - 1 && <span className="text-muted-foreground/40 ml-1">›</span>}
+                </div>
+              </Link>
+            ))}
+          </div>
+        );
+      })()}
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Stat icon={ListChecks} title="유해·위험요인" value={hazards.length} />

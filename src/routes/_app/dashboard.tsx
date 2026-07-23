@@ -421,6 +421,10 @@ function Dashboard() {
         </Card>
       ) : null}
 
+      {userRow?.org_role !== "member" && (
+        <ProcedureGuide firstTime={assessments.length === 0} />
+      )}
+
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <KpiCard title="이번 달 평가" value={monthCount} icon={TrendingUp} />
         <KpiCard title="높음·매우높음 미해결" value={unresolvedHigh} icon={AlertTriangle} danger />
@@ -585,6 +589,52 @@ function Dashboard() {
         본 시스템은 산업안전보건법 제36조 및 고용노동부 고시 제2024-76호에 따른 위험성평가 6단계 표준 절차를 지원합니다.
       </p>
     </div>
+  );
+}
+
+const PROCEDURE_STEPS = [
+  { n: "1", title: "사전준비", desc: "평가 대상·방법 정하고 실시규정 확인" },
+  { n: "2", title: "유해·위험요인 파악", desc: "작업별 위험요인 찾기 (아차사고·직원의견 활용)" },
+  { n: "3", title: "위험성 결정", desc: "가능성×중대성으로 위험성 판단" },
+  { n: "4", title: "감소대책 수립·실행", desc: "위험을 낮출 대책 세우고 실행" },
+  { n: "5", title: "기록·공유·보존", desc: "결과서·KRAS 출력, 5년 보존" },
+];
+
+function ProcedureGuide({ firstTime }: { firstTime: boolean }) {
+  return (
+    <Card className={firstTime ? "border-primary/40 bg-primary/[0.03]" : ""}>
+      <CardContent className="p-4 md:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+          <h2 className="font-semibold flex items-center gap-2">
+            위험성평가 진행 순서
+            {firstTime && <Badge className="text-[10px]">처음이신가요?</Badge>}
+          </h2>
+          <span className="text-xs text-muted-foreground">②~⑤는 “새 평가”를 시작하면 차례로 안내됩니다</span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 mt-3">
+          {PROCEDURE_STEPS.map((s, i) => (
+            <div key={s.n} className="relative rounded-lg border bg-card p-3">
+              <div className="flex items-center gap-2">
+                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">{s.n}</span>
+                <span className="text-[13px] font-semibold leading-tight">{s.title}</span>
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-1.5 leading-snug">{s.desc}</p>
+              {i < PROCEDURE_STEPS.length - 1 && (
+                <span className="hidden lg:block absolute -right-[7px] top-1/2 -translate-y-1/2 text-muted-foreground/50 z-10">›</span>
+              )}
+            </div>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-2 mt-4">
+          <Link to="/assessment/new">
+            <Button className="gap-2"><Plus className="h-4 w-4" />새 평가 시작</Button>
+          </Link>
+          <Link to="/regulation">
+            <Button variant="outline">① 실시규정 보기</Button>
+          </Link>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
