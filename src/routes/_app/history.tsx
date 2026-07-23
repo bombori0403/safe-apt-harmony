@@ -13,7 +13,7 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { MessageCircle, Search, Pencil, FileText } from "lucide-react";
+import { MessageCircle, Search, Pencil, FileText, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { riskLevelClass, type RiskLevel } from "@/lib/types";
 import { updateAssessment } from "@/lib/assessment.functions";
@@ -107,16 +107,21 @@ function History() {
             위험성평가 결과는 법정 3년 이상 보존해야 하며(산업안전보건법 시행규칙 제37조), 안전데스크는 자체 규정에 따라 5년간 보관합니다.
           </p>
         </div>
-        <Link
-          to="/kras-report-all"
-          search={{
-            complexId: complexId || undefined,
-            type: typeFilter || undefined,
-            q: q || undefined,
-          }}
-        >
-          <Button variant="outline" className="gap-2 shrink-0"><FileText className="h-4 w-4" />전체 KRAS 양식 출력</Button>
-        </Link>
+        <div className="flex gap-2 shrink-0">
+          <Link to="/import">
+            <Button variant="outline" className="gap-2"><Upload className="h-4 w-4" />엑셀 가져오기</Button>
+          </Link>
+          <Link
+            to="/kras-report-all"
+            search={{
+              complexId: complexId || undefined,
+              type: typeFilter || undefined,
+              q: q || undefined,
+            }}
+          >
+            <Button variant="outline" className="gap-2"><FileText className="h-4 w-4" />전체 KRAS 양식 출력</Button>
+          </Link>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-end gap-3">

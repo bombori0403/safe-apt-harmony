@@ -26,6 +26,7 @@ import { Route as AppPrintAllRouteImport } from './routes/_app/print-all'
 import { Route as AppPlatformAdminRouteImport } from './routes/_app/platform-admin'
 import { Route as AppNearMissRouteImport } from './routes/_app/near-miss'
 import { Route as AppKrasReportAllRouteImport } from './routes/_app/kras-report-all'
+import { Route as AppImportRouteImport } from './routes/_app/import'
 import { Route as AppHistoryRouteImport } from './routes/_app/history'
 import { Route as AppEmployeeInputsRouteImport } from './routes/_app/employee-inputs'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
@@ -128,6 +129,11 @@ const AppNearMissRoute = AppNearMissRouteImport.update({
 const AppKrasReportAllRoute = AppKrasReportAllRouteImport.update({
   id: '/kras-report-all',
   path: '/kras-report-all',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppImportRoute = AppImportRouteImport.update({
+  id: '/import',
+  path: '/import',
   getParentRoute: () => AppRoute,
 } as any)
 const AppHistoryRoute = AppHistoryRouteImport.update({
@@ -240,6 +246,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AppDashboardRoute
   '/employee-inputs': typeof AppEmployeeInputsRoute
   '/history': typeof AppHistoryRoute
+  '/import': typeof AppImportRoute
   '/kras-report-all': typeof AppKrasReportAllRoute
   '/near-miss': typeof AppNearMissRouteWithChildren
   '/platform-admin': typeof AppPlatformAdminRoute
@@ -277,6 +284,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AppDashboardRoute
   '/employee-inputs': typeof AppEmployeeInputsRoute
   '/history': typeof AppHistoryRoute
+  '/import': typeof AppImportRoute
   '/kras-report-all': typeof AppKrasReportAllRoute
   '/near-miss': typeof AppNearMissRouteWithChildren
   '/platform-admin': typeof AppPlatformAdminRoute
@@ -316,6 +324,7 @@ export interface FileRoutesById {
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/employee-inputs': typeof AppEmployeeInputsRoute
   '/_app/history': typeof AppHistoryRoute
+  '/_app/import': typeof AppImportRoute
   '/_app/kras-report-all': typeof AppKrasReportAllRoute
   '/_app/near-miss': typeof AppNearMissRouteWithChildren
   '/_app/platform-admin': typeof AppPlatformAdminRoute
@@ -355,6 +364,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/employee-inputs'
     | '/history'
+    | '/import'
     | '/kras-report-all'
     | '/near-miss'
     | '/platform-admin'
@@ -392,6 +402,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/employee-inputs'
     | '/history'
+    | '/import'
     | '/kras-report-all'
     | '/near-miss'
     | '/platform-admin'
@@ -430,6 +441,7 @@ export interface FileRouteTypes {
     | '/_app/dashboard'
     | '/_app/employee-inputs'
     | '/_app/history'
+    | '/_app/import'
     | '/_app/kras-report-all'
     | '/_app/near-miss'
     | '/_app/platform-admin'
@@ -589,6 +601,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppKrasReportAllRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/import': {
+      id: '/_app/import'
+      path: '/import'
+      fullPath: '/import'
+      preLoaderRoute: typeof AppImportRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/history': {
       id: '/_app/history'
       path: '/history'
@@ -745,6 +764,7 @@ interface AppRouteChildren {
   AppDashboardRoute: typeof AppDashboardRoute
   AppEmployeeInputsRoute: typeof AppEmployeeInputsRoute
   AppHistoryRoute: typeof AppHistoryRoute
+  AppImportRoute: typeof AppImportRoute
   AppKrasReportAllRoute: typeof AppKrasReportAllRoute
   AppNearMissRoute: typeof AppNearMissRouteWithChildren
   AppPlatformAdminRoute: typeof AppPlatformAdminRoute
@@ -774,6 +794,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppDashboardRoute: AppDashboardRoute,
   AppEmployeeInputsRoute: AppEmployeeInputsRoute,
   AppHistoryRoute: AppHistoryRoute,
+  AppImportRoute: AppImportRoute,
   AppKrasReportAllRoute: AppKrasReportAllRoute,
   AppNearMissRoute: AppNearMissRouteWithChildren,
   AppPlatformAdminRoute: AppPlatformAdminRoute,
