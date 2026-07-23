@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { WORK_CATEGORIES, CATEGORY_LABEL, type WorkCategory } from "@/lib/types";
+import { WORK_CATEGORIES, CATEGORY_LABEL, scoreToRiskLevel, type WorkCategory, type RiskLevel } from "@/lib/types";
 import { suggestLegalBasis } from "@/lib/legal-basis-keywords";
 import { toast } from "sonner";
 import { writeErrorMessage } from "@/lib/write-error";
@@ -21,7 +21,7 @@ function Hazards() {
   const [assessment, setAssessment] = useState<any>(null);
   const [category, setCategory] = useState<WorkCategory>("승강기_점검정비");
   const [customCategory, setCustomCategory] = useState("");
-  const [library, setLibrary] = useState<{ id: string; description: string }[]>([]);
+  const [library, setLibrary] = useState<any[]>([]);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [custom, setCustom] = useState<string[]>([]);
   const [newCustom, setNewCustom] = useState("");
@@ -41,22 +41,55 @@ function Hazards() {
   }, [id]);
 
   useEffect(() => {
-    supabase.from("hazard_library").select("id,description").eq("category", category).order("sort_order").then(({ data }) => {
-      setLibrary(data ?? []);
-    });
+    supabase.from("hazard_library")
+      .select("id,description,default_likelihood,default_severity,suggested_measures")
+      .eq("category", category).order("sort_order").then(({ data }) => {
+        setLibrary(data ?? []);
+      });
   }, [category]);
+
+  // 라이브러리 기본 빈도·강도(빈도강도법 기준)를 평가방법에 맞는 위험성으로 환산해 미리 채운다.
+  function prefillRisk(method: string, l?: number | null, s?: number | null): Record<string, any> {
+    if (!l || !s) return {};
+    const base = scoreToRiskLevel(l * s) as RiskLevel;
+    if (method === "빈도강도법") return { likelihood: l, severity: s, level: base, level_standardized: base };
+    if (method === "5단계_판단법") return { level: base, level_standardized: base };
+    if (method === "3단계_판단법") {
+      const lvl: RiskLevel = base === "높음" || base === "매우높음" ? "매우높음" : base === "보통" ? "보통" : "낮음";
+      return { level: lvl, level_standardized: lvl };
+    }
+    return {}; // 체크리스트/OPS 등은 사용자가 직접 판단
+  }
 
   async function submit() {
     setSaving(true);
+    const libSel = library.filter(l => selected[l.id]);
     const rows = [
-      ...library.filter(l => selected[l.id]).map(l => ({ assessment_id: id, description: l.description, library_item_id: l.id })),
+      ...libSel.map(l => ({
+        assessment_id: id, description: l.description, library_item_id: l.id,
+        ...prefillRisk(assessment.method, l.default_likelihood, l.default_severity),
+      })),
       ...custom.map(c => ({ assessment_id: id, description: c, legal_basis_override: suggestLegalBasis(c)?.legal_basis ?? null })),
     ];
     if (rows.length === 0) { toast.error("최소 1개 이상의 유해·위험요인을 선택하세요"); setSaving(false); return; }
-    const { error } = await supabase.from("hazards").insert(rows);
+    const { data: inserted, error } = await supabase.from("hazards").insert(rows).select("id, library_item_id");
     if (error) { toast.error(writeErrorMessage(error)); setSaving(false); return; }
+
+    // 라이브러리 대표 감소대책을 초기 대책으로 자동 생성
+    const measureRows: any[] = [];
+    for (const h of inserted ?? []) {
+      if (!h.library_item_id) continue;
+      const lib = libSel.find(l => l.id === h.library_item_id);
+      const sm = Array.isArray(lib?.suggested_measures) ? lib.suggested_measures : [];
+      for (const m of sm) {
+        if (m && String(m).trim()) measureRows.push({ hazard_id: h.id, content: String(m).trim(), type: "관리적_대책", status: "대기" });
+      }
+    }
+    if (measureRows.length) await supabase.from("measures").insert(measureRows).then(() => {}, () => {});
+
     await supabase.from("assessments").update({ work_category: customCategory.trim() || category }).eq("id", id);
-    toast.success(`${rows.length}건 추가됨. 위험성 결정 단계로 이동합니다.`);
+    const mMsg = measureRows.length ? ` · 감소대책 ${measureRows.length}건 자동 등록` : "";
+    toast.success(`${rows.length}건 추가됨${mMsg}. 위험성 결정 단계로 이동합니다.`);
     navigate({ to: "/assessment/$id/results", params: { id } });
   }
 
@@ -87,7 +120,9 @@ function Hazards() {
 
         <div>
           <Label>공동주택 표준 유해·위험요인</Label>
-          <p className="text-xs text-muted-foreground mt-1 mb-2">해당하는 항목을 선택하세요 (다중 선택)</p>
+          <p className="text-xs text-muted-foreground mt-1 mb-2">
+            해당하는 항목을 선택하세요 (다중 선택). 선택 시 <b>위험성(빈도·강도)과 대표 감소대책, 법적기준</b>이 자동으로 채워집니다 — 다음 단계에서 수정할 수 있어요.
+          </p>
           <div className="space-y-1.5">
             {library.map(l => (
               <label key={l.id} className="flex items-start gap-2 p-2.5 rounded-md hover:bg-muted/40 cursor-pointer text-sm">
