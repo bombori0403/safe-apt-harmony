@@ -201,9 +201,10 @@ function WorkStopRecords() {
   async function confirmDelete() {
     if (!deleteId) return;
     setDeleting(true);
-    const { error } = await (supabase as any).from("work_stop_records").delete().eq("id", deleteId);
+    const { data: del, error } = await (supabase as any).from("work_stop_records").delete().eq("id", deleteId).select("id");
     setDeleting(false);
     if (error) { toast.error(writeErrorMessage(error)); return; }
+    if (!del || del.length === 0) { toast.error("삭제할 수 없습니다. 체험 기간이 종료되었거나 권한이 없습니다."); return; }
     toast.success("삭제되었습니다");
     setDeleteId(null);
     load();
@@ -318,9 +319,9 @@ function WorkStopRecords() {
                       <div className="text-[11px] text-muted-foreground mb-1">중지 원인 사진</div>
                       <div className="flex flex-wrap gap-1.5">
                         {it.cause_photos.map((u:string,i:number)=>(
-                          <a key={i} href={u} target="_blank" rel="noreferrer" className="w-16 h-16 rounded border overflow-hidden bg-muted block">
+                          <span key={i} className="w-16 h-16 rounded border overflow-hidden bg-muted block">
                             <SignedImg src={u} alt="" className="w-full h-full object-cover" />
-                          </a>
+                          </span>
                         ))}
                       </div>
                     </div>
@@ -331,9 +332,9 @@ function WorkStopRecords() {
                       <div className="text-[11px] text-muted-foreground mb-1">시정 완료 사진</div>
                       <div className="flex flex-wrap gap-1.5">
                         {it.resolution_photos.map((u:string,i:number)=>(
-                          <a key={i} href={u} target="_blank" rel="noreferrer" className="w-16 h-16 rounded border overflow-hidden bg-muted block">
+                          <span key={i} className="w-16 h-16 rounded border overflow-hidden bg-muted block">
                             <SignedImg src={u} alt="" className="w-full h-full object-cover" />
-                          </a>
+                          </span>
                         ))}
                       </div>
                     </div>

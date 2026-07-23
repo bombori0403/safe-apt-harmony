@@ -94,10 +94,15 @@ function Hazards() {
         if (m && String(m).trim()) measureRows.push({ hazard_id: h.id, content: String(m).trim(), type: "관리적_대책", status: "대기" });
       }
     }
-    if (measureRows.length) await supabase.from("measures").insert(measureRows).then(() => {}, () => {});
+    let measuresOk = 0;
+    if (measureRows.length) {
+      const { error: me } = await supabase.from("measures").insert(measureRows);
+      if (me) console.error("감소대책 자동등록 실패:", me);
+      else measuresOk = measureRows.length;
+    }
 
     await supabase.from("assessments").update({ work_category: customCategory.trim() || category }).eq("id", id);
-    const mMsg = measureRows.length ? ` · 감소대책 ${measureRows.length}건 자동 등록` : "";
+    const mMsg = measuresOk ? ` · 감소대책 ${measuresOk}건 자동 등록` : "";
     toast.success(`${rows.length}건 추가됨${mMsg}. 위험성 결정 단계로 이동합니다.`);
     navigate({ to: "/assessment/$id/results", params: { id } });
   }

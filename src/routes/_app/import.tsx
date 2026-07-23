@@ -119,9 +119,14 @@ function ImportPage() {
           });
         }
       });
-      if (measureRows.length) await supabase.from("measures").insert(measureRows).then(() => {}, () => {});
+      let measuresOk = 0;
+      if (measureRows.length) {
+        const { error: me } = await supabase.from("measures").insert(measureRows);
+        if (me) console.error("measures insert 실패:", me);
+        else measuresOk = measureRows.length;
+      }
 
-      toast.success(`가져오기 완료 — 위험요인 ${hazardRows.length}건, 감소대책 ${measureRows.length}건`);
+      toast.success(`가져오기 완료 — 위험요인 ${hazardRows.length}건, 감소대책 ${measuresOk}건`);
       navigate({ to: "/assessment/$id", params: { id: a.id } });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "가져오기 중 오류가 발생했습니다.");

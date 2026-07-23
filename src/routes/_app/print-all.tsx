@@ -96,8 +96,11 @@ function PrintAll() {
           .in("id", allowedIds).order("name");
         setComplexes(cs ?? []);
 
-        const { data: reg } = await supabase.from("regulation_content").select("*").maybeSingle();
-        setRegulation(reg);
+        if (userRow?.organization_id) {
+          const { data: reg } = await supabase.from("regulation_content").select("*")
+            .eq("organization_id", userRow.organization_id).maybeSingle();
+          setRegulation(reg);
+        }
 
         if (userRow?.organization_id) {
           const { data: o } = await supabase

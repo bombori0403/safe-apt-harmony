@@ -139,7 +139,7 @@ function Dashboard() {
           const { count: hc } = await supabase
             .from("hazards")
             .select("*", { count: "exact", head: true })
-            .in("level", ["높음", "매우높음"])
+            .or("level.in.(높음,매우높음),level_standardized.in.(높음,매우높음)")
             .in("assessment_id", ids);
           setUnresolvedHigh(hc ?? 0);
         }

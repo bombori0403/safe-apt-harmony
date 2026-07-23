@@ -158,11 +158,9 @@ function NearMissDetail() {
 
   async function remove() {
     if (!confirm("삭제하시겠습니까?")) return;
-    const { error } = await (supabase as any).from("near_miss").delete().eq("id", id);
-    if (error) {
-      toast.error(writeErrorMessage(error));
-      return;
-    }
+    const { data: del, error } = await (supabase as any).from("near_miss").delete().eq("id", id).select("id");
+    if (error) { toast.error(writeErrorMessage(error)); return; }
+    if (!del || del.length === 0) { toast.error("삭제할 수 없습니다. 체험 기간이 종료되었거나 권한이 없습니다."); return; }
     toast.success("삭제되었습니다");
     navigate({ to: "/near-miss" });
   }
@@ -362,9 +360,7 @@ function NearMissDetail() {
                   <div className="text-xs text-muted-foreground mb-1">사고 사진</div>
                   <div className="flex flex-wrap gap-2">
                     {incPhotos.map((u, i) => (
-                      <a key={i} href={u} target="_blank" rel="noreferrer">
-                        <SignedImg src={u} alt="" className="w-24 h-24 object-cover rounded border" />
-                      </a>
+                      <SignedImg key={i} src={u} alt="" className="w-24 h-24 object-cover rounded border" />
                     ))}
                   </div>
                 </div>
@@ -513,7 +509,7 @@ function NearMissDetail() {
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {incPhotos.map((u, i) => (
-                  <img
+                  <SignedImg
                     key={i}
                     src={u}
                     alt={`사고-${i + 1}`}
@@ -538,7 +534,7 @@ function NearMissDetail() {
               <div className="text-xs font-semibold mb-2">조치 사진 ({cmPhotos.length}장)</div>
               <div className="grid grid-cols-2 gap-2">
                 {cmPhotos.map((u, i) => (
-                  <img
+                  <SignedImg
                     key={i}
                     src={u}
                     alt={`조치-${i + 1}`}

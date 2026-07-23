@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SignedImg } from "@/components/signed-img";
+import { getSignedUrls } from "@/lib/storage";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -216,8 +217,10 @@ function EmployeeInputs() {
 
   async function del(rowId: string) {
     if (!confirm("삭제하시겠습니까?")) return;
-    const { error } = await supabase.from("employee_inputs").delete().eq("id", rowId);
-    if (error) toast.error(writeErrorMessage(error)); else { toast.success("삭제됨"); load(); }
+    const { data: del, error } = await supabase.from("employee_inputs").delete().eq("id", rowId).select("id");
+    if (error) { toast.error(writeErrorMessage(error)); return; }
+    if (!del || del.length === 0) { toast.error("삭제할 수 없습니다. 체험 기간이 종료되었거나 권한이 없습니다."); return; }
+    toast.success("삭제됨"); load();
   }
 
   async function saveEdit() {
@@ -268,11 +271,13 @@ function EmployeeInputs() {
     const target = items.find(i => i.id === rowId);
     setPrintItemId(rowId);
     window.setTimeout(async () => {
-      await preloadImages(target?.attachments ?? []);
+      // 비공개 버킷: 공개 URL 대신 서명 URL을 미리 발급받아 warm-up 해야 인쇄에 사진이 뜬다
+      const signed = await getSignedUrls(target?.attachments ?? []);
+      await preloadImages(signed.filter(Boolean));
       document.body.classList.add("printing-single-active");
       window.print();
       document.body.classList.remove("printing-single-active");
-    }, 200);
+    }, 300);
   }
 
 

@@ -130,7 +130,9 @@ export function parseStandardSheet(ws: XLSX.WorkSheet, sheetName: string): Parse
     if (method === "빈도강도법" && like && sev) level = scoreToRiskLevel(like * sev);
     else if (riskCol >= 0) level = levelFrom상중하(txt(row[riskCol]));
 
+    // "개선여부": '완료/이행/○'은 완료, 단 '미완료/미이행' 등 '미'로 시작하면 미완료로 처리
     const doneVal = col.done >= 0 ? txt(row[col.done]) : "";
+    const isDone = !doneVal.startsWith("미") && /완료|이행|^[oO○]$/.test(doneVal);
     rows.push({
       description: desc,
       proc: col.proc >= 0 ? txt(row[col.proc]) : undefined,
@@ -142,7 +144,7 @@ export function parseStandardSheet(ws: XLSX.WorkSheet, sheetName: string): Parse
       level,
       measure: col.measure >= 0 ? txt(row[col.measure]) || undefined : undefined,
       dueDate: col.due >= 0 ? toDate(row[col.due]) : undefined,
-      done: /완료|이행|o|○/i.test(doneVal),
+      done: isDone,
     });
   }
   if (!rows.length) return null;

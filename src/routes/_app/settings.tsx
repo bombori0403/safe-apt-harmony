@@ -59,28 +59,22 @@ function Settings() {
       setOrg(o);
     }
     if (u) {
-      const { data: members } = await supabase
-        .from("complex_members")
-        .select("complex_id")
-        .eq("user_id", u.id);
-
       const isAdmin = u.org_role === "admin";
-      const complexIds = [...new Set((members ?? []).map((m: any) => m.complex_id).filter(Boolean))];
-      if (complexIds.length === 0) {
-        setComplexes([]);
-        setShowNewForm(isAdmin);
-        setLoading(false);
-        return;
+      let list: any[] = [];
+      if (isAdmin) {
+        // 관리자: 조직 전체 단지 (RLS가 조직별 제한)
+        const { data, error } = await supabase.from("complexes").select("*").order("created_at", { ascending: true });
+        if (error) toast.error(writeErrorMessage(error));
+        list = data ?? [];
+      } else {
+        const { data: members } = await supabase.from("complex_members").select("complex_id").eq("user_id", u.id);
+        const ids = [...new Set((members ?? []).map((m: any) => m.complex_id).filter(Boolean))];
+        list = ids.length
+          ? (await supabase.from("complexes").select("*").in("id", ids).order("created_at", { ascending: true })).data ?? []
+          : [];
       }
-
-      const { data: list, error } = await supabase
-        .from("complexes")
-        .select("*")
-        .in("id", complexIds)
-        .order("created_at", { ascending: true });
-      if (error) toast.error(writeErrorMessage(error));
-      setComplexes(list ?? []);
-      setShowNewForm(isAdmin && (list ?? []).length === 0);
+      setComplexes(list);
+      setShowNewForm(isAdmin && list.length === 0);
     }
     setLoading(false);
   }

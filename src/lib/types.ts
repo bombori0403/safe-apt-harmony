@@ -56,8 +56,11 @@ export const ASSESSMENT_METHODS: AssessmentMethod[] = ["3단계_판단법","5단
 
 export const RISK_LEVELS: RiskLevel[] = ["매우낮음", "낮음", "보통", "높음", "매우높음"];
 
-export const RISK_ORDER: Record<RiskLevel, number> = {
+export const RISK_ORDER: Record<string, number> = {
   매우낮음: 1, 낮음: 2, 보통: 3, 높음: 4, 매우높음: 5,
+  // 3단계(상/중/하)·체크리스트(적정/보완) 값도 허용수준 비교에 대응
+  하: 2, 중: 3, 상: 5,
+  적정: 2, 보완: 4,
 };
 
 export function scoreToRiskLevel(score: number): RiskLevel {

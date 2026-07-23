@@ -58,7 +58,8 @@ function Console() {
     const hzIds = new Set(list.map(a => a.id));
     const hzList = hazards.filter(h => hzIds.has(h.assessment_id));
     const high = hzList.filter(h => ["높음","매우높음"].includes((h.level_standardized ?? h.level) as string)).length;
-    return { name: c.name.length > 8 ? c.name.slice(0,8)+"…" : c.name, 평가수: list.length, 고위험: high };
+    const nm = c.name ?? "";
+    return { name: nm.length > 8 ? nm.slice(0,8)+"…" : nm, 평가수: list.length, 고위험: high };
   });
 
   return (

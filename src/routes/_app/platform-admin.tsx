@@ -28,6 +28,16 @@ interface OrgRow {
 function PlatformAdmin() {
   const [orgs, setOrgs] = useState<OrgRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [allowed, setAllowed] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth.user) { setAllowed(false); return; }
+      const { data: me } = await supabase.from("users").select("is_platform_admin").eq("auth_id", auth.user.id).maybeSingle();
+      setAllowed(!!me?.is_platform_admin);
+    })();
+  }, []);
 
   async function load() {
     setLoading(true);
@@ -41,8 +51,8 @@ function PlatformAdmin() {
   }
 
   useEffect(() => {
-    load();
-  }, []);
+    if (allowed) load();
+  }, [allowed]);
 
   async function decide(id: string, approval_status: "pending" | "approved" | "rejected") {
     const { error } = await supabase.from("organizations").update({ approval_status }).eq("id", id);
@@ -103,6 +113,14 @@ function PlatformAdmin() {
   const decided = orgs.filter((o) => o.approval_status !== "pending");
   const activationRequests = orgs.filter(
     (o) => o.activation_requested_at && o.subscription_status !== "active"
+  );
+
+  if (allowed === null) return <div className="p-8 text-muted-foreground">불러오는 중...</div>;
+  if (!allowed) return (
+    <div className="p-10 max-w-md mx-auto text-center space-y-3">
+      <h1 className="text-xl font-bold">접근 권한이 없습니다</h1>
+      <p className="text-sm text-muted-foreground">이 페이지는 플랫폼 관리자만 사용할 수 있습니다.</p>
+    </div>
   );
 
   return (
