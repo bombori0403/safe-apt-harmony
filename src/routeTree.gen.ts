@@ -29,6 +29,7 @@ import { Route as AppKrasReportAllRouteImport } from './routes/_app/kras-report-
 import { Route as AppImportRouteImport } from './routes/_app/import'
 import { Route as AppHistoryRouteImport } from './routes/_app/history'
 import { Route as AppEmployeeInputsRouteImport } from './routes/_app/employee-inputs'
+import { Route as AppDataUsageRouteImport } from './routes/_app/data-usage'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppConsoleRouteImport } from './routes/_app/console'
 import { Route as AppComplexesRouteImport } from './routes/_app/complexes'
@@ -149,6 +150,11 @@ const AppEmployeeInputsRoute = AppEmployeeInputsRouteImport.update({
   path: '/employee-inputs',
   getParentRoute: () => AppRoute,
 } as any)
+const AppDataUsageRoute = AppDataUsageRouteImport.update({
+  id: '/data-usage',
+  path: '/data-usage',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppDashboardRoute = AppDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -265,6 +271,7 @@ export interface FileRoutesByFullPath {
   '/complexes': typeof AppComplexesRoute
   '/console': typeof AppConsoleRoute
   '/dashboard': typeof AppDashboardRoute
+  '/data-usage': typeof AppDataUsageRoute
   '/employee-inputs': typeof AppEmployeeInputsRoute
   '/history': typeof AppHistoryRoute
   '/import': typeof AppImportRoute
@@ -306,6 +313,7 @@ export interface FileRoutesByTo {
   '/complexes': typeof AppComplexesRoute
   '/console': typeof AppConsoleRoute
   '/dashboard': typeof AppDashboardRoute
+  '/data-usage': typeof AppDataUsageRoute
   '/employee-inputs': typeof AppEmployeeInputsRoute
   '/history': typeof AppHistoryRoute
   '/import': typeof AppImportRoute
@@ -349,6 +357,7 @@ export interface FileRoutesById {
   '/_app/complexes': typeof AppComplexesRoute
   '/_app/console': typeof AppConsoleRoute
   '/_app/dashboard': typeof AppDashboardRoute
+  '/_app/data-usage': typeof AppDataUsageRoute
   '/_app/employee-inputs': typeof AppEmployeeInputsRoute
   '/_app/history': typeof AppHistoryRoute
   '/_app/import': typeof AppImportRoute
@@ -392,6 +401,7 @@ export interface FileRouteTypes {
     | '/complexes'
     | '/console'
     | '/dashboard'
+    | '/data-usage'
     | '/employee-inputs'
     | '/history'
     | '/import'
@@ -433,6 +443,7 @@ export interface FileRouteTypes {
     | '/complexes'
     | '/console'
     | '/dashboard'
+    | '/data-usage'
     | '/employee-inputs'
     | '/history'
     | '/import'
@@ -475,6 +486,7 @@ export interface FileRouteTypes {
     | '/_app/complexes'
     | '/_app/console'
     | '/_app/dashboard'
+    | '/_app/data-usage'
     | '/_app/employee-inputs'
     | '/_app/history'
     | '/_app/import'
@@ -658,6 +670,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppEmployeeInputsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/data-usage': {
+      id: '/_app/data-usage'
+      path: '/data-usage'
+      fullPath: '/data-usage'
+      preLoaderRoute: typeof AppDataUsageRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/dashboard': {
       id: '/_app/dashboard'
       path: '/dashboard'
@@ -822,6 +841,7 @@ interface AppRouteChildren {
   AppComplexesRoute: typeof AppComplexesRoute
   AppConsoleRoute: typeof AppConsoleRoute
   AppDashboardRoute: typeof AppDashboardRoute
+  AppDataUsageRoute: typeof AppDataUsageRoute
   AppEmployeeInputsRoute: typeof AppEmployeeInputsRoute
   AppHistoryRoute: typeof AppHistoryRoute
   AppImportRoute: typeof AppImportRoute
@@ -855,6 +875,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppComplexesRoute: AppComplexesRoute,
   AppConsoleRoute: AppConsoleRoute,
   AppDashboardRoute: AppDashboardRoute,
+  AppDataUsageRoute: AppDataUsageRoute,
   AppEmployeeInputsRoute: AppEmployeeInputsRoute,
   AppHistoryRoute: AppHistoryRoute,
   AppImportRoute: AppImportRoute,

@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, ClipboardList, FilePlus2, Building2, Building, Settings, Shield, Users, AlertTriangle, ShieldAlert, MessageCircle, BookOpen, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, ClipboardList, FilePlus2, Building2, Building, Settings, Shield, Users, AlertTriangle, ShieldAlert, MessageCircle, BookOpen, ShieldCheck, BarChart3 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,7 @@ const NAV_GROUPS = [
       { to: "/team", label: "직원 관리", icon: Users, managerOrAdmin: true },
       { to: "/console", label: "본사 콘솔", icon: Building2, adminOnly: true },
       { to: "/platform-admin", label: "가입 승인", icon: ShieldCheck, platformAdminOnly: true },
+      { to: "/data-usage", label: "데이터 사용량", icon: BarChart3, platformAdminOnly: true },
     ],
   },
   {
