@@ -6,20 +6,47 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { SupportFab } from "@/components/support-fab";
 
-const NAV = [
-  { to: "/dashboard", label: "대시보드", icon: LayoutDashboard, adminOnly: false },
-  { to: "/complexes", label: "단지 관리", icon: Building, adminOnly: false, managerOrAdmin: true },
-  { to: "/regulation", label: "위험성평가 실시규정", icon: BookOpen, adminOnly: false },
-  { to: "/assessment/new", label: "새 평가", icon: FilePlus2, adminOnly: false, managerOrAdmin: true },
-  { to: "/history", label: "평가 이력", icon: ClipboardList, adminOnly: false },
-  { to: "/near-miss", label: "아차사고", icon: AlertTriangle, adminOnly: false, managerOrAdmin: true },
-  { to: "/work-stop-right", label: "작업중지권", icon: ShieldAlert, adminOnly: false, managerOrAdmin: true },
-  { to: "/employee-inputs", label: "직원 참여", icon: MessageCircle, adminOnly: false },
-  { to: "/console", label: "본사 콘솔", icon: Building2, adminOnly: true },
-  { to: "/team", label: "직원 관리", icon: Users, adminOnly: false, managerOrAdmin: true },
-  { to: "/platform-admin", label: "가입 승인", icon: ShieldCheck, adminOnly: false, platformAdminOnly: true },
-  { to: "/settings", label: "설정", icon: Settings, adminOnly: false },
+const NAV_GROUPS = [
+  {
+    title: null,
+    items: [
+      { to: "/dashboard", label: "대시보드", icon: LayoutDashboard },
+    ],
+  },
+  {
+    title: "위험성평가",
+    items: [
+      { to: "/assessment/new", label: "새 평가", icon: FilePlus2, managerOrAdmin: true },
+      { to: "/history", label: "평가 이력", icon: ClipboardList },
+      { to: "/regulation", label: "실시규정", icon: BookOpen },
+    ],
+  },
+  {
+    title: "안전 활동",
+    items: [
+      { to: "/near-miss", label: "아차사고", icon: AlertTriangle, managerOrAdmin: true },
+      { to: "/work-stop-right", label: "작업중지권", icon: ShieldAlert, managerOrAdmin: true },
+      { to: "/employee-inputs", label: "직원 참여", icon: MessageCircle },
+    ],
+  },
+  {
+    title: "관리",
+    items: [
+      { to: "/complexes", label: "단지 관리", icon: Building, managerOrAdmin: true },
+      { to: "/team", label: "직원 관리", icon: Users, managerOrAdmin: true },
+      { to: "/console", label: "본사 콘솔", icon: Building2, adminOnly: true },
+      { to: "/platform-admin", label: "가입 승인", icon: ShieldCheck, platformAdminOnly: true },
+    ],
+  },
+  {
+    title: null,
+    items: [
+      { to: "/settings", label: "설정", icon: Settings },
+    ],
+  },
 ] as const;
+
+const NAV = NAV_GROUPS.flatMap((g) => g.items);
 
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -42,12 +69,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         }
       });
   }, [user]);
-  const visibleNav = NAV.filter(n => {
-    if ((n as any).platformAdminOnly) return isPlatformAdmin;
+  const canSee = (n: any) => {
+    if (n.platformAdminOnly) return isPlatformAdmin;
     if (n.adminOnly) return isAdmin;
-    if ((n as any).managerOrAdmin) return isAdmin || isManager;
+    if (n.managerOrAdmin) return isAdmin || isManager;
     return true;
-  });
+  };
+  const visibleNav = NAV.filter(canSee);
   return (
     <div className="min-h-screen flex w-full bg-background">
       {/* Sidebar - desktop only */}
@@ -59,22 +87,37 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {orgName && <div className="text-[11px] text-muted-foreground truncate">{orgName}</div>}
           </div>
         </div>
-        <nav className="flex-1 p-3 space-y-1">
-          {visibleNav.map(({ to, label, icon: Icon }) => {
-            const active = path === to || path.startsWith(to + "/");
+        <nav className="flex-1 p-3 overflow-y-auto">
+          {NAV_GROUPS.map((group, gi) => {
+            const items = group.items.filter(canSee);
+            if (items.length === 0) return null;
             return (
-              <Link
-                key={to}
-                to={to}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
-                  active
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                    : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60"
-                }`}
-              >
-                <Icon className="h-4 w-4" />
-                {label}
-              </Link>
+              <div key={gi} className={gi > 0 ? "pt-4" : ""}>
+                {group.title && (
+                  <div className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/45">
+                    {group.title}
+                  </div>
+                )}
+                <div className="space-y-1">
+                  {items.map(({ to, label, icon: Icon }) => {
+                    const active = path === to || path.startsWith(to + "/");
+                    return (
+                      <Link
+                        key={to}
+                        to={to}
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
+                          active
+                            ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                            : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60"
+                        }`}
+                      >
+                        <Icon className="h-4 w-4" />
+                        {label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
             );
           })}
         </nav>

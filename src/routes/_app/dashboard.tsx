@@ -641,9 +641,6 @@ function ProcedureGuide({ firstTime }: { firstTime: boolean }) {
           ))}
         </div>
         <div className="flex flex-wrap gap-2 mt-4">
-          <Link to="/assessment/new">
-            <Button className="gap-2"><Plus className="h-4 w-4" />새 평가 시작</Button>
-          </Link>
           <Link to="/regulation">
             <Button variant="outline">① 실시규정 보기</Button>
           </Link>
