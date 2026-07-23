@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { SignedImg } from "@/components/signed-img";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -293,7 +294,7 @@ function NearMissDetail() {
                 <div className="mt-2 flex flex-wrap gap-2">
                   {incPhotos.map((url, i) => (
                     <div key={i} className="relative w-20 h-20 rounded-md overflow-hidden border">
-                      <img src={url} alt="" className="w-full h-full object-cover" />
+                      <SignedImg src={url} alt="" className="w-full h-full object-cover" />
                       <button
                         onClick={() => setIncPhotos(incPhotos.filter((_, j) => j !== i))}
                         type="button"
@@ -362,7 +363,7 @@ function NearMissDetail() {
                   <div className="flex flex-wrap gap-2">
                     {incPhotos.map((u, i) => (
                       <a key={i} href={u} target="_blank" rel="noreferrer">
-                        <img src={u} alt="" className="w-24 h-24 object-cover rounded border" />
+                        <SignedImg src={u} alt="" className="w-24 h-24 object-cover rounded border" />
                       </a>
                     ))}
                   </div>
@@ -390,7 +391,7 @@ function NearMissDetail() {
             <div className="mt-2 flex flex-wrap gap-2">
               {cmPhotos.map((url, i) => (
                 <div key={i} className="relative w-20 h-20 rounded-md overflow-hidden border">
-                  <img src={url} alt="" className="w-full h-full object-cover" />
+                  <SignedImg src={url} alt="" className="w-full h-full object-cover" />
                   <button
                     onClick={() => setCmPhotos(cmPhotos.filter((_, j) => j !== i))}
                     type="button"

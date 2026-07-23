@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { SignedImg } from "@/components/signed-img";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -547,7 +548,7 @@ function AttachmentPicker({ files, setFiles, uploading, onPick }: any) {
       <div className="flex flex-wrap gap-2 mt-1">
         {files.map((url: string, i: number) => (
           <div key={i} className="relative w-20 h-20 rounded-md overflow-hidden border bg-muted">
-            <img src={url} alt="" className="w-full h-full object-cover" />
+            <SignedImg src={url} alt="" className="w-full h-full object-cover" />
             <button type="button" onClick={() => setFiles(files.filter((_: any, j: number) => j !== i))}
               className="absolute top-0.5 right-0.5 bg-black/60 text-white rounded-full p-0.5">
               <X className="h-3 w-3" />
@@ -610,7 +611,7 @@ function List({ items, me, onDelete, onEdit, onPrint, printItemId, complexNameBy
                   <div className="flex flex-wrap gap-2 pt-1">
                     {it.attachments.map((url: string, i: number) => (
                       <a key={i} href={url} target="_blank" rel="noreferrer">
-                        <img src={url} alt="" className="print-attachment-img w-20 h-20 object-cover rounded-md border" />
+                        <SignedImg src={url} alt="" className="print-attachment-img w-20 h-20 object-cover rounded-md border" />
                       </a>
                     ))}
                   </div>
@@ -842,7 +843,7 @@ function HearingReportSheet({ item, complexName }: { item: any; complexName: str
                   const url = photos[i];
                   return (
                     <div key={i} className="hr-photo-box">
-                      {url ? <img src={url} alt={`첨부사진 ${i + 1}`} /> : <span className="hr-photo-empty">사진 {i + 1}</span>}
+                      {url ? <SignedImg src={url} alt={`첨부사진 ${i + 1}`} /> : <span className="hr-photo-empty">사진 {i + 1}</span>}
                     </div>
                   );
                 })}
@@ -966,7 +967,7 @@ function OpenChatReportSheet({ item, complexName }: { item: any; complexName: st
                   const url = photos[i];
                   return (
                     <div key={i} className="hr-photo-box">
-                      {url ? <img src={url} alt={`첨부 ${i + 1}`} /> : <span className="hr-photo-empty">캡처 {i + 1}</span>}
+                      {url ? <SignedImg src={url} alt={`첨부 ${i + 1}`} /> : <span className="hr-photo-empty">캡처 {i + 1}</span>}
                     </div>
                   );
                 })}

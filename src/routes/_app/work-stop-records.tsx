@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { SignedImg } from "@/components/signed-img";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -56,7 +57,7 @@ function PhotoPicker({
       <div className="flex flex-wrap gap-2 mt-1.5">
         {photos.map((url, i) => (
           <div key={i} className="relative w-20 h-20 rounded-md overflow-hidden border bg-muted">
-            <img src={url} alt="" className="w-full h-full object-cover" />
+            <SignedImg src={url} alt="" className="w-full h-full object-cover" />
             {!disabled && (
               <button type="button" onClick={() => onChange(photos.filter((_, idx) => idx !== i))}
                 className="absolute top-0.5 right-0.5 bg-black/60 text-white rounded-full p-0.5">
@@ -315,7 +316,7 @@ function WorkStopRecords() {
                       <div className="flex flex-wrap gap-1.5">
                         {it.cause_photos.map((u:string,i:number)=>(
                           <a key={i} href={u} target="_blank" rel="noreferrer" className="w-16 h-16 rounded border overflow-hidden bg-muted block">
-                            <img src={u} alt="" className="w-full h-full object-cover" />
+                            <SignedImg src={u} alt="" className="w-full h-full object-cover" />
                           </a>
                         ))}
                       </div>
@@ -328,7 +329,7 @@ function WorkStopRecords() {
                       <div className="flex flex-wrap gap-1.5">
                         {it.resolution_photos.map((u:string,i:number)=>(
                           <a key={i} href={u} target="_blank" rel="noreferrer" className="w-16 h-16 rounded border overflow-hidden bg-muted block">
-                            <img src={u} alt="" className="w-full h-full object-cover" />
+                            <SignedImg src={u} alt="" className="w-full h-full object-cover" />
                           </a>
                         ))}
                       </div>
@@ -367,7 +368,7 @@ function WorkStopRecords() {
                 <div className="flex flex-wrap gap-1.5 mt-1.5">
                   {existingCausePhotos.map((u,i)=>(
                     <div key={i} className="w-16 h-16 rounded border overflow-hidden bg-muted">
-                      <img src={u} alt="" className="w-full h-full object-cover" />
+                      <SignedImg src={u} alt="" className="w-full h-full object-cover" />
                     </div>
                   ))}
                 </div>

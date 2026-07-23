@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { SignedImg } from "@/components/signed-img";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -169,7 +170,7 @@ function NewNearMiss() {
           <div className="mt-2 flex flex-wrap gap-2">
             {photos.map((url,i)=>(
               <div key={i} className="relative w-20 h-20 rounded-md overflow-hidden border">
-                <img src={url} alt="" className="w-full h-full object-cover" />
+                <SignedImg src={url} alt="" className="w-full h-full object-cover" />
                 <button onClick={()=>setPhotos(photos.filter((_,j)=>j!==i))} type="button" className="absolute top-0.5 right-0.5 bg-black/60 text-white rounded-full p-0.5">
                   <X className="h-3 w-3" />
                 </button>

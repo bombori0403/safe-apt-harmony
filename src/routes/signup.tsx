@@ -129,6 +129,11 @@ function Signup() {
           <p className="text-[11px] text-center text-muted-foreground mt-6">
             가입 시 즉시 14일 체험이 시작됩니다 · 결제 정보 불필요
           </p>
+          <p className="text-[11px] text-center text-muted-foreground mt-2">
+            가입을 진행하면{" "}
+            <Link to="/privacy" className="underline hover:text-foreground">개인정보처리방침</Link>에
+            동의하는 것으로 간주됩니다.
+          </p>
         </div>
       </div>
     </div>

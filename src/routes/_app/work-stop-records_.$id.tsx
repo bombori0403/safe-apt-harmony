@@ -2,6 +2,7 @@ import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { SignedImg } from "@/components/signed-img";
 import { Printer, ArrowLeft } from "lucide-react";
 import { useSubscription } from "@/hooks/use-subscription";
 import { TrialWatermark } from "@/components/trial-watermark";
@@ -84,7 +85,7 @@ function WorkStopRecordDetail() {
               <div className="text-xs font-semibold mb-2">중지 원인 사진 ({causePhotos.length}장)</div>
               <div className="grid grid-cols-2 gap-2">
                 {causePhotos.map((u, i) => (
-                  <img key={i} src={u} alt={`원인-${i+1}`} className="w-full h-40 object-cover border border-black/30" crossOrigin="anonymous" />
+                  <SignedImg key={i} src={u} alt={`원인-${i+1}`} className="w-full h-40 object-cover border border-black/30" crossOrigin="anonymous" />
                 ))}
               </div>
             </div>
@@ -101,7 +102,7 @@ function WorkStopRecordDetail() {
               <div className="text-xs font-semibold mb-2">시정 완료 / 작업 재개 사진 ({resPhotos.length}장)</div>
               <div className="grid grid-cols-2 gap-2">
                 {resPhotos.map((u, i) => (
-                  <img key={i} src={u} alt={`재개-${i+1}`} className="w-full h-40 object-cover border border-black/30" crossOrigin="anonymous" />
+                  <SignedImg key={i} src={u} alt={`재개-${i+1}`} className="w-full h-40 object-cover border border-black/30" crossOrigin="anonymous" />
                 ))}
               </div>
             </div>

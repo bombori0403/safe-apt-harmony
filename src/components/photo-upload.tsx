@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Camera, X, Loader2 } from "lucide-react";
+import { SignedImg } from "@/components/signed-img";
 import { toast } from "sonner";
 
 interface Props {
@@ -47,7 +48,7 @@ export function PhotoUpload({ assessmentId, hazardId, photos, onChange }: Props)
       <div className="flex flex-wrap gap-2">
         {photos.map((url, i) => (
           <div key={i} className="relative w-20 h-20 rounded-md overflow-hidden border bg-muted">
-            <img src={url} alt="" className="w-full h-full object-cover" />
+            <SignedImg src={url} alt="" className="w-full h-full object-cover" />
             <button onClick={() => remove(i)} type="button"
               className="absolute top-0.5 right-0.5 bg-black/60 text-white rounded-full p-0.5">
               <X className="h-3 w-3" />

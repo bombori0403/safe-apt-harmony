@@ -9,6 +9,7 @@ import { useSubscription } from "@/hooks/use-subscription";
 import { TrialWatermark, TrialExpiredBlock } from "@/components/trial-watermark";
 import { KrasReportTable } from "@/components/kras-report-table";
 import { RegulationDocument, REGULATION_DEFAULTS } from "@/components/regulation-document";
+import { SignedImg } from "@/components/signed-img";
 
 const DOC_TYPES = [
   ["regulation", "실시규정"],
@@ -430,7 +431,7 @@ function SectionBlock({ title, body, photos, photoLabel }: { title: string; body
           <div className="text-xs font-semibold mb-2">{photoLabel} ({photos.length}장)</div>
           <div className="grid grid-cols-2 gap-2">
             {photos.slice(0, 6).map((u, i) => (
-              <img key={i} src={u} alt={`${photoLabel}-${i + 1}`} className="w-full h-36 object-cover border border-black/30" crossOrigin="anonymous" />
+              <SignedImg key={i} src={u} alt={`${photoLabel}-${i + 1}`} className="w-full h-36 object-cover border border-black/30" crossOrigin="anonymous" />
             ))}
           </div>
         </div>
@@ -517,7 +518,7 @@ function PhotoStrip({ photos, label }: { photos: string[]; label: string }) {
                 const url = photos[i];
                 return (
                   <div key={i} className="hr-photo-box">
-                    {url ? <img src={url} alt={`${label} ${i + 1}`} crossOrigin="anonymous" /> : <span className="hr-photo-empty">사진 {i + 1}</span>}
+                    {url ? <SignedImg src={url} alt={`${label} ${i + 1}`} crossOrigin="anonymous" /> : <span className="hr-photo-empty">사진 {i + 1}</span>}
                   </div>
                 );
               })}

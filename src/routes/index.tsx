@@ -227,6 +227,7 @@ function Landing() {
           </div>
           <div className="flex items-center gap-4">
             <a href={KAKAO_CHANNEL_URL} target="_blank" rel="noreferrer noopener" className="hover:text-foreground transition-colors">문의</a>
+            <Link to="/privacy" className="hover:text-foreground transition-colors">개인정보처리방침</Link>
             <Link to="/login" className="hover:text-foreground transition-colors">로그인</Link>
             <Link to="/signup" className="hover:text-foreground transition-colors">회사 가입</Link>
           </div>
