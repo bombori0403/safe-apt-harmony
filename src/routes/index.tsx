@@ -7,6 +7,7 @@ import {
   RiskSection, SectionHeading, SourcesNote, TrustSection,
 } from "@/components/landing/sections";
 import { BrowserFrame, ScreenshotsSection } from "@/components/landing/screenshots-section";
+import { PricingSection } from "@/components/landing/pricing-section";
 import { KAKAO_CHANNEL_URL } from "@/components/landing/landing-data";
 import {
   Shield, ClipboardCheck, FileCheck2, Users, ScrollText, BadgeCheck,
@@ -34,6 +35,7 @@ function Landing() {
             <span className="font-bold tracking-tight text-[17px]">안전데스크</span>
           </div>
           <div className="flex items-center gap-2">
+            <a href="#pricing" className="hidden sm:inline-flex px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">요금</a>
             <Link to="/login"><Button variant="ghost" size="sm">로그인</Button></Link>
             <Link to="/signup"><Button size="sm" className="gap-1 shadow-sm">무료로 시작 <ArrowRight className="h-4 w-4" /></Button></Link>
           </div>
@@ -117,7 +119,7 @@ function Landing() {
           <Stat value="5가지" label="평가방법 지원" />
           <Stat value="KRAS" label="공식 양식 출력" />
           <Stat value="5년" label="이력 보관 (법정 3년)" />
-          <Stat value="무제한" label="단지 · 좌석" />
+          <Stat value="무제한" label="직원 좌석" />
         </div>
       </section>
 
@@ -175,7 +177,10 @@ function Landing() {
         </div>
       </section>
 
-      {/* 8. 누가 쓰나 */}
+      {/* 8. 요금 */}
+      <PricingSection />
+
+      {/* 9. 누가 쓰나 */}
       <AudienceSection />
 
       {/* 9. 만든 사람 */}
