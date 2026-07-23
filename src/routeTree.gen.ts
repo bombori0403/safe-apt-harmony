@@ -32,11 +32,13 @@ import { Route as AppEmployeeInputsRouteImport } from './routes/_app/employee-in
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppConsoleRouteImport } from './routes/_app/console'
 import { Route as AppComplexesRouteImport } from './routes/_app/complexes'
+import { Route as AppBillingRouteImport } from './routes/_app/billing'
 import { Route as AppActivateRouteImport } from './routes/_app/activate'
 import { Route as AppWorkStopRecordsLedgerRouteImport } from './routes/_app/work-stop-records_.ledger'
 import { Route as AppWorkStopRecordsIdRouteImport } from './routes/_app/work-stop-records_.$id'
 import { Route as AppNearMissNewRouteImport } from './routes/_app/near-miss.new'
 import { Route as AppNearMissIdRouteImport } from './routes/_app/near-miss.$id'
+import { Route as AppBillingSuccessRouteImport } from './routes/_app/billing.success'
 import { Route as AppAssessmentNewRouteImport } from './routes/_app/assessment.new'
 import { Route as AppAssessmentIdIndexRouteImport } from './routes/_app/assessment.$id.index'
 import { Route as AppAssessmentIdShareRouteImport } from './routes/_app/assessment.$id.share'
@@ -162,6 +164,11 @@ const AppComplexesRoute = AppComplexesRouteImport.update({
   path: '/complexes',
   getParentRoute: () => AppRoute,
 } as any)
+const AppBillingRoute = AppBillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppActivateRoute = AppActivateRouteImport.update({
   id: '/activate',
   path: '/activate',
@@ -187,6 +194,11 @@ const AppNearMissIdRoute = AppNearMissIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => AppNearMissRoute,
+} as any)
+const AppBillingSuccessRoute = AppBillingSuccessRouteImport.update({
+  id: '/success',
+  path: '/success',
+  getParentRoute: () => AppBillingRoute,
 } as any)
 const AppAssessmentNewRoute = AppAssessmentNewRouteImport.update({
   id: '/assessment/new',
@@ -248,6 +260,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/activate': typeof AppActivateRoute
+  '/billing': typeof AppBillingRouteWithChildren
   '/complexes': typeof AppComplexesRoute
   '/console': typeof AppConsoleRoute
   '/dashboard': typeof AppDashboardRoute
@@ -266,6 +279,7 @@ export interface FileRoutesByFullPath {
   '/confirm/$id': typeof ConfirmIdRoute
   '/invite/$token': typeof InviteTokenRoute
   '/assessment/new': typeof AppAssessmentNewRoute
+  '/billing/success': typeof AppBillingSuccessRoute
   '/near-miss/$id': typeof AppNearMissIdRoute
   '/near-miss/new': typeof AppNearMissNewRoute
   '/work-stop-records/$id': typeof AppWorkStopRecordsIdRoute
@@ -287,6 +301,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/activate': typeof AppActivateRoute
+  '/billing': typeof AppBillingRouteWithChildren
   '/complexes': typeof AppComplexesRoute
   '/console': typeof AppConsoleRoute
   '/dashboard': typeof AppDashboardRoute
@@ -305,6 +320,7 @@ export interface FileRoutesByTo {
   '/confirm/$id': typeof ConfirmIdRoute
   '/invite/$token': typeof InviteTokenRoute
   '/assessment/new': typeof AppAssessmentNewRoute
+  '/billing/success': typeof AppBillingSuccessRoute
   '/near-miss/$id': typeof AppNearMissIdRoute
   '/near-miss/new': typeof AppNearMissNewRoute
   '/work-stop-records/$id': typeof AppWorkStopRecordsIdRoute
@@ -328,6 +344,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/_app/activate': typeof AppActivateRoute
+  '/_app/billing': typeof AppBillingRouteWithChildren
   '/_app/complexes': typeof AppComplexesRoute
   '/_app/console': typeof AppConsoleRoute
   '/_app/dashboard': typeof AppDashboardRoute
@@ -346,6 +363,7 @@ export interface FileRoutesById {
   '/confirm/$id': typeof ConfirmIdRoute
   '/invite/$token': typeof InviteTokenRoute
   '/_app/assessment/new': typeof AppAssessmentNewRoute
+  '/_app/billing/success': typeof AppBillingSuccessRoute
   '/_app/near-miss/$id': typeof AppNearMissIdRoute
   '/_app/near-miss/new': typeof AppNearMissNewRoute
   '/_app/work-stop-records_/$id': typeof AppWorkStopRecordsIdRoute
@@ -369,6 +387,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/activate'
+    | '/billing'
     | '/complexes'
     | '/console'
     | '/dashboard'
@@ -387,6 +406,7 @@ export interface FileRouteTypes {
     | '/confirm/$id'
     | '/invite/$token'
     | '/assessment/new'
+    | '/billing/success'
     | '/near-miss/$id'
     | '/near-miss/new'
     | '/work-stop-records/$id'
@@ -408,6 +428,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/activate'
+    | '/billing'
     | '/complexes'
     | '/console'
     | '/dashboard'
@@ -426,6 +447,7 @@ export interface FileRouteTypes {
     | '/confirm/$id'
     | '/invite/$token'
     | '/assessment/new'
+    | '/billing/success'
     | '/near-miss/$id'
     | '/near-miss/new'
     | '/work-stop-records/$id'
@@ -448,6 +470,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/_app/activate'
+    | '/_app/billing'
     | '/_app/complexes'
     | '/_app/console'
     | '/_app/dashboard'
@@ -466,6 +489,7 @@ export interface FileRouteTypes {
     | '/confirm/$id'
     | '/invite/$token'
     | '/_app/assessment/new'
+    | '/_app/billing/success'
     | '/_app/near-miss/$id'
     | '/_app/near-miss/new'
     | '/_app/work-stop-records_/$id'
@@ -655,6 +679,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppComplexesRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/billing': {
+      id: '/_app/billing'
+      path: '/billing'
+      fullPath: '/billing'
+      preLoaderRoute: typeof AppBillingRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/activate': {
       id: '/_app/activate'
       path: '/activate'
@@ -689,6 +720,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/near-miss/$id'
       preLoaderRoute: typeof AppNearMissIdRouteImport
       parentRoute: typeof AppNearMissRoute
+    }
+    '/_app/billing/success': {
+      id: '/_app/billing/success'
+      path: '/success'
+      fullPath: '/billing/success'
+      preLoaderRoute: typeof AppBillingSuccessRouteImport
+      parentRoute: typeof AppBillingRoute
     }
     '/_app/assessment/new': {
       id: '/_app/assessment/new'
@@ -763,6 +801,18 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AppBillingRouteChildren {
+  AppBillingSuccessRoute: typeof AppBillingSuccessRoute
+}
+
+const AppBillingRouteChildren: AppBillingRouteChildren = {
+  AppBillingSuccessRoute: AppBillingSuccessRoute,
+}
+
+const AppBillingRouteWithChildren = AppBillingRoute._addFileChildren(
+  AppBillingRouteChildren,
+)
+
 interface AppNearMissRouteChildren {
   AppNearMissIdRoute: typeof AppNearMissIdRoute
   AppNearMissNewRoute: typeof AppNearMissNewRoute
@@ -779,6 +829,7 @@ const AppNearMissRouteWithChildren = AppNearMissRoute._addFileChildren(
 
 interface AppRouteChildren {
   AppActivateRoute: typeof AppActivateRoute
+  AppBillingRoute: typeof AppBillingRouteWithChildren
   AppComplexesRoute: typeof AppComplexesRoute
   AppConsoleRoute: typeof AppConsoleRoute
   AppDashboardRoute: typeof AppDashboardRoute
@@ -810,6 +861,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppActivateRoute: AppActivateRoute,
+  AppBillingRoute: AppBillingRouteWithChildren,
   AppComplexesRoute: AppComplexesRoute,
   AppConsoleRoute: AppConsoleRoute,
   AppDashboardRoute: AppDashboardRoute,

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, Clock, Lock } from "lucide-react";
+import { CheckCircle2, Clock, Lock, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/activate")({
@@ -141,11 +141,22 @@ function Activate() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight">정식 등록하고 계속 사용하기</h1>
         <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
-          14일 무료 체험이 종료되었습니다. 아래 정보를 남겨 정식 사용을 신청하면,
-          결제 확인 및 승인 후 단지·평가 제한과 워터마크 없이 이용할 수 있습니다.
-          <br />기존에 작성한 데이터는 그대로 유지됩니다.
+          14일 무료 체험이 종료되었습니다. 카드·계좌로 바로 결제하면 즉시 전환되고,
+          기존에 작성한 데이터는 그대로 유지됩니다.
         </p>
       </div>
+
+      <Card className="mb-4 border-primary/50 bg-primary/[0.04]">
+        <CardContent className="p-5 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="font-semibold">카드·계좌로 바로 결제하고 전환</div>
+            <div className="text-sm text-muted-foreground mt-0.5">단지 세대수 구간에 따른 연간 정액. 결제 즉시 활성화됩니다.</div>
+          </div>
+          <Link to="/billing"><Button className="gap-1.5"><CreditCard className="h-4 w-4" />결제하고 전환</Button></Link>
+        </CardContent>
+      </Card>
+
+      <div className="mb-4 text-xs text-muted-foreground text-center">또는 아래로 정식 사용을 신청하면 확인 후 활성화해 드립니다.</div>
       <Card>
         <CardHeader>
           <CardTitle className="text-base">사업자 정보</CardTitle>

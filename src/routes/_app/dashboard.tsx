@@ -11,7 +11,7 @@ import { Calendar as CalendarComp } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, AlertTriangle, Calendar, Users, TrendingUp, Building2, MessageCircle, CalendarClock, Download, Printer } from "lucide-react";
+import { Plus, AlertTriangle, Calendar, Users, TrendingUp, Building2, MessageCircle, CalendarClock, Download, Printer, CreditCard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import JSZip from "jszip";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
@@ -328,6 +328,13 @@ function Dashboard() {
               <span>무료 체험 중 · <strong>{sub.daysLeft}일</strong> 남았습니다. 체험 기간에는 출력물에 체험판 표시가 적용됩니다.</span>
             )}
           </div>
+          {isAdmin && (
+            <Link to="/billing">
+              <Button size="sm" variant={sub.isExpired ? "default" : "outline"} className="gap-1.5 shrink-0">
+                <CreditCard className="h-4 w-4" />결제하고 전환
+              </Button>
+            </Link>
+          )}
         </div>
       )}
       <div className="flex flex-wrap items-center justify-between gap-3">
