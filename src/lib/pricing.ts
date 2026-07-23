@@ -6,6 +6,11 @@
 //   - 월 단가 = 연간 ÷ 10 (연납 시 2개월치 할인 → 연납 유도).
 //   - 결제한 단지 수/규모가 등록 상한. 단지 추가 시 해당 구간 단가만큼 추가결제.
 
+// 결제 공개 여부. 현재는 토스 "테스트 키"가 배포돼 있어, 실키(사업자 가맹) 전까지는
+// 플랫폼 관리자에게만 결제를 허용한다(실고객이 무료로 자가 활성화하는 것 방지).
+// 실키로 전환하면 이 값을 true로 바꾸면 전체 공개된다.
+export const PAYMENTS_PUBLIC = false;
+
 export type BillingCycle = "annual" | "monthly";
 
 export interface PricingTier {

@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { priceBreakdown, type BillingCycle } from "@/lib/pricing";
+import { priceBreakdown, PAYMENTS_PUBLIC, type BillingCycle } from "@/lib/pricing";
 
 // 세대수 구간 정액제 온라인 결제(연간). 금액은 서버가 조직 단지들로 계산해
 // payments(ready) 행을 만들고, 토스 승인 성공 시 조직을 active로 전환한다.
@@ -10,12 +10,16 @@ import { priceBreakdown, type BillingCycle } from "@/lib/pricing";
 async function getAdminOrg(authUid: string) {
   const { data: u } = await supabaseAdmin
     .from("users")
-    .select("id, organization_id, org_role")
+    .select("id, organization_id, org_role, is_platform_admin")
     .eq("auth_id", authUid)
     .maybeSingle();
   if (!u?.organization_id) throw new Error("사용자 또는 조직을 찾을 수 없습니다.");
   if (u.org_role !== "admin") throw new Error("결제는 조직 관리자만 진행할 수 있습니다.");
-  return u as { id: string; organization_id: string; org_role: string };
+  // 실키 전환 전까지는 플랫폼 관리자에게만 결제 허용(실고객 무료 자가활성화 방지).
+  if (!PAYMENTS_PUBLIC && !u.is_platform_admin) {
+    throw new Error("결제 기능은 현재 준비 중입니다. 도입 문의는 카카오톡 채널로 남겨주세요.");
+  }
+  return u as { id: string; organization_id: string; org_role: string; is_platform_admin: boolean };
 }
 
 // 조직의 단지 목록 → 세대수 구간 정액 합산.

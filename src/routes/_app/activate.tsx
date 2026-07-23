@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, Clock, Lock, CreditCard } from "lucide-react";
+import { PAYMENTS_PUBLIC } from "@/lib/pricing";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/activate")({
@@ -19,6 +20,7 @@ function Activate() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [role, setRole] = useState<string | null>(null);
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const [org, setOrg] = useState<any>(null);
 
   const [orgName, setOrgName] = useState("");
@@ -30,10 +32,11 @@ function Activate() {
     if (!user) return;
     const { data: me } = await supabase
       .from("users")
-      .select("organization_id, org_role")
+      .select("organization_id, org_role, is_platform_admin")
       .eq("auth_id", user.id)
       .maybeSingle();
     setRole(me?.org_role ?? null);
+    setIsPlatformAdmin(!!me?.is_platform_admin);
     if (me?.organization_id) {
       const { data: o } = await supabase
         .from("organizations")
@@ -146,17 +149,21 @@ function Activate() {
         </p>
       </div>
 
-      <Card className="mb-4 border-primary/50 bg-primary/[0.04]">
-        <CardContent className="p-5 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <div className="font-semibold">카드·계좌로 바로 결제하고 전환</div>
-            <div className="text-sm text-muted-foreground mt-0.5">단지 세대수 구간에 따른 연간 정액. 결제 즉시 활성화됩니다.</div>
-          </div>
-          <Link to="/billing"><Button className="gap-1.5"><CreditCard className="h-4 w-4" />결제하고 전환</Button></Link>
-        </CardContent>
-      </Card>
+      {(PAYMENTS_PUBLIC || isPlatformAdmin) && (
+        <>
+          <Card className="mb-4 border-primary/50 bg-primary/[0.04]">
+            <CardContent className="p-5 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <div className="font-semibold">카드·계좌로 바로 결제하고 전환</div>
+                <div className="text-sm text-muted-foreground mt-0.5">단지 세대수 구간에 따른 연간 정액. 결제 즉시 활성화됩니다.</div>
+              </div>
+              <Link to="/billing"><Button className="gap-1.5"><CreditCard className="h-4 w-4" />결제하고 전환</Button></Link>
+            </CardContent>
+          </Card>
 
-      <div className="mb-4 text-xs text-muted-foreground text-center">또는 아래로 정식 사용을 신청하면 확인 후 활성화해 드립니다.</div>
+          <div className="mb-4 text-xs text-muted-foreground text-center">또는 아래로 정식 사용을 신청하면 확인 후 활성화해 드립니다.</div>
+        </>
+      )}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">사업자 정보</CardTitle>

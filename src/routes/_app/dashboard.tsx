@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useSubscription } from "@/hooks/use-subscription";
+import { PAYMENTS_PUBLIC } from "@/lib/pricing";
 import { getCurrentUserContext } from "@/lib/user-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -328,7 +329,7 @@ function Dashboard() {
               <span>무료 체험 중 · <strong>{sub.daysLeft}일</strong> 남았습니다. 체험 기간에는 출력물에 체험판 표시가 적용됩니다.</span>
             )}
           </div>
-          {isAdmin && (
+          {isAdmin && (PAYMENTS_PUBLIC || userRow?.is_platform_admin) && (
             <Link to="/billing">
               <Button size="sm" variant={sub.isExpired ? "default" : "outline"} className="gap-1.5 shrink-0">
                 <CreditCard className="h-4 w-4" />결제하고 전환
