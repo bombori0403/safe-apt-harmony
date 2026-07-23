@@ -25,11 +25,11 @@ export interface PricingTier {
 
 // ⚠️ 금액·용량을 바꿀 땐 여기만 수정하면 전체에 반영된다.
 export const PRICING_TIERS: PricingTier[] = [
-  { id: "t1", label: "~300세대",        minHouseholds: 0,    maxHouseholds: 300,  annual: 60000,  monthly: 6000,  storageGB: 1 },
-  { id: "t2", label: "301~500세대",     minHouseholds: 301,  maxHouseholds: 500,  annual: 100000, monthly: 10000, storageGB: 2 },
-  { id: "t3", label: "501~1,000세대",   minHouseholds: 501,  maxHouseholds: 1000, annual: 150000, monthly: 15000, storageGB: 3 },
-  { id: "t4", label: "1,001~2,000세대", minHouseholds: 1001, maxHouseholds: 2000, annual: 250000, monthly: 25000, storageGB: 5 },
-  { id: "t5", label: "2,001세대~",      minHouseholds: 2001, maxHouseholds: null, annual: 350000, monthly: 35000, storageGB: 10 },
+  { id: "t1", label: "~300세대",        minHouseholds: 0,    maxHouseholds: 300,  annual: 60000,  monthly: 6000,  storageGB: 0.5 },
+  { id: "t2", label: "301~500세대",     minHouseholds: 301,  maxHouseholds: 500,  annual: 100000, monthly: 10000, storageGB: 1 },
+  { id: "t3", label: "501~1,000세대",   minHouseholds: 501,  maxHouseholds: 1000, annual: 150000, monthly: 15000, storageGB: 1.5 },
+  { id: "t4", label: "1,001~2,000세대", minHouseholds: 1001, maxHouseholds: 2000, annual: 250000, monthly: 25000, storageGB: 2 },
+  { id: "t5", label: "2,001세대~",      minHouseholds: 2001, maxHouseholds: null, annual: 350000, monthly: 35000, storageGB: 3 },
 ];
 
 /** 세대수가 속한 구간을 찾는다. 값이 없거나 음수면 최저 구간 처리. */
