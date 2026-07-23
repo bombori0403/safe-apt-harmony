@@ -421,7 +421,22 @@ function Dashboard() {
         </Card>
       ) : null}
 
-      {userRow?.org_role !== "member" && (
+      {isAdmin && complexes.length === 0 && (
+        <Card className="border-primary/50 bg-primary/[0.04]">
+          <CardContent className="p-5 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0"><Building2 className="h-5 w-5" /></div>
+              <div>
+                <div className="font-semibold">먼저 단지를 등록하세요</div>
+                <div className="text-sm text-muted-foreground mt-0.5">평가를 시작하려면 평가 대상 단지(사업장)가 필요합니다. 1분이면 등록됩니다.</div>
+              </div>
+            </div>
+            <Link to="/complexes"><Button className="gap-1.5"><Plus className="h-4 w-4" />단지 등록하러 가기</Button></Link>
+          </CardContent>
+        </Card>
+      )}
+
+      {userRow?.org_role !== "member" && complexes.length > 0 && (
         <ProcedureGuide firstTime={assessments.length === 0} />
       )}
 

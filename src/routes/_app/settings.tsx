@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Building2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -247,119 +248,12 @@ function Settings() {
         </CardContent></Card>
       )}
 
-      <Card><CardContent className="p-5 space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="font-semibold">등록된 단지 ({complexes.length})</h2>
-          {complexes.length > 0 && !showNewForm && userRow?.org_role === "admin" && (
-            <Button size="sm" variant="outline" onClick={()=>setShowNewForm(true)}>+ 단지 추가</Button>
-          )}
+      <Card><CardContent className="p-5 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h2 className="font-semibold">단지 관리</h2>
+          <p className="text-sm text-muted-foreground mt-0.5">단지(사업장) 등록·수정은 <b>‘단지 관리’ 메뉴</b>로 옮겼습니다.</p>
         </div>
-
-        {loading ? (
-          <div className="rounded-md bg-muted p-3 text-sm text-muted-foreground">불러오는 중...</div>
-        ) : complexes.length === 0 && !showNewForm ? (
-          <p className="text-sm text-muted-foreground">등록된 단지가 없습니다.</p>
-        ) : (
-          complexes.map(c => (
-            <div key={c.id} className="rounded-md border p-4 space-y-3">
-              <div>
-                <Label>단지명</Label>
-                <Input value={c.name ?? ""} onChange={e=>updateComplex(c.id, {name:e.target.value})} />
-              </div>
-              <div>
-                <Label>주소</Label>
-                <Input value={c.address ?? ""} onChange={e=>updateComplex(c.id, {address:e.target.value})} />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label>세대수</Label>
-                  <Input type="number" min={0} value={c.household_count ?? 0}
-                    onChange={e=>updateComplex(c.id, {household_count:Number(e.target.value)})} />
-                </div>
-                <div>
-                  <Label>관리방식</Label>
-                  <select value={c.mgmt_type ?? "위탁관리"} onChange={e=>updateComplex(c.id, {mgmt_type:e.target.value})}
-                    className="w-full h-10 px-3 rounded-md border bg-background text-sm">
-                    <option value="자가관리">자가관리</option>
-                    <option value="위탁관리">위탁관리</option>
-                  </select>
-                </div>
-                <div>
-                  <Label>관리자명</Label>
-                  <Input value={c.manager_name ?? ""} onChange={e=>updateComplex(c.id, {manager_name:e.target.value})} />
-                </div>
-                <div>
-                  <Label>관리자 연락처</Label>
-                  <Input value={c.manager_phone ?? ""} placeholder="010-0000-0000"
-                    onChange={e=>updateComplex(c.id, {manager_phone:e.target.value})} />
-                </div>
-                <div className="col-span-2">
-                  <Label>최초평가일 <span className="text-xs text-muted-foreground">(정기평가 예정일 자동계산 기준)</span></Label>
-                  <Input type="date" value={c.initial_assessment_date ?? ""}
-                    onChange={e=>updateComplex(c.id, {initial_assessment_date:e.target.value})} />
-                  {c.next_assessment_auto && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      자동계산된 다음 정기평가일: {c.next_assessment_auto}
-                    </p>
-                  )}
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button onClick={()=>saveComplex(c)} disabled={savingId===c.id}>
-                  {savingId===c.id?"저장 중...":"저장"}
-                </Button>
-                <Button variant="destructive" onClick={()=>handleDelete(c)} disabled={deletingId===c.id}>
-                  {deletingId===c.id?"삭제 중...":"삭제"}
-                </Button>
-              </div>
-            </div>
-          ))
-        )}
-
-        {showNewForm && userRow?.org_role === "admin" && (
-          <div className="rounded-md border border-dashed p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="font-medium text-sm">새 단지 등록</h3>
-              {complexes.length > 0 && (
-                <Button size="sm" variant="ghost" onClick={()=>{setShowNewForm(false); setNewComplex(EMPTY_COMPLEX);}}>취소</Button>
-              )}
-            </div>
-            <div>
-              <Label>단지명 *</Label>
-              <Input value={newComplex.name} onChange={e=>setNewComplex({...newComplex, name:e.target.value})} />
-            </div>
-            <div>
-              <Label>주소 *</Label>
-              <Input value={newComplex.address} onChange={e=>setNewComplex({...newComplex, address:e.target.value})} />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label>세대수</Label>
-                <Input type="number" min={0} value={newComplex.household_count}
-                  onChange={e=>setNewComplex({...newComplex, household_count:Number(e.target.value)})} />
-              </div>
-              <div>
-                <Label>관리방식</Label>
-                <select value={newComplex.mgmt_type} onChange={e=>setNewComplex({...newComplex, mgmt_type:e.target.value})}
-                  className="w-full h-10 px-3 rounded-md border bg-background text-sm">
-                  <option value="자가관리">자가관리</option>
-                  <option value="위탁관리">위탁관리</option>
-                </select>
-              </div>
-              <div>
-                <Label>관리자명</Label>
-                <Input value={newComplex.manager_name}
-                  onChange={e=>setNewComplex({...newComplex, manager_name:e.target.value})} />
-              </div>
-              <div>
-                <Label>관리자 연락처</Label>
-                <Input value={newComplex.manager_phone} placeholder="010-0000-0000"
-                  onChange={e=>setNewComplex({...newComplex, manager_phone:e.target.value})} />
-              </div>
-            </div>
-            <Button onClick={handleCreate} disabled={creating}>{creating?"등록 중...":"단지 등록"}</Button>
-          </div>
-        )}
+        <Link to="/complexes"><Button variant="outline" className="gap-1.5"><Building2 className="h-4 w-4" />단지 관리로 이동</Button></Link>
       </CardContent></Card>
 
       <Card><CardContent className="p-5 space-y-3">

@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, ClipboardList, FilePlus2, Building2, Settings, Shield, Users, AlertTriangle, ShieldAlert, MessageCircle, BookOpen, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, ClipboardList, FilePlus2, Building2, Building, Settings, Shield, Users, AlertTriangle, ShieldAlert, MessageCircle, BookOpen, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { SupportFab } from "@/components/support-fab";
 
 const NAV = [
   { to: "/dashboard", label: "대시보드", icon: LayoutDashboard, adminOnly: false },
+  { to: "/complexes", label: "단지 관리", icon: Building, adminOnly: false, managerOrAdmin: true },
   { to: "/regulation", label: "위험성평가 실시규정", icon: BookOpen, adminOnly: false },
   { to: "/assessment/new", label: "새 평가", icon: FilePlus2, adminOnly: false, managerOrAdmin: true },
   { to: "/history", label: "평가 이력", icon: ClipboardList, adminOnly: false },

@@ -31,6 +31,7 @@ import { Route as AppHistoryRouteImport } from './routes/_app/history'
 import { Route as AppEmployeeInputsRouteImport } from './routes/_app/employee-inputs'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppConsoleRouteImport } from './routes/_app/console'
+import { Route as AppComplexesRouteImport } from './routes/_app/complexes'
 import { Route as AppActivateRouteImport } from './routes/_app/activate'
 import { Route as AppWorkStopRecordsLedgerRouteImport } from './routes/_app/work-stop-records_.ledger'
 import { Route as AppWorkStopRecordsIdRouteImport } from './routes/_app/work-stop-records_.$id'
@@ -156,6 +157,11 @@ const AppConsoleRoute = AppConsoleRouteImport.update({
   path: '/console',
   getParentRoute: () => AppRoute,
 } as any)
+const AppComplexesRoute = AppComplexesRouteImport.update({
+  id: '/complexes',
+  path: '/complexes',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppActivateRoute = AppActivateRouteImport.update({
   id: '/activate',
   path: '/activate',
@@ -242,6 +248,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/activate': typeof AppActivateRoute
+  '/complexes': typeof AppComplexesRoute
   '/console': typeof AppConsoleRoute
   '/dashboard': typeof AppDashboardRoute
   '/employee-inputs': typeof AppEmployeeInputsRoute
@@ -280,6 +287,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/activate': typeof AppActivateRoute
+  '/complexes': typeof AppComplexesRoute
   '/console': typeof AppConsoleRoute
   '/dashboard': typeof AppDashboardRoute
   '/employee-inputs': typeof AppEmployeeInputsRoute
@@ -320,6 +328,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/_app/activate': typeof AppActivateRoute
+  '/_app/complexes': typeof AppComplexesRoute
   '/_app/console': typeof AppConsoleRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/employee-inputs': typeof AppEmployeeInputsRoute
@@ -360,6 +369,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/activate'
+    | '/complexes'
     | '/console'
     | '/dashboard'
     | '/employee-inputs'
@@ -398,6 +408,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/activate'
+    | '/complexes'
     | '/console'
     | '/dashboard'
     | '/employee-inputs'
@@ -437,6 +448,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/_app/activate'
+    | '/_app/complexes'
     | '/_app/console'
     | '/_app/dashboard'
     | '/_app/employee-inputs'
@@ -636,6 +648,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppConsoleRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/complexes': {
+      id: '/_app/complexes'
+      path: '/complexes'
+      fullPath: '/complexes'
+      preLoaderRoute: typeof AppComplexesRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/activate': {
       id: '/_app/activate'
       path: '/activate'
@@ -760,6 +779,7 @@ const AppNearMissRouteWithChildren = AppNearMissRoute._addFileChildren(
 
 interface AppRouteChildren {
   AppActivateRoute: typeof AppActivateRoute
+  AppComplexesRoute: typeof AppComplexesRoute
   AppConsoleRoute: typeof AppConsoleRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppEmployeeInputsRoute: typeof AppEmployeeInputsRoute
@@ -790,6 +810,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppActivateRoute: AppActivateRoute,
+  AppComplexesRoute: AppComplexesRoute,
   AppConsoleRoute: AppConsoleRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppEmployeeInputsRoute: AppEmployeeInputsRoute,
