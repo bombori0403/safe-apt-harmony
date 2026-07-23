@@ -47,13 +47,16 @@ function NewNearMiss() {
     getCurrentUserContext(user.id).then(async ({ userId, complexId: ctxComplex, userRow }) => {
       if (userId) setUserRowId(userId);
       if (userRow?.organization_id) setOrgId(userRow.organization_id);
-      const { data: members } = await supabase.from("complex_members").select("complex_id").eq("user_id", userId ?? "");
-      const ids = [...new Set((members ?? []).map((m:any)=>m.complex_id).filter(Boolean))];
-      const { data: list } = ids.length
-        ? await supabase.from("complexes").select("id,name").in("id", ids)
-        : { data: [] };
-      setComplexes(list ?? []);
-      setComplexId(ctxComplex ?? list?.[0]?.id ?? "");
+      let list: any[] = [];
+      if (userRow?.org_role === "admin") {
+        list = (await supabase.from("complexes").select("id,name").order("name")).data ?? [];
+      } else {
+        const { data: members } = await supabase.from("complex_members").select("complex_id").eq("user_id", userId ?? "");
+        const ids = [...new Set((members ?? []).map((m:any)=>m.complex_id).filter(Boolean))];
+        list = ids.length ? (await supabase.from("complexes").select("id,name").in("id", ids)).data ?? [] : [];
+      }
+      setComplexes(list);
+      setComplexId(ctxComplex ?? list[0]?.id ?? "");
     });
   }, [user]);
 
