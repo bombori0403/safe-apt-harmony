@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Copy, Trash2, UserPlus, QrCode } from "lucide-react";
+import { Copy, Trash2, UserPlus, QrCode, Building } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { QRCodeSVG } from "qrcode.react";
 import { buildInviteLink } from "@/lib/app-url";
@@ -63,6 +63,32 @@ function TeamPage() {
     });
     return m;
   }, [data]);
+
+  // 관리자 직원 목록을 단지별로 묶는다: 관리자(본사) → 단지별 → 미지정
+  const groupedMembers = useMemo(() => {
+    if (!data) return [] as { key: string; title: string; members: any[] }[];
+    const admins: any[] = [];
+    const byComplex = new Map<string, any[]>();
+    const unassigned: any[] = [];
+    for (const m of data.members) {
+      if (m.org_role === "admin") { admins.push(m); continue; }
+      const cx = userComplexMap.get(m.id);
+      if (cx) {
+        if (!byComplex.has(cx.id)) byComplex.set(cx.id, []);
+        byComplex.get(cx.id)!.push(m);
+      } else {
+        unassigned.push(m);
+      }
+    }
+    const groups: { key: string; title: string; members: any[] }[] = [];
+    if (admins.length) groups.push({ key: "__admin", title: `관리자 · ${data.organization?.name ?? "본사"}`, members: admins });
+    for (const c of (data.complexes ?? [])) {
+      const ms = byComplex.get(c.id);
+      if (ms && ms.length) groups.push({ key: c.id, title: c.name, members: ms });
+    }
+    if (unassigned.length) groups.push({ key: "__none", title: "단지 미지정", members: unassigned });
+    return groups;
+  }, [data, userComplexMap]);
 
   async function handleInvite(e: React.FormEvent) {
     e.preventDefault();
@@ -248,46 +274,55 @@ function TeamPage() {
 
       {isAdmin && (
         <Card>
-          <CardHeader><CardTitle className="text-base">직원 목록</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base">직원 목록 (단지별)</CardTitle></CardHeader>
           <CardContent className="p-0">
-            <div className="divide-y">
-              {data.members.map((m: any) => {
-                const cx = userComplexMap.get(m.id);
-                const roleLabel = m.org_role === "admin" ? "관리자" : m.org_role === "manager" ? "매니저" : "일반";
-                const complexLabel = m.org_role === "admin"
-                  ? (data.organization?.name ?? "본사")
-                  : (cx?.name ?? "미지정");
-                return (
-                  <div key={m.id} className="p-4 flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <div className="font-medium">{m.name} <Badge variant="outline" className="ml-1 text-xs">{roleLabel}</Badge></div>
-                      <div className="text-xs text-muted-foreground">{m.email} · 단지: {complexLabel}</div>
-                    </div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <select
-                        value={m.org_role}
-                        onChange={async (e) => {
-                          try { await updateRole({ data: { userId: m.id, role: e.target.value as any } }); toast.success("권한 변경됨"); load(); }
-                          catch (err) { toast.error(err instanceof Error ? err.message : "실패"); }
-                        }}
-                        className="h-9 px-2 rounded border bg-background text-sm"
-                      >
-                        <option value="member">일반</option>
-                        <option value="manager">매니저</option>
-                        <option value="admin">관리자</option>
-                      </select>
-                      <Button variant="outline" size="sm" onClick={async () => {
-                        if (!confirm(`${m.name} 직원을 삭제할까요?`)) return;
-                        try { await removeFn({ data: { userId: m.id } }); toast.success("삭제됨"); load(); }
-                        catch (err) { toast.error(err instanceof Error ? err.message : "실패"); }
-                      }}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+            {groupedMembers.length === 0 ? (
+              <div className="p-6 text-sm text-muted-foreground text-center">등록된 직원이 없습니다.</div>
+            ) : (
+              groupedMembers.map((g, gi) => (
+                <div key={g.key}>
+                  <div className={`px-4 py-2 bg-muted/50 flex items-center gap-2 text-sm font-semibold ${gi > 0 ? "border-t" : ""}`}>
+                    <Building className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    <span className="truncate">{g.title}</span>
+                    <span className="text-xs font-normal text-muted-foreground shrink-0">{g.members.length}명</span>
                   </div>
-                );
-              })}
-            </div>
+                  <div className="divide-y border-t">
+                    {g.members.map((m: any) => {
+                      const roleLabel = m.org_role === "admin" ? "관리자" : m.org_role === "manager" ? "매니저" : "일반";
+                      return (
+                        <div key={m.id} className="p-4 flex flex-wrap items-center justify-between gap-3">
+                          <div>
+                            <div className="font-medium">{m.name} <Badge variant="outline" className="ml-1 text-xs">{roleLabel}</Badge></div>
+                            <div className="text-xs text-muted-foreground">{m.email}</div>
+                          </div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <select
+                              value={m.org_role}
+                              onChange={async (e) => {
+                                try { await updateRole({ data: { userId: m.id, role: e.target.value as any } }); toast.success("권한 변경됨"); load(); }
+                                catch (err) { toast.error(err instanceof Error ? err.message : "실패"); }
+                              }}
+                              className="h-9 px-2 rounded border bg-background text-sm"
+                            >
+                              <option value="member">일반</option>
+                              <option value="manager">매니저</option>
+                              <option value="admin">관리자</option>
+                            </select>
+                            <Button variant="outline" size="sm" onClick={async () => {
+                              if (!confirm(`${m.name} 직원을 삭제할까요?`)) return;
+                              try { await removeFn({ data: { userId: m.id } }); toast.success("삭제됨"); load(); }
+                              catch (err) { toast.error(err instanceof Error ? err.message : "실패"); }
+                            }}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))
+            )}
           </CardContent>
         </Card>
       )}
