@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { platformDeleteOrganization, getPlatformUsage } from "@/lib/platform-admin.functions";
+import { platformDeleteOrganization, getPlatformUsage, getUsageBreakdown } from "@/lib/platform-admin.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -107,6 +107,101 @@ interface OrgRow {
   activation_requested_at: string | null;
   business_number: string | null;
   phone: string | null;
+}
+
+function BreakdownPanel() {
+  const fetchBreakdown = useServerFn(getUsageBreakdown);
+  const [d, setD] = useState<Awaited<ReturnType<typeof getUsageBreakdown>> | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [tab, setTab] = useState<"org" | "complex">("org");
+
+  useEffect(() => {
+    fetchBreakdown()
+      .then((r) => setD(r as any))
+      .catch((e) => setErr(e instanceof Error ? e.message : "불러오지 못했습니다."));
+  }, []);
+
+  const orgs = [...(d?.orgs ?? [])].sort((a, b) => b.storage_bytes - a.storage_bytes);
+  const complexes = [...(d?.complexes ?? [])].sort((a, b) => b.storage_bytes - a.storage_bytes);
+
+  return (
+    <Card className="border-primary/20">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+        <CardTitle className="text-base">업체별 · 단지별 사용량</CardTitle>
+        <div className="flex rounded-md border overflow-hidden text-xs">
+          <button className={`px-3 py-1.5 ${tab === "org" ? "bg-primary text-primary-foreground" : "bg-background"}`} onClick={() => setTab("org")}>업체별</button>
+          <button className={`px-3 py-1.5 border-l ${tab === "complex" ? "bg-primary text-primary-foreground" : "bg-background"}`} onClick={() => setTab("complex")}>단지별</button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {err && <p className="text-sm text-destructive">{err} (마이그레이션 실행 여부를 확인하세요: get_usage_breakdown)</p>}
+        {!d && !err && <p className="text-sm text-muted-foreground">불러오는 중...</p>}
+        {d && (
+          <div className="overflow-x-auto">
+            {tab === "org" ? (
+              <table className="w-full text-sm min-w-[560px]">
+                <thead>
+                  <tr className="text-muted-foreground text-left border-b">
+                    <th className="py-2 pr-2">업체</th>
+                    <th className="py-2 px-2 text-right">단지</th>
+                    <th className="py-2 px-2 text-right">평가</th>
+                    <th className="py-2 px-2 text-right">위험요인</th>
+                    <th className="py-2 px-2 text-right">아차사고</th>
+                    <th className="py-2 px-2 text-right">계정</th>
+                    <th className="py-2 pl-2 text-right">사진 저장</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {orgs.map((o) => (
+                    <tr key={o.id}>
+                      <td className="py-2 pr-2 font-medium truncate max-w-[160px]">{o.name}</td>
+                      <td className="py-2 px-2 text-right">{o.complexes}</td>
+                      <td className="py-2 px-2 text-right">{o.assessments}</td>
+                      <td className="py-2 px-2 text-right">{o.hazards}</td>
+                      <td className="py-2 px-2 text-right">{o.near_miss}</td>
+                      <td className="py-2 px-2 text-right">{o.users}</td>
+                      <td className="py-2 pl-2 text-right font-medium">{fmtBytes(o.storage_bytes)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <table className="w-full text-sm min-w-[560px]">
+                <thead>
+                  <tr className="text-muted-foreground text-left border-b">
+                    <th className="py-2 pr-2">단지</th>
+                    <th className="py-2 px-2">업체</th>
+                    <th className="py-2 px-2 text-right">세대수</th>
+                    <th className="py-2 px-2 text-right">평가</th>
+                    <th className="py-2 px-2 text-right">위험요인</th>
+                    <th className="py-2 px-2 text-right">아차사고</th>
+                    <th className="py-2 pl-2 text-right">사진 저장</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {complexes.map((c) => (
+                    <tr key={c.id}>
+                      <td className="py-2 pr-2 font-medium truncate max-w-[140px]">{c.name}</td>
+                      <td className="py-2 px-2 text-muted-foreground truncate max-w-[120px]">{c.org_name ?? "-"}</td>
+                      <td className="py-2 px-2 text-right">{(c.household_count ?? 0).toLocaleString()}</td>
+                      <td className="py-2 px-2 text-right">{c.assessments}</td>
+                      <td className="py-2 px-2 text-right">{c.hazards}</td>
+                      <td className="py-2 px-2 text-right">{c.near_miss}</td>
+                      <td className="py-2 pl-2 text-right font-medium">{fmtBytes(c.storage_bytes)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+            <p className="text-[11px] text-muted-foreground mt-3 leading-relaxed">
+              사진 저장은 매핑 가능한 것만 집계합니다 — 업체별=평가+아차사고 사진, 단지별=평가 사진.
+              작업중지 사진은 개별 매핑이 안 돼 제외됩니다. DB 용량은 전체 단일 수치라 위 총량만 참고하세요.
+            </p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
 }
 
 function PlatformAdmin() {
@@ -215,6 +310,8 @@ function PlatformAdmin() {
       </div>
 
       <UsagePanel />
+
+      <BreakdownPanel />
 
       {loading ? (
         <p className="text-sm text-muted-foreground">불러오는 중...</p>

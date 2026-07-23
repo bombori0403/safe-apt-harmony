@@ -29,6 +29,19 @@ export const getPlatformUsage = createServerFn({ method: "GET" })
     };
   });
 
+// 업체별·단지별 사용량 집계 — 플랫폼 관리자 전용.
+export const getUsageBreakdown = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await requirePlatformAdmin(context.userId);
+    const { data, error } = await supabaseAdmin.rpc("get_usage_breakdown");
+    if (error) throw new Error(error.message);
+    return data as {
+      orgs: Array<{ id: string; name: string; subscription_status: string; complexes: number; assessments: number; hazards: number; near_miss: number; users: number; storage_bytes: number }>;
+      complexes: Array<{ id: string; name: string; org_name: string | null; household_count: number | null; assessments: number; hazards: number; near_miss: number; storage_bytes: number }>;
+    };
+  });
+
 const schema = z.object({ orgId: z.string().uuid() });
 
 // Fully delete an organization: dependent data, member accounts, and the org itself.
