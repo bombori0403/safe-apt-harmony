@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Building2, ShieldCheck, Clock, Users } from "lucide-react";
 import { toast } from "sonner";
 import { AuthIllustration } from "@/components/auth-illustration";
+import { STORAGE_LIMIT_PER_COMPLEX_LABEL } from "@/lib/pricing";
 
 export const Route = createFileRoute("/signup")({ component: Signup });
 
@@ -128,6 +129,10 @@ function Signup() {
 
           <p className="text-[11px] text-center text-muted-foreground mt-6">
             가입 시 즉시 14일 체험이 시작됩니다 · 결제 정보 불필요
+          </p>
+          <p className="text-[11px] text-center text-muted-foreground mt-2 leading-relaxed">
+            정식 이용 시 단지당 사진 저장용량 {STORAGE_LIMIT_PER_COMPLEX_LABEL}이 기본 제공되며,
+            초과 시 추가 요금이 발생할 수 있습니다(초과 예상 시 사전 안내).
           </p>
           <p className="text-[11px] text-center text-muted-foreground mt-2">
             가입을 진행하면{" "}

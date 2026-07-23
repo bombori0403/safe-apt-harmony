@@ -36,7 +36,7 @@ const NAV_GROUPS = [
       { to: "/team", label: "직원 관리", icon: Users, managerOrAdmin: true },
       { to: "/console", label: "본사 콘솔", icon: Building2, adminOnly: true },
       { to: "/platform-admin", label: "가입 승인", icon: ShieldCheck, platformAdminOnly: true },
-      { to: "/data-usage", label: "데이터 사용량", icon: BarChart3, platformAdminOnly: true },
+      { to: "/data-usage", label: "데이터 사용량", icon: BarChart3, adminOnly: true },
     ],
   },
   {

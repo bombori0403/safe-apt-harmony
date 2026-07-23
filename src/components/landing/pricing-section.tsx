@@ -48,6 +48,7 @@ export function PricingSection() {
         <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-success" /> 직원(좌석) 무제한</span>
         <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-success" /> 연간 결제 시 2개월 할인</span>
         <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-success" /> 부가세 포함</span>
+        <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-success" /> 단지당 사진 저장 1GB 기본 (초과 시 추가요금)</span>
       </div>
 
       <div className="mt-6 rounded-2xl border border-border/70 bg-muted/20 p-5 md:p-6">

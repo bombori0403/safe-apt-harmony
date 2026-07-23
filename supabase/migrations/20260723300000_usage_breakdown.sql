@@ -61,7 +61,7 @@ begin
   cx_j as (
     select jsonb_agg(row_to_json(t)) as j from (
       select
-        c.id, c.name, org.name as org_name, c.household_count,
+        c.id, c.name, c.organization_id as org_id, org.name as org_name, c.household_count,
         (select count(*) from public.assessments a where a.complex_id = c.id) as assessments,
         (select count(*) from public.hazards h join public.assessments a on a.id = h.assessment_id where a.complex_id = c.id) as hazards,
         (select count(*) from public.near_miss n where n.complex_id = c.id) as near_miss,

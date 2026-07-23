@@ -38,8 +38,28 @@ export const getUsageBreakdown = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     return data as {
       orgs: Array<{ id: string; name: string; subscription_status: string; complexes: number; assessments: number; hazards: number; near_miss: number; users: number; storage_bytes: number }>;
-      complexes: Array<{ id: string; name: string; org_name: string | null; household_count: number | null; assessments: number; hazards: number; near_miss: number; storage_bytes: number }>;
+      complexes: Array<{ id: string; name: string; org_id: string; org_name: string | null; household_count: number | null; assessments: number; hazards: number; near_miss: number; storage_bytes: number }>;
     };
+  });
+
+// 회사 관리자가 본인 조직의 단지별 사용량을 조회. get_usage_breakdown을 서버에서 호출 후
+// 본인 조직 것만 필터해 반환한다(다른 조직 데이터는 노출되지 않음).
+export const getMyOrgUsage = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data: u } = await supabaseAdmin
+      .from("users").select("organization_id, org_role").eq("auth_id", context.userId).maybeSingle();
+    if (!u?.organization_id) throw new Error("조직을 찾을 수 없습니다.");
+    if (u.org_role !== "admin") throw new Error("회사 사용량은 관리자만 볼 수 있습니다.");
+    const { data, error } = await supabaseAdmin.rpc("get_usage_breakdown");
+    if (error) throw new Error(error.message);
+    const all = data as {
+      orgs: Array<{ id: string; name: string; complexes: number; assessments: number; hazards: number; near_miss: number; users: number; storage_bytes: number }>;
+      complexes: Array<{ id: string; name: string; org_id: string; household_count: number | null; assessments: number; hazards: number; near_miss: number; storage_bytes: number }>;
+    };
+    const org = all.orgs.find((o) => o.id === u.organization_id) ?? null;
+    const complexes = all.complexes.filter((c) => c.org_id === u.organization_id);
+    return { org, complexes };
   });
 
 const schema = z.object({ orgId: z.string().uuid() });

@@ -11,6 +11,14 @@
 // 실키로 전환하면 이 값을 true로 바꾸면 전체 공개된다.
 export const PAYMENTS_PUBLIC = false;
 
+// 단지당 기본 제공 사진 저장용량. 초과 시 추가 요금(협의). 실사용이 이보다 훨씬 낮아 여유가 크며,
+// 비정상 대용량 방지·계약상 근거 성격이다. 값 변경은 여기 한 곳만 수정하면 된다.
+export const STORAGE_LIMIT_PER_COMPLEX_BYTES = 1 * 1024 * 1024 * 1024; // 1GB
+export const STORAGE_LIMIT_PER_COMPLEX_LABEL = "1GB";
+// 저장용량 초과 안내 문구(사용량 화면·가입 고지에서 공통 사용).
+export const STORAGE_OVERAGE_NOTICE =
+  `단지당 사진 저장용량 ${STORAGE_LIMIT_PER_COMPLEX_LABEL}이 기본 제공됩니다. 초과 시 추가 요금이 발생할 수 있으며, 초과가 예상되면 사전에 안내드립니다.`;
+
 export type BillingCycle = "annual" | "monthly";
 
 export interface PricingTier {
