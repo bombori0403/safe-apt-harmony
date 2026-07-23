@@ -5,17 +5,23 @@ import { confirmPaymentAndActivate } from "@/lib/payments.functions";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, AlertTriangle } from "lucide-react";
 
-export const Route = createFileRoute("/_app/billing/success")({
-  validateSearch: (s: Record<string, unknown>): { paymentKey?: string; orderId?: string; amount?: number } => ({
+// 결제 결과 처리(독립 라우트 — /billing 아래에 중첩되지 않도록 분리).
+// 토스 successUrl/failUrl이 모두 여기로 온다. paymentKey가 있으면 승인, code가 있으면 실패.
+export const Route = createFileRoute("/_app/billing-result")({
+  validateSearch: (s: Record<string, unknown>): {
+    paymentKey?: string; orderId?: string; amount?: number; code?: string; message?: string;
+  } => ({
     paymentKey: typeof s.paymentKey === "string" ? s.paymentKey : undefined,
     orderId: typeof s.orderId === "string" ? s.orderId : undefined,
     amount: s.amount != null ? Number(s.amount) : undefined,
+    code: typeof s.code === "string" ? s.code : undefined,
+    message: typeof s.message === "string" ? s.message : undefined,
   }),
-  component: Success,
+  component: BillingResult,
 });
 
-function Success() {
-  const { paymentKey, orderId, amount } = Route.useSearch();
+function BillingResult() {
+  const { paymentKey, orderId, amount, code, message } = Route.useSearch();
   const nav = useNavigate();
   const confirm = useServerFn(confirmPaymentAndActivate);
   const [error, setError] = useState<string | null>(null);
@@ -26,6 +32,11 @@ function Success() {
     if (ran.current) return;
     ran.current = true;
     (async () => {
+      // 토스가 failUrl로 보낸 실패 — code/message가 실제 원인
+      if (code || message) {
+        setError(`토스 결제 실패 — 코드: ${code ?? "?"} / ${message ?? "메시지 없음"}`);
+        return;
+      }
       if (!paymentKey || !orderId || amount == null) {
         setError("결제 정보가 올바르지 않습니다.");
         return;
@@ -42,7 +53,7 @@ function Success() {
         setError(e instanceof Error ? e.message : "결제 승인 중 오류가 발생했습니다.");
       }
     })();
-  }, [paymentKey, orderId, amount, nav, confirm]);
+  }, [paymentKey, orderId, amount, code, message, nav, confirm]);
 
   if (error) {
     return (
@@ -51,7 +62,7 @@ function Success() {
           <AlertTriangle className="h-7 w-7" />
         </div>
         <h1 className="text-xl font-bold">결제 처리에 문제가 있었습니다</h1>
-        <p className="text-sm text-muted-foreground leading-relaxed">{error}</p>
+        <p className="text-sm text-muted-foreground leading-relaxed break-keep">{error}</p>
         <p className="text-xs text-muted-foreground">
           결제가 완료됐는데 활성화가 안 됐다면 카카오톡 채널로 문의해 주세요. 중복 청구되지 않습니다.
         </p>

@@ -5,7 +5,7 @@ import { createPaymentOrder } from "@/lib/payments.functions";
 import { formatKRW } from "@/lib/pricing";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CreditCard, Building, ShieldCheck, AlertTriangle } from "lucide-react";
+import { CreditCard, Building, Landmark, AlertTriangle } from "lucide-react";
 
 export const Route = createFileRoute("/_app/billing")({ component: Billing });
 
@@ -22,10 +22,11 @@ function Billing() {
   const [loadErr, setLoadErr] = useState<string | null>(null);
   const [payErr, setPayErr] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
-  const widgetsRef = useRef<unknown>(null);
+  const [paying, setPaying] = useState(false);
+  const paymentRef = useRef<unknown>(null);
   const clientKey = tossClientKey();
 
-  // 1) 서버에서 금액 계산 + 주문 생성
+  // 1) 서버에서 금액 계산 + 주문 생성 (금액 위변조 방지)
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -39,7 +40,7 @@ function Billing() {
     return () => { cancelled = true; };
   }, []);
 
-  // 2) 토스 결제위젯 초기화 (클라 키 + 주문이 있을 때만)
+  // 2) 토스 결제 인스턴스 초기화 (API 개별 연동 키 · 결제창 방식)
   useEffect(() => {
     if (!clientKey || !order) return;
     let cancelled = false;
@@ -47,36 +48,47 @@ function Billing() {
       try {
         const { loadTossPayments } = await import("@tosspayments/tosspayments-sdk");
         const toss = await loadTossPayments(clientKey);
-        const widgets = toss.widgets({ customerKey: `org_${order.orderId}` });
-        await widgets.setAmount({ currency: "KRW", value: order.amount });
-        if (cancelled) return;
-        await Promise.all([
-          widgets.renderPaymentMethods({ selector: "#payment-method", variantKey: "DEFAULT" }),
-          widgets.renderAgreement({ selector: "#agreement" }),
-        ]);
-        widgetsRef.current = widgets;
+        const payment = toss.payment({ customerKey: `org_${order.orderId}`.slice(0, 50) });
+        paymentRef.current = payment;
         if (!cancelled) setReady(true);
       } catch (e) {
-        if (!cancelled) setPayErr(e instanceof Error ? e.message : "결제창 초기화 실패");
+        if (!cancelled) setPayErr(e instanceof Error ? e.message : "결제 초기화 실패");
       }
     })();
     return () => { cancelled = true; };
   }, [clientKey, order]);
 
-  async function pay() {
+  async function pay(method: "CARD" | "TRANSFER") {
     setPayErr(null);
-    const widgets = widgetsRef.current as { requestPayment: (o: Record<string, unknown>) => Promise<void> } | null;
-    if (!widgets || !order) return;
+    const payment = paymentRef.current as { requestPayment: (o: Record<string, unknown>) => Promise<void> } | null;
+    if (!payment || !order) return;
     const origin = window.location.origin;
+    setPaying(true);
     try {
-      await widgets.requestPayment({
+      const base = {
+        amount: { currency: "KRW", value: order.amount },
         orderId: order.orderId,
         orderName: `안전데스크 연간 이용료 (${order.orgName})`,
-        successUrl: `${origin}/billing/success`,
-        failUrl: `${origin}/billing`,
-      });
+        successUrl: `${origin}/billing-result`,
+        failUrl: `${origin}/billing-result`,
+      };
+      if (method === "CARD") {
+        await payment.requestPayment({
+          ...base,
+          method: "CARD",
+          card: { useEscrow: false, flowMode: "DEFAULT", useCardPoint: false, useAppCardOnly: false },
+        });
+      } else {
+        await payment.requestPayment({
+          ...base,
+          method: "TRANSFER",
+          transfer: { cashReceipt: { type: "소득공제" }, useEscrow: false },
+        });
+      }
     } catch (e) {
       setPayErr(e instanceof Error ? e.message : "결제 요청 실패");
+    } finally {
+      setPaying(false);
     }
   }
 
@@ -127,7 +139,6 @@ function Billing() {
         </Card>
       )}
 
-      {/* 토스 위젯 or 설정 안내 */}
       {order && !clientKey && (
         <Card className="border-primary/40 bg-primary/[0.03]">
           <CardContent className="p-4 text-sm space-y-2">
@@ -142,18 +153,19 @@ function Billing() {
       )}
 
       {order && clientKey && (
-        <>
-          <div id="payment-method" />
-          <div id="agreement" />
+        <div className="space-y-3">
           {payErr && <p className="text-sm text-destructive">{payErr}</p>}
-          <Button onClick={pay} disabled={!ready} className="w-full h-12 text-base gap-2">
-            <ShieldCheck className="h-5 w-5" />
-            {ready ? `${formatKRW(order.amount)} 결제하기` : "결제창 준비 중…"}
+          <Button onClick={() => pay("CARD")} disabled={!ready || paying} className="w-full h-12 text-base gap-2">
+            <CreditCard className="h-5 w-5" />
+            {ready ? `카드로 ${formatKRW(order.amount)} 결제` : "결제 준비 중…"}
+          </Button>
+          <Button onClick={() => pay("TRANSFER")} disabled={!ready || paying} variant="outline" className="w-full h-11 gap-2">
+            <Landmark className="h-4 w-4" /> 계좌이체로 결제
           </Button>
           <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
-            결제는 토스페이먼츠를 통해 안전하게 처리됩니다. 세금계산서·문의는 카카오톡 채널로 남겨주세요.
+            결제는 토스페이먼츠 결제창을 통해 안전하게 처리됩니다. 세금계산서·문의는 카카오톡 채널로 남겨주세요.
           </p>
-        </>
+        </div>
       )}
     </div>
   );
