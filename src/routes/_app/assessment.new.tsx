@@ -13,7 +13,7 @@ import { METHOD_INFO, recommendMethod } from "@/lib/method-recommend";
 import { ASSESSMENT_METHODS, METHOD_LABEL, type AssessmentMethod, type AssessmentType, type RiskLevel } from "@/lib/types";
 import { getCurrentUserContext } from "@/lib/user-context";
 import { toast } from "sonner";
-import { Star, AlertTriangle, ShieldAlert, ChevronDown, ChevronUp, History } from "lucide-react";
+import { Star, AlertTriangle, ShieldAlert, ChevronDown, ChevronUp, History, Settings } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { WORK_STOP_LAW_TITLE, WORK_STOP_LAW_TEXT } from "@/lib/work-stop-law";
 
@@ -247,8 +247,9 @@ function NewAssessment() {
           <div>
             <Label>평가 단지</Label>
             {complexes.length === 0 ? (
-              <div className="rounded-md border bg-muted/40 p-3 text-sm text-muted-foreground mt-1.5">
-                등록된 단지가 없습니다. 설정에서 단지를 먼저 등록해주세요.
+              <div className="rounded-md border bg-muted/40 p-3 mt-1.5 flex flex-wrap items-center justify-between gap-2">
+                <span className="text-sm text-muted-foreground">등록된 단지가 없습니다. 먼저 단지를 등록해주세요.</span>
+                <Link to="/settings"><Button size="sm" variant="outline" className="gap-1"><Settings className="h-4 w-4" />설정에서 단지 등록</Button></Link>
               </div>
             ) : (
               <select value={complexId} onChange={e=>setComplexId(e.target.value)}
