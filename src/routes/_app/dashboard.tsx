@@ -410,10 +410,10 @@ function Dashboard() {
                 >
                   <Download className="h-4 w-4" />
                   {exporting
-                    ? "다운로드 중..."
+                    ? "내보내는 중..."
                     : selectedComplexId === "all"
-                      ? `CSV (ZIP)`
-                      : `CSV`}
+                      ? `엑셀로 내보내기 (ZIP)`
+                      : `엑셀로 내보내기`}
                 </Button>
               </div>
             )}
