@@ -14,7 +14,7 @@ export function PricingSection() {
       <SectionHeading
         eyebrow="요금"
         title="맡은 단지의 세대수만큼만"
-        sub="단지별로 세대수 구간에 따라 정액입니다. 직원(좌석)은 무제한이고, 여러 단지는 각 단지 요금을 합산합니다."
+        sub="단지별로 세대수 구간에 따라 정액입니다. 직원(좌석)은 무제한이고, 여러 단지는 각 단지 요금을 각각 적용해 더합니다(세대수를 합산해 하나의 구간으로 계산하지 않습니다)."
       />
 
       <div className="overflow-x-auto rounded-2xl border border-border/70 bg-card">
@@ -58,7 +58,8 @@ export function PricingSection() {
         <p className="text-sm text-muted-foreground leading-relaxed">
           250세대 + 800세대 + 1,500세대 단지를 운영한다면{" "}
           <b className="text-foreground">연 {formatKRW(exampleTotal)}</b>{" "}
-          (각 6만 + 15만 + 25만원). 단지를 추가하면 그 단지의 세대수 구간 요금만 더해집니다.
+          (각 6만 + 15만 + 25만원). <b className="text-foreground">단지마다 각자의 세대수 구간 요금이 적용</b>되며,
+          세대수를 모두 합쳐(2,550세대) 하나의 상위 구간으로 계산하지 않습니다. 단지를 추가하면 그 단지의 구간 요금만 더해집니다.
         </p>
       </div>
 
