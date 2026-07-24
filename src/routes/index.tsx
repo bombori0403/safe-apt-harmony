@@ -163,8 +163,8 @@ function Landing() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
             <Feature icon={ClipboardCheck} title="법정 절차 자동 지원"
               desc="빈도강도법·3단계·5단계·체크리스트·OPS 등 평가방법을 선택하면 절차에 맞춰 안내합니다." />
-            <Feature icon={ScrollText} title="관련 법조문 자동 매칭"
-              desc="유해·위험요인을 입력하면 산업안전보건기준에 관한 규칙 등 관련 법적기준이 자동으로 붙습니다." />
+            <Feature icon={ScrollText} title="관련 법조문 자동 매칭 · 확인 후 수정"
+              desc="유해·위험요인을 입력하면 산업안전보건기준에 관한 규칙 등 관련 법적기준이 자동으로 제안됩니다. 제안된 조문은 담당자가 확인하고, 맞지 않으면 직접 수정할 수 있습니다." />
             <Feature icon={FileCheck2} title="KRAS 양식 그대로 출력"
               desc="안전보건공단 KRAS 위험성평가표와 동일한 양식으로 개별·전체 이력을 인쇄·PDF 저장할 수 있습니다." />
             <Feature icon={Users} title="직원 협업 · 승인"

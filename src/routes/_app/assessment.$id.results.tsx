@@ -11,7 +11,13 @@ import { toast } from "sonner";
 import { writeErrorMessage } from "@/lib/write-error";
 import { PhotoUpload } from "@/components/photo-upload";
 import { useAuth } from "@/hooks/use-auth";
+import { suggestLegalBasis } from "@/lib/legal-basis-keywords";
 import { Pencil, Trash2, Check, X } from "lucide-react";
+
+// 표시용 법적기준: 사용자 수정값 > 라이브러리 > 자동 제안 순.
+function effectiveLegal(h: any): string {
+  return h.legal_basis_override || h.hazard_library?.legal_basis || suggestLegalBasis(h.description ?? "")?.legal_basis || "";
+}
 
 export const Route = createFileRoute("/_app/assessment/$id/results")({
   component: Results,
@@ -27,6 +33,18 @@ function Results() {
   const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDesc, setEditDesc] = useState("");
+  const [editingLegalId, setEditingLegalId] = useState<string | null>(null);
+  const [editLegal, setEditLegal] = useState("");
+
+  async function saveLegal(hid: string) {
+    const val = editLegal.trim();
+    const { data, error } = await supabase.from("hazards").update({ legal_basis_override: val || null }).eq("id", hid).select();
+    if (error) { console.error(error); toast.error(writeErrorMessage(error)); return; }
+    if (!data || data.length === 0) { toast.error("권한이 없어 수정할 수 없습니다"); return; }
+    toast.success("법적기준이 저장되었습니다");
+    setEditingLegalId(null);
+    await load();
+  }
 
   async function saveDesc(hid: string) {
     if (!editDesc.trim()) { toast.error("내용을 입력하세요"); return; }
@@ -58,7 +76,7 @@ function Results() {
   async function load() {
     const { data: ass } = await supabase.from("assessments").select("*").eq("id", id).maybeSingle();
     setA(ass);
-    const { data: h } = await supabase.from("hazards").select("*").eq("assessment_id", id).order("created_at");
+    const { data: h } = await supabase.from("hazards").select("*, hazard_library:library_item_id(article_no, legal_basis)").eq("assessment_id", id).order("created_at");
     setHazards(h ?? []);
   }
   useEffect(() => { load(); }, [id]);
@@ -125,6 +143,9 @@ function Results() {
         <p className="text-xs text-muted-foreground mt-1">
           위험성 결정 시 '낮음' 이상에 대해서는 위험성 감소대책을 수립해야 합니다. (고용노동부 지침)
         </p>
+        <p className="text-xs text-muted-foreground mt-1">
+          각 항목의 <b>법적기준은 자동 매칭된 제안</b>입니다. 반드시 확인하고, 맞지 않으면 연필 아이콘으로 직접 수정하세요.
+        </p>
       </div>
 
       <div className="space-y-3">
@@ -144,6 +165,28 @@ function Results() {
                     <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => { setEditingId(h.id); setEditDesc(h.description); }}><Pencil className="h-3.5 w-3.5" /></Button>
                     <Button size="sm" variant="ghost" className="h-7 px-2 text-destructive hover:text-destructive" onClick={() => deleteHazard(h.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
                   </div>
+                </>
+              )}
+            </div>
+
+            {/* 법적기준 — 자동 매칭된 제안. 확인 후 맞지 않으면 직접 수정. */}
+            <div className="flex items-center gap-2 text-xs bg-muted/30 rounded-md px-2.5 py-1.5">
+              <span className="text-muted-foreground shrink-0">법적기준</span>
+              {editingLegalId === h.id ? (
+                <>
+                  <Input value={editLegal} onChange={e => setEditLegal(e.target.value)} className="h-8 text-xs flex-1"
+                    placeholder="예: 산업안전보건기준에 관한 규칙 제32조" />
+                  <Button size="sm" variant="outline" className="h-8 px-2" onClick={() => saveLegal(h.id)}><Check className="h-3.5 w-3.5" /></Button>
+                  <Button size="sm" variant="ghost" className="h-8 px-2" onClick={() => setEditingLegalId(null)}><X className="h-3.5 w-3.5" /></Button>
+                </>
+              ) : (
+                <>
+                  <span className={`flex-1 ${effectiveLegal(h) ? "text-foreground/80" : "text-muted-foreground italic"}`}>
+                    {effectiveLegal(h) || "자동 매칭 없음 — 직접 입력하세요"}
+                  </span>
+                  <Button size="sm" variant="ghost" className="h-7 px-2 shrink-0" onClick={() => { setEditingLegalId(h.id); setEditLegal(effectiveLegal(h)); }}>
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
                 </>
               )}
             </div>
