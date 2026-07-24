@@ -137,6 +137,12 @@
 }
 
 @layer base {
+  /* 화면에서 전반적으로 글씨를 키운다(고령 사용자 가독성). rem 기반이라 텍스트·여백·버튼이
+     비례해 커진다. 인쇄물(KRAS 등)은 A4 레이아웃 유지를 위해 기본 크기로 둔다.
+     ⚠️ 크기 조절은 이 값(112.5% = 18px)만 바꾸면 앱 전체에 반영된다. */
+  @media screen {
+    html { font-size: 112.5%; }
+  }
   * { border-color: var(--color-border); }
   body {
     background-color: var(--color-background);
