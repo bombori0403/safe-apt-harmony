@@ -8,7 +8,7 @@
 
 ## 빌드 · 배포 (매번 이 순서)
 ```bash
-npx vite build
+npm run build     # ⚠️ npx vite build 금지 — npx가 캐시의 다른 vite(v8)를 잡아 "Cannot resolve entry module index.html"로 실패한다
 npx wrangler deploy --config .output/server/wrangler.json
 git add -A && git commit -m "..." && git push origin main   # main 브랜치
 ```
