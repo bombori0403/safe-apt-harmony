@@ -170,24 +170,30 @@ function Results() {
             </div>
 
             {/* 법적기준 — 자동 매칭된 제안. 확인 후 맞지 않으면 직접 수정. */}
-            <div className="flex items-center gap-2 text-xs bg-muted/30 rounded-md px-2.5 py-1.5">
-              <span className="text-muted-foreground shrink-0">법적기준</span>
-              {editingLegalId === h.id ? (
-                <>
-                  <Input value={editLegal} onChange={e => setEditLegal(e.target.value)} className="h-8 text-xs flex-1"
-                    placeholder="예: 산업안전보건기준에 관한 규칙 제32조" />
-                  <Button size="sm" variant="outline" className="h-8 px-2" onClick={() => saveLegal(h.id)}><Check className="h-3.5 w-3.5" /></Button>
-                  <Button size="sm" variant="ghost" className="h-8 px-2" onClick={() => setEditingLegalId(null)}><X className="h-3.5 w-3.5" /></Button>
-                </>
-              ) : (
-                <>
-                  <span className={`flex-1 ${effectiveLegal(h) ? "text-foreground/80" : "text-muted-foreground italic"}`}>
-                    {effectiveLegal(h) || "자동 매칭 없음 — 직접 입력하세요"}
-                  </span>
-                  <Button size="sm" variant="ghost" className="h-7 px-2 shrink-0" onClick={() => { setEditingLegalId(h.id); setEditLegal(effectiveLegal(h)); }}>
-                    <Pencil className="h-3.5 w-3.5" />
+            <div className="rounded-md border border-border/70 bg-muted/20 p-2.5">
+              <div className="flex items-center justify-between gap-2 mb-1.5">
+                <span className="text-xs font-semibold text-foreground/70 flex items-center gap-1.5 flex-wrap">
+                  법적기준
+                  <Badge variant="outline" className="text-[10px] font-normal">자동 제안 · 확인/수정</Badge>
+                </span>
+                {editingLegalId !== h.id && (
+                  <Button size="sm" variant="outline" className="h-7 px-2.5 gap-1 text-xs shrink-0"
+                    onClick={() => { setEditingLegalId(h.id); setEditLegal(effectiveLegal(h)); }}>
+                    <Pencil className="h-3 w-3" />수정
                   </Button>
-                </>
+                )}
+              </div>
+              {editingLegalId === h.id ? (
+                <div className="flex gap-2">
+                  <Input value={editLegal} onChange={e => setEditLegal(e.target.value)} className="h-9 text-sm flex-1"
+                    placeholder="예: 산업안전보건기준에 관한 규칙 제32조" autoFocus />
+                  <Button size="sm" className="h-9 px-3 gap-1" onClick={() => saveLegal(h.id)}><Check className="h-4 w-4" />저장</Button>
+                  <Button size="sm" variant="ghost" className="h-9 px-2" onClick={() => setEditingLegalId(null)}><X className="h-4 w-4" /></Button>
+                </div>
+              ) : (
+                <div className={`text-sm ${effectiveLegal(h) ? "text-foreground" : "text-muted-foreground italic"}`}>
+                  {effectiveLegal(h) || "자동 매칭 없음 — ‘수정’을 눌러 직접 입력하세요"}
+                </div>
               )}
             </div>
 
