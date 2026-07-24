@@ -24,7 +24,9 @@ const NAV_GROUPS = [
   {
     title: "위험성평가",
     items: [
-      { to: "/assessment/new", label: "새 평가", icon: FilePlus2, managerOrAdmin: true, mobileTab: true },
+      // 새 평가는 탭에서 뺀다 — 대시보드에 '새 평가 시작' 버튼이 크게 있고,
+      // 그 자리를 직원 참여에 내주는 편이 낫다(탭은 4칸까지).
+      { to: "/assessment/new", label: "새 평가", icon: FilePlus2, managerOrAdmin: true },
       { to: "/history", label: "평가 이력", icon: ClipboardList, mobileTab: true },
       { to: "/regulation", label: "실시규정", icon: BookOpen },
     ],
