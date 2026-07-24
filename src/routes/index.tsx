@@ -31,7 +31,7 @@ function Landing() {
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/70 backdrop-blur-xl">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <img src="/logo-mark.png" alt="안전데스크" className="w-9 h-9 rounded-xl object-cover ring-1 ring-border/60" />
+            <img src="/logo-mark.png" alt="안전데스크" className="w-9 h-9 rounded-full object-cover" />
             <span className="font-bold tracking-tight text-[17px]">안전데스크</span>
           </div>
           <div className="flex items-center gap-2">
@@ -197,7 +197,7 @@ function Landing() {
             <div className="absolute -bottom-24 -left-16 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
           </div>
           <div className="relative space-y-5">
-            <img src="/logo-mark.png" alt="" className="mx-auto w-16 h-16 rounded-2xl object-cover ring-2 ring-white/20 shadow-xl" />
+            <img src="/logo-mark.png" alt="" className="mx-auto w-16 h-16 rounded-full object-cover ring-2 ring-white/20 shadow-xl" />
             <h2 className="text-2xl md:text-[2rem] font-bold tracking-tight text-balance">
               올해 위험성평가, 이번 주에 끝내세요
             </h2>
@@ -227,7 +227,7 @@ function Landing() {
       <footer className="border-t border-border/60">
         <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col md:flex-row items-center justify-between gap-3 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
-            <img src="/logo-mark.png" alt="안전데스크" className="w-5 h-5 rounded object-cover" />
+            <img src="/logo-mark.png" alt="안전데스크" className="w-5 h-5 rounded-full object-cover" />
             <span className="font-medium text-foreground">안전데스크</span>
           </div>
           <div className="flex items-center gap-4">

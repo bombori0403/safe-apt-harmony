@@ -215,7 +215,7 @@ export function TrustSection() {
   return (
     <section className="border-y border-border/60 bg-muted/30">
       <div className="max-w-3xl mx-auto px-4 py-16 md:py-20 text-center space-y-5">
-        <img src="/logo-mark.png" alt="" className="mx-auto w-14 h-14 rounded-2xl object-cover ring-1 ring-border/60" />
+        <img src="/logo-mark.png" alt="" className="mx-auto w-14 h-14 rounded-full object-cover" />
         <h2 className="text-2xl md:text-[2rem] font-bold tracking-tight">현직 시설관리자가 만들었습니다</h2>
         <p className="text-muted-foreground leading-relaxed">
           공동주택 현장에서 직접 위험성평가 서류를 만들며 겪은 불편에서 시작했습니다.

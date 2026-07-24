@@ -69,7 +69,7 @@ function Login() {
       {/* Left brand panel */}
       <div className="hidden lg:flex lg:w-[46%] xl:w-[42%] relative flex-col justify-between overflow-hidden bg-gradient-to-br from-primary via-primary to-[oklch(0.3_0.14_262)] text-primary-foreground px-12 py-12">
         <Link to="/" className="flex items-center gap-2.5 relative z-10 w-fit">
-          <img src="/logo-mark.png" alt="안전데스크" className="w-9 h-9 rounded-xl object-cover bg-white" />
+          <img src="/logo-mark.png" alt="안전데스크" className="w-9 h-9 rounded-full object-cover" />
           <span className="font-bold tracking-tight">안전데스크</span>
         </Link>
 
@@ -107,7 +107,7 @@ function Login() {
         <div className="w-full max-w-sm">
           <div className="mb-8 lg:hidden text-center">
             <Link to="/" className="inline-flex items-center justify-center mb-3">
-              <img src="/logo-mark.png" alt="안전데스크" className="w-16 h-16 rounded-2xl object-cover shadow-lg shadow-primary/20" />
+              <img src="/logo-mark.png" alt="안전데스크" className="w-16 h-16 rounded-full object-cover shadow-lg shadow-primary/20" />
             </Link>
             <h1 className="text-2xl font-bold tracking-tight">안전데스크</h1>
             <p className="text-sm text-muted-foreground mt-1">공동주택 위험성평가 통합 관리 플랫폼</p>

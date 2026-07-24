@@ -10,7 +10,7 @@ function Privacy() {
       <header className="border-b border-border/60">
         <div className="max-w-3xl mx-auto px-5 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2.5">
-            <img src="/logo-mark.png" alt="안전데스크" className="w-8 h-8 rounded-lg object-cover" />
+            <img src="/logo-mark.png" alt="안전데스크" className="w-8 h-8 rounded-full object-cover" />
             <span className="font-semibold tracking-tight">안전데스크</span>
           </Link>
           <Link to="/"><Button variant="ghost" size="sm" className="gap-1"><ArrowLeft className="h-4 w-4" />홈</Button></Link>
