@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { SupportFab } from "@/components/support-fab";
+import { MascotBuddy } from "@/components/mascot-buddy";
 
 const NAV_GROUPS = [
   {
@@ -161,6 +162,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </nav>
       </div>
 
+      <MascotBuddy />
       <SupportFab />
     </div>
   );
