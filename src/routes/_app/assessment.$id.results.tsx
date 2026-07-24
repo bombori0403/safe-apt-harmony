@@ -143,9 +143,10 @@ function Results() {
         <p className="text-xs text-muted-foreground mt-1">
           위험성 결정 시 '낮음' 이상에 대해서는 위험성 감소대책을 수립해야 합니다. (고용노동부 지침)
         </p>
-        <p className="text-xs text-muted-foreground mt-1">
-          각 항목의 <b>법적기준은 자동 매칭된 제안</b>입니다. 반드시 확인하고, 맞지 않으면 연필 아이콘으로 직접 수정하세요.
-        </p>
+        <div className="mt-2 flex items-start gap-2 rounded-md border border-primary/30 bg-primary/[0.05] px-3 py-2 text-xs text-foreground/80">
+          <Scale className="h-4 w-4 shrink-0 mt-0.5 text-primary" />
+          <span>각 항목의 <b className="text-primary">법적기준(법령)은 자동 매칭된 제안</b>입니다. 이 화면에서 반드시 확인하고, 맞지 않으면 <b>'수정' 버튼</b>으로 직접 고칠 수 있습니다.</span>
+        </div>
       </div>
 
       <div className="space-y-3">
