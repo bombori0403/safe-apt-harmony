@@ -12,7 +12,7 @@ import { writeErrorMessage } from "@/lib/write-error";
 import { PhotoUpload } from "@/components/photo-upload";
 import { useAuth } from "@/hooks/use-auth";
 import { suggestLegalBasis } from "@/lib/legal-basis-keywords";
-import { Pencil, Trash2, Check, X } from "lucide-react";
+import { Pencil, Trash2, Check, X, Scale } from "lucide-react";
 
 // 표시용 법적기준: 사용자 수정값 > 라이브러리 > 자동 제안 순.
 function effectiveLegal(h: any): string {
@@ -170,14 +170,15 @@ function Results() {
             </div>
 
             {/* 법적기준 — 자동 매칭된 제안. 확인 후 맞지 않으면 직접 수정. */}
-            <div className="rounded-md border border-border/70 bg-muted/20 p-2.5">
+            <div className="rounded-md border border-primary/30 bg-primary/[0.05] p-2.5">
               <div className="flex items-center justify-between gap-2 mb-1.5">
-                <span className="text-xs font-semibold text-foreground/70 flex items-center gap-1.5 flex-wrap">
+                <span className="text-xs font-semibold text-primary flex items-center gap-1.5 flex-wrap">
+                  <Scale className="h-3.5 w-3.5 shrink-0" />
                   법적기준
-                  <Badge variant="outline" className="text-[10px] font-normal">자동 제안 · 확인/수정</Badge>
+                  <Badge variant="outline" className="text-[10px] font-normal border-primary/40 text-primary">자동 제안 · 확인/수정</Badge>
                 </span>
                 {editingLegalId !== h.id && (
-                  <Button size="sm" variant="outline" className="h-7 px-2.5 gap-1 text-xs shrink-0"
+                  <Button size="sm" variant="outline" className="h-7 px-2.5 gap-1 text-xs shrink-0 border-primary/40 text-primary hover:bg-primary/10 hover:text-primary"
                     onClick={() => { setEditingLegalId(h.id); setEditLegal(effectiveLegal(h)); }}>
                     <Pencil className="h-3 w-3" />수정
                   </Button>
