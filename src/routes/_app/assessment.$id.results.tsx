@@ -145,7 +145,7 @@ function Results() {
         </p>
         <div className="mt-2 flex items-start gap-2 rounded-md border border-primary/30 bg-primary/[0.05] px-3 py-2 text-xs text-foreground/80">
           <Scale className="h-4 w-4 shrink-0 mt-0.5 text-primary" />
-          <span>각 항목의 <b className="text-primary">법적기준(법령)은 자동 매칭된 제안</b>입니다. 이 화면에서 반드시 확인하고, 맞지 않으면 <b>'수정' 버튼</b>으로 직접 고칠 수 있습니다.</span>
+          <span>각 항목의 <b className="text-primary">법적기준(법령)은 자동 매칭된 참고용 제안</b>이며 정확성을 보장하지 않습니다. 담당자가 반드시 확인하고, 맞지 않으면 <b>'수정' 버튼</b>으로 직접 고쳐 주세요. 최종 적용 책임은 사업장에 있습니다.</span>
         </div>
       </div>
 
