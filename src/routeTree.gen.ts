@@ -19,8 +19,11 @@ import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as ConfirmIdRouteImport } from './routes/confirm.$id'
 import { Route as AppWorkStopRightRouteImport } from './routes/_app/work-stop-right'
 import { Route as AppWorkStopRecordsRouteImport } from './routes/_app/work-stop-records'
+import { Route as AppWorkPermitRouteImport } from './routes/_app/work-permit'
 import { Route as AppTeamRouteImport } from './routes/_app/team'
+import { Route as AppTbmRouteImport } from './routes/_app/tbm'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
+import { Route as AppSafetyInspectionRouteImport } from './routes/_app/safety-inspection'
 import { Route as AppRegulationRouteImport } from './routes/_app/regulation'
 import { Route as AppPrintAllRouteImport } from './routes/_app/print-all'
 import { Route as AppPlatformAdminRouteImport } from './routes/_app/platform-admin'
@@ -29,6 +32,7 @@ import { Route as AppKrasReportAllRouteImport } from './routes/_app/kras-report-
 import { Route as AppImportRouteImport } from './routes/_app/import'
 import { Route as AppHistoryRouteImport } from './routes/_app/history'
 import { Route as AppEmployeeInputsRouteImport } from './routes/_app/employee-inputs'
+import { Route as AppEducationRouteImport } from './routes/_app/education'
 import { Route as AppDataUsageRouteImport } from './routes/_app/data-usage'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppConsoleRouteImport } from './routes/_app/console'
@@ -38,8 +42,16 @@ import { Route as AppBillingRouteImport } from './routes/_app/billing'
 import { Route as AppActivateRouteImport } from './routes/_app/activate'
 import { Route as AppWorkStopRecordsLedgerRouteImport } from './routes/_app/work-stop-records_.ledger'
 import { Route as AppWorkStopRecordsIdRouteImport } from './routes/_app/work-stop-records_.$id'
+import { Route as AppWorkPermitNewRouteImport } from './routes/_app/work-permit.new'
+import { Route as AppWorkPermitIdRouteImport } from './routes/_app/work-permit.$id'
+import { Route as AppTbmNewRouteImport } from './routes/_app/tbm.new'
+import { Route as AppTbmIdRouteImport } from './routes/_app/tbm.$id'
+import { Route as AppSafetyInspectionNewRouteImport } from './routes/_app/safety-inspection.new'
+import { Route as AppSafetyInspectionIdRouteImport } from './routes/_app/safety-inspection.$id'
 import { Route as AppNearMissNewRouteImport } from './routes/_app/near-miss.new'
 import { Route as AppNearMissIdRouteImport } from './routes/_app/near-miss.$id'
+import { Route as AppEducationNewRouteImport } from './routes/_app/education.new'
+import { Route as AppEducationIdRouteImport } from './routes/_app/education.$id'
 import { Route as AppAssessmentNewRouteImport } from './routes/_app/assessment.new'
 import { Route as AppAssessmentIdIndexRouteImport } from './routes/_app/assessment.$id.index'
 import { Route as AppAssessmentIdShareRouteImport } from './routes/_app/assessment.$id.share'
@@ -100,14 +112,29 @@ const AppWorkStopRecordsRoute = AppWorkStopRecordsRouteImport.update({
   path: '/work-stop-records',
   getParentRoute: () => AppRoute,
 } as any)
+const AppWorkPermitRoute = AppWorkPermitRouteImport.update({
+  id: '/work-permit',
+  path: '/work-permit',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppTeamRoute = AppTeamRouteImport.update({
   id: '/team',
   path: '/team',
   getParentRoute: () => AppRoute,
 } as any)
+const AppTbmRoute = AppTbmRouteImport.update({
+  id: '/tbm',
+  path: '/tbm',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSafetyInspectionRoute = AppSafetyInspectionRouteImport.update({
+  id: '/safety-inspection',
+  path: '/safety-inspection',
   getParentRoute: () => AppRoute,
 } as any)
 const AppRegulationRoute = AppRegulationRouteImport.update({
@@ -148,6 +175,11 @@ const AppHistoryRoute = AppHistoryRouteImport.update({
 const AppEmployeeInputsRoute = AppEmployeeInputsRouteImport.update({
   id: '/employee-inputs',
   path: '/employee-inputs',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppEducationRoute = AppEducationRouteImport.update({
+  id: '/education',
+  path: '/education',
   getParentRoute: () => AppRoute,
 } as any)
 const AppDataUsageRoute = AppDataUsageRouteImport.update({
@@ -196,6 +228,36 @@ const AppWorkStopRecordsIdRoute = AppWorkStopRecordsIdRouteImport.update({
   path: '/work-stop-records/$id',
   getParentRoute: () => AppRoute,
 } as any)
+const AppWorkPermitNewRoute = AppWorkPermitNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AppWorkPermitRoute,
+} as any)
+const AppWorkPermitIdRoute = AppWorkPermitIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AppWorkPermitRoute,
+} as any)
+const AppTbmNewRoute = AppTbmNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AppTbmRoute,
+} as any)
+const AppTbmIdRoute = AppTbmIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AppTbmRoute,
+} as any)
+const AppSafetyInspectionNewRoute = AppSafetyInspectionNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AppSafetyInspectionRoute,
+} as any)
+const AppSafetyInspectionIdRoute = AppSafetyInspectionIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AppSafetyInspectionRoute,
+} as any)
 const AppNearMissNewRoute = AppNearMissNewRouteImport.update({
   id: '/new',
   path: '/new',
@@ -205,6 +267,16 @@ const AppNearMissIdRoute = AppNearMissIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => AppNearMissRoute,
+} as any)
+const AppEducationNewRoute = AppEducationNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AppEducationRoute,
+} as any)
+const AppEducationIdRoute = AppEducationIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AppEducationRoute,
 } as any)
 const AppAssessmentNewRoute = AppAssessmentNewRouteImport.update({
   id: '/assessment/new',
@@ -272,6 +344,7 @@ export interface FileRoutesByFullPath {
   '/console': typeof AppConsoleRoute
   '/dashboard': typeof AppDashboardRoute
   '/data-usage': typeof AppDataUsageRoute
+  '/education': typeof AppEducationRouteWithChildren
   '/employee-inputs': typeof AppEmployeeInputsRoute
   '/history': typeof AppHistoryRoute
   '/import': typeof AppImportRoute
@@ -280,15 +353,26 @@ export interface FileRoutesByFullPath {
   '/platform-admin': typeof AppPlatformAdminRoute
   '/print-all': typeof AppPrintAllRoute
   '/regulation': typeof AppRegulationRoute
+  '/safety-inspection': typeof AppSafetyInspectionRouteWithChildren
   '/settings': typeof AppSettingsRoute
+  '/tbm': typeof AppTbmRouteWithChildren
   '/team': typeof AppTeamRoute
+  '/work-permit': typeof AppWorkPermitRouteWithChildren
   '/work-stop-records': typeof AppWorkStopRecordsRoute
   '/work-stop-right': typeof AppWorkStopRightRoute
   '/confirm/$id': typeof ConfirmIdRoute
   '/invite/$token': typeof InviteTokenRoute
   '/assessment/new': typeof AppAssessmentNewRoute
+  '/education/$id': typeof AppEducationIdRoute
+  '/education/new': typeof AppEducationNewRoute
   '/near-miss/$id': typeof AppNearMissIdRoute
   '/near-miss/new': typeof AppNearMissNewRoute
+  '/safety-inspection/$id': typeof AppSafetyInspectionIdRoute
+  '/safety-inspection/new': typeof AppSafetyInspectionNewRoute
+  '/tbm/$id': typeof AppTbmIdRoute
+  '/tbm/new': typeof AppTbmNewRoute
+  '/work-permit/$id': typeof AppWorkPermitIdRoute
+  '/work-permit/new': typeof AppWorkPermitNewRoute
   '/work-stop-records/$id': typeof AppWorkStopRecordsIdRoute
   '/work-stop-records/ledger': typeof AppWorkStopRecordsLedgerRoute
   '/assessment/$id/hazards': typeof AppAssessmentIdHazardsRoute
@@ -314,6 +398,7 @@ export interface FileRoutesByTo {
   '/console': typeof AppConsoleRoute
   '/dashboard': typeof AppDashboardRoute
   '/data-usage': typeof AppDataUsageRoute
+  '/education': typeof AppEducationRouteWithChildren
   '/employee-inputs': typeof AppEmployeeInputsRoute
   '/history': typeof AppHistoryRoute
   '/import': typeof AppImportRoute
@@ -322,15 +407,26 @@ export interface FileRoutesByTo {
   '/platform-admin': typeof AppPlatformAdminRoute
   '/print-all': typeof AppPrintAllRoute
   '/regulation': typeof AppRegulationRoute
+  '/safety-inspection': typeof AppSafetyInspectionRouteWithChildren
   '/settings': typeof AppSettingsRoute
+  '/tbm': typeof AppTbmRouteWithChildren
   '/team': typeof AppTeamRoute
+  '/work-permit': typeof AppWorkPermitRouteWithChildren
   '/work-stop-records': typeof AppWorkStopRecordsRoute
   '/work-stop-right': typeof AppWorkStopRightRoute
   '/confirm/$id': typeof ConfirmIdRoute
   '/invite/$token': typeof InviteTokenRoute
   '/assessment/new': typeof AppAssessmentNewRoute
+  '/education/$id': typeof AppEducationIdRoute
+  '/education/new': typeof AppEducationNewRoute
   '/near-miss/$id': typeof AppNearMissIdRoute
   '/near-miss/new': typeof AppNearMissNewRoute
+  '/safety-inspection/$id': typeof AppSafetyInspectionIdRoute
+  '/safety-inspection/new': typeof AppSafetyInspectionNewRoute
+  '/tbm/$id': typeof AppTbmIdRoute
+  '/tbm/new': typeof AppTbmNewRoute
+  '/work-permit/$id': typeof AppWorkPermitIdRoute
+  '/work-permit/new': typeof AppWorkPermitNewRoute
   '/work-stop-records/$id': typeof AppWorkStopRecordsIdRoute
   '/work-stop-records/ledger': typeof AppWorkStopRecordsLedgerRoute
   '/assessment/$id/hazards': typeof AppAssessmentIdHazardsRoute
@@ -358,6 +454,7 @@ export interface FileRoutesById {
   '/_app/console': typeof AppConsoleRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/data-usage': typeof AppDataUsageRoute
+  '/_app/education': typeof AppEducationRouteWithChildren
   '/_app/employee-inputs': typeof AppEmployeeInputsRoute
   '/_app/history': typeof AppHistoryRoute
   '/_app/import': typeof AppImportRoute
@@ -366,15 +463,26 @@ export interface FileRoutesById {
   '/_app/platform-admin': typeof AppPlatformAdminRoute
   '/_app/print-all': typeof AppPrintAllRoute
   '/_app/regulation': typeof AppRegulationRoute
+  '/_app/safety-inspection': typeof AppSafetyInspectionRouteWithChildren
   '/_app/settings': typeof AppSettingsRoute
+  '/_app/tbm': typeof AppTbmRouteWithChildren
   '/_app/team': typeof AppTeamRoute
+  '/_app/work-permit': typeof AppWorkPermitRouteWithChildren
   '/_app/work-stop-records': typeof AppWorkStopRecordsRoute
   '/_app/work-stop-right': typeof AppWorkStopRightRoute
   '/confirm/$id': typeof ConfirmIdRoute
   '/invite/$token': typeof InviteTokenRoute
   '/_app/assessment/new': typeof AppAssessmentNewRoute
+  '/_app/education/$id': typeof AppEducationIdRoute
+  '/_app/education/new': typeof AppEducationNewRoute
   '/_app/near-miss/$id': typeof AppNearMissIdRoute
   '/_app/near-miss/new': typeof AppNearMissNewRoute
+  '/_app/safety-inspection/$id': typeof AppSafetyInspectionIdRoute
+  '/_app/safety-inspection/new': typeof AppSafetyInspectionNewRoute
+  '/_app/tbm/$id': typeof AppTbmIdRoute
+  '/_app/tbm/new': typeof AppTbmNewRoute
+  '/_app/work-permit/$id': typeof AppWorkPermitIdRoute
+  '/_app/work-permit/new': typeof AppWorkPermitNewRoute
   '/_app/work-stop-records_/$id': typeof AppWorkStopRecordsIdRoute
   '/_app/work-stop-records_/ledger': typeof AppWorkStopRecordsLedgerRoute
   '/_app/assessment/$id/hazards': typeof AppAssessmentIdHazardsRoute
@@ -402,6 +510,7 @@ export interface FileRouteTypes {
     | '/console'
     | '/dashboard'
     | '/data-usage'
+    | '/education'
     | '/employee-inputs'
     | '/history'
     | '/import'
@@ -410,15 +519,26 @@ export interface FileRouteTypes {
     | '/platform-admin'
     | '/print-all'
     | '/regulation'
+    | '/safety-inspection'
     | '/settings'
+    | '/tbm'
     | '/team'
+    | '/work-permit'
     | '/work-stop-records'
     | '/work-stop-right'
     | '/confirm/$id'
     | '/invite/$token'
     | '/assessment/new'
+    | '/education/$id'
+    | '/education/new'
     | '/near-miss/$id'
     | '/near-miss/new'
+    | '/safety-inspection/$id'
+    | '/safety-inspection/new'
+    | '/tbm/$id'
+    | '/tbm/new'
+    | '/work-permit/$id'
+    | '/work-permit/new'
     | '/work-stop-records/$id'
     | '/work-stop-records/ledger'
     | '/assessment/$id/hazards'
@@ -444,6 +564,7 @@ export interface FileRouteTypes {
     | '/console'
     | '/dashboard'
     | '/data-usage'
+    | '/education'
     | '/employee-inputs'
     | '/history'
     | '/import'
@@ -452,15 +573,26 @@ export interface FileRouteTypes {
     | '/platform-admin'
     | '/print-all'
     | '/regulation'
+    | '/safety-inspection'
     | '/settings'
+    | '/tbm'
     | '/team'
+    | '/work-permit'
     | '/work-stop-records'
     | '/work-stop-right'
     | '/confirm/$id'
     | '/invite/$token'
     | '/assessment/new'
+    | '/education/$id'
+    | '/education/new'
     | '/near-miss/$id'
     | '/near-miss/new'
+    | '/safety-inspection/$id'
+    | '/safety-inspection/new'
+    | '/tbm/$id'
+    | '/tbm/new'
+    | '/work-permit/$id'
+    | '/work-permit/new'
     | '/work-stop-records/$id'
     | '/work-stop-records/ledger'
     | '/assessment/$id/hazards'
@@ -487,6 +619,7 @@ export interface FileRouteTypes {
     | '/_app/console'
     | '/_app/dashboard'
     | '/_app/data-usage'
+    | '/_app/education'
     | '/_app/employee-inputs'
     | '/_app/history'
     | '/_app/import'
@@ -495,15 +628,26 @@ export interface FileRouteTypes {
     | '/_app/platform-admin'
     | '/_app/print-all'
     | '/_app/regulation'
+    | '/_app/safety-inspection'
     | '/_app/settings'
+    | '/_app/tbm'
     | '/_app/team'
+    | '/_app/work-permit'
     | '/_app/work-stop-records'
     | '/_app/work-stop-right'
     | '/confirm/$id'
     | '/invite/$token'
     | '/_app/assessment/new'
+    | '/_app/education/$id'
+    | '/_app/education/new'
     | '/_app/near-miss/$id'
     | '/_app/near-miss/new'
+    | '/_app/safety-inspection/$id'
+    | '/_app/safety-inspection/new'
+    | '/_app/tbm/$id'
+    | '/_app/tbm/new'
+    | '/_app/work-permit/$id'
+    | '/_app/work-permit/new'
     | '/_app/work-stop-records_/$id'
     | '/_app/work-stop-records_/ledger'
     | '/_app/assessment/$id/hazards'
@@ -600,6 +744,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppWorkStopRecordsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/work-permit': {
+      id: '/_app/work-permit'
+      path: '/work-permit'
+      fullPath: '/work-permit'
+      preLoaderRoute: typeof AppWorkPermitRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/team': {
       id: '/_app/team'
       path: '/team'
@@ -607,11 +758,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTeamRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/tbm': {
+      id: '/_app/tbm'
+      path: '/tbm'
+      fullPath: '/tbm'
+      preLoaderRoute: typeof AppTbmRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/settings': {
       id: '/_app/settings'
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/safety-inspection': {
+      id: '/_app/safety-inspection'
+      path: '/safety-inspection'
+      fullPath: '/safety-inspection'
+      preLoaderRoute: typeof AppSafetyInspectionRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/regulation': {
@@ -668,6 +833,13 @@ declare module '@tanstack/react-router' {
       path: '/employee-inputs'
       fullPath: '/employee-inputs'
       preLoaderRoute: typeof AppEmployeeInputsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/education': {
+      id: '/_app/education'
+      path: '/education'
+      fullPath: '/education'
+      preLoaderRoute: typeof AppEducationRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/data-usage': {
@@ -733,6 +905,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppWorkStopRecordsIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/work-permit/new': {
+      id: '/_app/work-permit/new'
+      path: '/new'
+      fullPath: '/work-permit/new'
+      preLoaderRoute: typeof AppWorkPermitNewRouteImport
+      parentRoute: typeof AppWorkPermitRoute
+    }
+    '/_app/work-permit/$id': {
+      id: '/_app/work-permit/$id'
+      path: '/$id'
+      fullPath: '/work-permit/$id'
+      preLoaderRoute: typeof AppWorkPermitIdRouteImport
+      parentRoute: typeof AppWorkPermitRoute
+    }
+    '/_app/tbm/new': {
+      id: '/_app/tbm/new'
+      path: '/new'
+      fullPath: '/tbm/new'
+      preLoaderRoute: typeof AppTbmNewRouteImport
+      parentRoute: typeof AppTbmRoute
+    }
+    '/_app/tbm/$id': {
+      id: '/_app/tbm/$id'
+      path: '/$id'
+      fullPath: '/tbm/$id'
+      preLoaderRoute: typeof AppTbmIdRouteImport
+      parentRoute: typeof AppTbmRoute
+    }
+    '/_app/safety-inspection/new': {
+      id: '/_app/safety-inspection/new'
+      path: '/new'
+      fullPath: '/safety-inspection/new'
+      preLoaderRoute: typeof AppSafetyInspectionNewRouteImport
+      parentRoute: typeof AppSafetyInspectionRoute
+    }
+    '/_app/safety-inspection/$id': {
+      id: '/_app/safety-inspection/$id'
+      path: '/$id'
+      fullPath: '/safety-inspection/$id'
+      preLoaderRoute: typeof AppSafetyInspectionIdRouteImport
+      parentRoute: typeof AppSafetyInspectionRoute
+    }
     '/_app/near-miss/new': {
       id: '/_app/near-miss/new'
       path: '/new'
@@ -746,6 +960,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/near-miss/$id'
       preLoaderRoute: typeof AppNearMissIdRouteImport
       parentRoute: typeof AppNearMissRoute
+    }
+    '/_app/education/new': {
+      id: '/_app/education/new'
+      path: '/new'
+      fullPath: '/education/new'
+      preLoaderRoute: typeof AppEducationNewRouteImport
+      parentRoute: typeof AppEducationRoute
+    }
+    '/_app/education/$id': {
+      id: '/_app/education/$id'
+      path: '/$id'
+      fullPath: '/education/$id'
+      preLoaderRoute: typeof AppEducationIdRouteImport
+      parentRoute: typeof AppEducationRoute
     }
     '/_app/assessment/new': {
       id: '/_app/assessment/new'
@@ -820,6 +1048,20 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AppEducationRouteChildren {
+  AppEducationIdRoute: typeof AppEducationIdRoute
+  AppEducationNewRoute: typeof AppEducationNewRoute
+}
+
+const AppEducationRouteChildren: AppEducationRouteChildren = {
+  AppEducationIdRoute: AppEducationIdRoute,
+  AppEducationNewRoute: AppEducationNewRoute,
+}
+
+const AppEducationRouteWithChildren = AppEducationRoute._addFileChildren(
+  AppEducationRouteChildren,
+)
+
 interface AppNearMissRouteChildren {
   AppNearMissIdRoute: typeof AppNearMissIdRoute
   AppNearMissNewRoute: typeof AppNearMissNewRoute
@@ -834,6 +1076,46 @@ const AppNearMissRouteWithChildren = AppNearMissRoute._addFileChildren(
   AppNearMissRouteChildren,
 )
 
+interface AppSafetyInspectionRouteChildren {
+  AppSafetyInspectionIdRoute: typeof AppSafetyInspectionIdRoute
+  AppSafetyInspectionNewRoute: typeof AppSafetyInspectionNewRoute
+}
+
+const AppSafetyInspectionRouteChildren: AppSafetyInspectionRouteChildren = {
+  AppSafetyInspectionIdRoute: AppSafetyInspectionIdRoute,
+  AppSafetyInspectionNewRoute: AppSafetyInspectionNewRoute,
+}
+
+const AppSafetyInspectionRouteWithChildren =
+  AppSafetyInspectionRoute._addFileChildren(AppSafetyInspectionRouteChildren)
+
+interface AppTbmRouteChildren {
+  AppTbmIdRoute: typeof AppTbmIdRoute
+  AppTbmNewRoute: typeof AppTbmNewRoute
+}
+
+const AppTbmRouteChildren: AppTbmRouteChildren = {
+  AppTbmIdRoute: AppTbmIdRoute,
+  AppTbmNewRoute: AppTbmNewRoute,
+}
+
+const AppTbmRouteWithChildren =
+  AppTbmRoute._addFileChildren(AppTbmRouteChildren)
+
+interface AppWorkPermitRouteChildren {
+  AppWorkPermitIdRoute: typeof AppWorkPermitIdRoute
+  AppWorkPermitNewRoute: typeof AppWorkPermitNewRoute
+}
+
+const AppWorkPermitRouteChildren: AppWorkPermitRouteChildren = {
+  AppWorkPermitIdRoute: AppWorkPermitIdRoute,
+  AppWorkPermitNewRoute: AppWorkPermitNewRoute,
+}
+
+const AppWorkPermitRouteWithChildren = AppWorkPermitRoute._addFileChildren(
+  AppWorkPermitRouteChildren,
+)
+
 interface AppRouteChildren {
   AppActivateRoute: typeof AppActivateRoute
   AppBillingRoute: typeof AppBillingRoute
@@ -842,6 +1124,7 @@ interface AppRouteChildren {
   AppConsoleRoute: typeof AppConsoleRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppDataUsageRoute: typeof AppDataUsageRoute
+  AppEducationRoute: typeof AppEducationRouteWithChildren
   AppEmployeeInputsRoute: typeof AppEmployeeInputsRoute
   AppHistoryRoute: typeof AppHistoryRoute
   AppImportRoute: typeof AppImportRoute
@@ -850,8 +1133,11 @@ interface AppRouteChildren {
   AppPlatformAdminRoute: typeof AppPlatformAdminRoute
   AppPrintAllRoute: typeof AppPrintAllRoute
   AppRegulationRoute: typeof AppRegulationRoute
+  AppSafetyInspectionRoute: typeof AppSafetyInspectionRouteWithChildren
   AppSettingsRoute: typeof AppSettingsRoute
+  AppTbmRoute: typeof AppTbmRouteWithChildren
   AppTeamRoute: typeof AppTeamRoute
+  AppWorkPermitRoute: typeof AppWorkPermitRouteWithChildren
   AppWorkStopRecordsRoute: typeof AppWorkStopRecordsRoute
   AppWorkStopRightRoute: typeof AppWorkStopRightRoute
   AppAssessmentNewRoute: typeof AppAssessmentNewRoute
@@ -876,6 +1162,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppConsoleRoute: AppConsoleRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppDataUsageRoute: AppDataUsageRoute,
+  AppEducationRoute: AppEducationRouteWithChildren,
   AppEmployeeInputsRoute: AppEmployeeInputsRoute,
   AppHistoryRoute: AppHistoryRoute,
   AppImportRoute: AppImportRoute,
@@ -884,8 +1171,11 @@ const AppRouteChildren: AppRouteChildren = {
   AppPlatformAdminRoute: AppPlatformAdminRoute,
   AppPrintAllRoute: AppPrintAllRoute,
   AppRegulationRoute: AppRegulationRoute,
+  AppSafetyInspectionRoute: AppSafetyInspectionRouteWithChildren,
   AppSettingsRoute: AppSettingsRoute,
+  AppTbmRoute: AppTbmRouteWithChildren,
   AppTeamRoute: AppTeamRoute,
+  AppWorkPermitRoute: AppWorkPermitRouteWithChildren,
   AppWorkStopRecordsRoute: AppWorkStopRecordsRoute,
   AppWorkStopRightRoute: AppWorkStopRightRoute,
   AppAssessmentNewRoute: AppAssessmentNewRoute,

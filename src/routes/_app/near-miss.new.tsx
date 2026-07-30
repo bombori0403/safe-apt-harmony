@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { writeErrorMessage } from "@/lib/write-error";
 import { compressImage } from "@/lib/image-compress";
 import { getCurrentUserContext } from "@/lib/user-context";
+import { notifyUrgentReport } from "@/lib/notify.functions";
 
 export const Route = createFileRoute("/_app/near-miss/new")({
   component: NewNearMiss,
@@ -40,6 +41,7 @@ function NewNearMiss() {
   const [severity, setSeverity] = useState(SEV_OPTIONS[2]);
   const [photos, setPhotos] = useState<string[]>([]);
   const [countermeasure, setCountermeasure] = useState("");
+  const [urgent, setUrgent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -107,9 +109,17 @@ function NewNearMiss() {
       photos,
       countermeasure: countermeasure || null,
       countermeasure_completed: false,
+      urgent,
     });
     setSaving(false);
     if (error) { toast.error(writeErrorMessage(error)); return; }
+    if (urgent) {
+      // 긴급이면 관리소장에게 즉시 이메일 (실패해도 등록은 성공 처리)
+      const complexName = complexes.find((c) => c.id === complexId)?.name ?? "";
+      notifyUrgentReport({ data: { orgId: effectiveOrg, kind: "아차사고", title: incidentName || "", complexName, location: [locCat, locDetail].filter(Boolean).join(" "), situation: desc } })
+        .then((r: any) => { if (r?.sent > 0) toast.success(`긴급 알림을 관리자 ${r.sent}명에게 발송했습니다`); })
+        .catch(() => {});
+    }
     toast.success("아차사고가 등록되었습니다");
     navigate({ to: "/near-miss" });
   }
@@ -193,6 +203,17 @@ function NewNearMiss() {
           <Label>재발 방지 조치 (선택)</Label>
           <Textarea value={countermeasure} onChange={e=>setCountermeasure(e.target.value)} rows={2} className="mt-1" />
         </div>
+
+        <button type="button" onClick={()=>setUrgent(v=>!v)}
+          className={`w-full flex items-center gap-3 rounded-md border p-3 text-left ${urgent ? "border-danger bg-danger/10" : "bg-background"}`}>
+          <span className={`h-5 w-5 rounded border flex items-center justify-center shrink-0 ${urgent ? "bg-danger border-danger text-white" : "border-input"}`}>
+            {urgent && "✓"}
+          </span>
+          <span>
+            <span className={`font-medium text-sm ${urgent ? "text-danger" : ""}`}>🚨 긴급 신고</span>
+            <span className="block text-xs text-muted-foreground">체크하면 등록 즉시 관리소장(관리자)에게 이메일로 알립니다.</span>
+          </span>
+        </button>
 
         <Button onClick={submit} disabled={saving} className="w-full h-12">
           {saving ? "등록 중..." : "신고 등록"}

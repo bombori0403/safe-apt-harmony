@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, ClipboardList, FilePlus2, Building2, Building, Settings, Shield, Users, AlertTriangle, ShieldAlert, MessageCircle, BookOpen, ShieldCheck, BarChart3, Menu } from "lucide-react";
+import { LayoutDashboard, ClipboardList, FilePlus2, Building2, Building, Settings, Shield, Users, AlertTriangle, ShieldAlert, MessageCircle, BookOpen, ShieldCheck, BarChart3, Menu, ClipboardCheck, FileCheck2, GraduationCap } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -34,8 +34,12 @@ const NAV_GROUPS = [
   {
     title: "안전 활동",
     items: [
+      { to: "/safety-inspection", label: "안전점검", icon: ClipboardCheck, managerOrAdmin: true },
+      { to: "/tbm", label: "작업 전 안전미팅(TBM)", icon: Users, managerOrAdmin: true },
       { to: "/near-miss", label: "아차사고", icon: AlertTriangle, managerOrAdmin: true, mobileTab: true },
+      { to: "/work-permit", label: "작업허가서", icon: FileCheck2, managerOrAdmin: true },
       { to: "/work-stop-right", label: "작업중지권", icon: ShieldAlert, managerOrAdmin: true },
+      { to: "/education", label: "안전보건교육", icon: GraduationCap, managerOrAdmin: true },
       { to: "/employee-inputs", label: "직원 참여", icon: MessageCircle, mobileTab: true },
     ],
   },
