@@ -10,16 +10,22 @@ import { TrialWatermark, TrialExpiredBlock } from "@/components/trial-watermark"
 import { KrasReportTable } from "@/components/kras-report-table";
 import { RegulationDocument, REGULATION_DEFAULTS } from "@/components/regulation-document";
 import { SignedImg } from "@/components/signed-img";
+import { GAS_FIELDS } from "@/lib/permit-presets";
 
 const DOC_TYPES = [
   ["regulation", "실시규정"],
   ["kras", "KRAS 양식(위험성평가)"],
+  ["inspection", "안전점검"],
+  ["tbm", "작업 전 안전미팅(TBM)"],
+  ["permit", "작업허가서"],
+  ["education", "안전보건교육"],
   ["nearMiss", "아차사고"],
   ["workStop", "작업중지권"],
   ["hearing", "청취조사"],
   ["openchat", "오픈채팅 이력"],
 ] as const;
 type DocKey = (typeof DOC_TYPES)[number][0];
+const isBadItem = (r: string) => r === "미흡" || r === "불량";
 
 type Search = { complex?: string; from?: string; to?: string };
 
@@ -51,12 +57,14 @@ function PrintAll() {
   const [regulation, setRegulation] = useState<any>(null);
   const [orgName, setOrgName] = useState<string | null>(null);
   const [docTypes, setDocTypes] = useState<Record<DocKey, boolean>>({
-    regulation: true, kras: true, nearMiss: true, workStop: true, hearing: true, openchat: true,
+    regulation: true, kras: true, inspection: true, tbm: true, permit: true, education: true,
+    nearMiss: true, workStop: true, hearing: true, openchat: true,
   });
   const [dataByComplex, setDataByComplex] = useState<Record<string, {
     assessments: any[]; hazards: any[]; measures: any[];
     participants: any[]; signatures: any[]; assessmentInputs: any[];
     nearMiss: any[]; workStops: any[]; inputs: any[];
+    inspections: any[]; tbms: any[]; permits: any[]; educations: any[];
   }>>({});
 
   useEffect(() => {
@@ -164,10 +172,32 @@ function PrintAll() {
           if (to) eiQ = eiQ.lte("occurred_at", to);
           const { data: ei } = await eiQ;
 
+          // 신규 모듈 (기간은 생성일 기준 — 예정일/일자가 비어도 누락되지 않도록)
+          let insQ: any = (supabase as any).from("safety_inspections").select("*").eq("complex_id", cid).order("scheduled_date", { ascending: false });
+          if (from) insQ = insQ.gte("created_at", from);
+          if (to) insQ = insQ.lte("created_at", to);
+          const { data: ins } = await insQ;
+
+          let tbmQ: any = (supabase as any).from("tbm_meetings").select("*").eq("complex_id", cid).order("held_at", { ascending: false });
+          if (from) tbmQ = tbmQ.gte("held_at", from);
+          if (to) tbmQ = tbmQ.lte("held_at", to);
+          const { data: tbm } = await tbmQ;
+
+          let wpQ: any = (supabase as any).from("work_permits").select("*").eq("complex_id", cid).order("work_date", { ascending: false });
+          if (from) wpQ = wpQ.gte("created_at", from);
+          if (to) wpQ = wpQ.lte("created_at", to);
+          const { data: wp } = await wpQ;
+
+          let edQ: any = (supabase as any).from("safety_educations").select("*").eq("complex_id", cid).order("edu_date", { ascending: false });
+          if (from) edQ = edQ.gte("created_at", from);
+          if (to) edQ = edQ.lte("created_at", to);
+          const { data: ed } = await edQ;
+
           result[cid] = {
             assessments, hazards, measures,
             participants, signatures, assessmentInputs,
             nearMiss: nm ?? [], workStops: ws ?? [], inputs: ei ?? [],
+            inspections: ins ?? [], tbms: tbm ?? [], permits: wp ?? [], educations: ed ?? [],
           };
         }
         setDataByComplex(result);
@@ -188,7 +218,9 @@ function PrintAll() {
   const totals = Object.values(dataByComplex).reduce((acc, d) => ({
     a: acc.a + d.assessments.length, n: acc.n + d.nearMiss.length,
     w: acc.w + d.workStops.length, i: acc.i + d.inputs.length,
-  }), { a: 0, n: 0, w: 0, i: 0 });
+    ins: acc.ins + (d.inspections?.length ?? 0), tbm: acc.tbm + (d.tbms?.length ?? 0),
+    wp: acc.wp + (d.permits?.length ?? 0), ed: acc.ed + (d.educations?.length ?? 0),
+  }), { a: 0, n: 0, w: 0, i: 0, ins: 0, tbm: 0, wp: 0, ed: 0 });
 
   return (
     <div className="bg-white text-black">
@@ -197,7 +229,7 @@ function PrintAll() {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <Link to="/dashboard"><Button variant="ghost" size="sm" className="gap-1.5"><ArrowLeft className="h-4 w-4" />대시보드</Button></Link>
           <div className="text-sm text-muted-foreground">
-            {complexes.length}개 단지 · 위험성평가 {totals.a} · 아차사고 {totals.n} · 작업중지 {totals.w} · 직원참여 {totals.i}
+            {complexes.length}개 단지 · 위험성평가 {totals.a} · 점검 {totals.ins} · TBM {totals.tbm} · 허가서 {totals.wp} · 교육 {totals.ed} · 아차사고 {totals.n} · 작업중지 {totals.w} · 직원참여 {totals.i}
           </div>
           <Button onClick={() => window.print()} className="gap-1.5"><Printer className="h-4 w-4" />선택 문서 인쇄 / PDF 저장</Button>
         </div>
@@ -260,6 +292,10 @@ function PrintAll() {
                     <Info label="관리소장" value={c.manager_name} />
                     <Info label="연락처" value={c.manager_phone} />
                     <Info label="위험성평가" value={`${d.assessments.length}건`} />
+                    <Info label="안전점검" value={`${d.inspections.length}건`} />
+                    <Info label="작업 전 안전미팅(TBM)" value={`${d.tbms.length}건`} />
+                    <Info label="작업허가서" value={`${d.permits.length}건`} />
+                    <Info label="안전보건교육" value={`${d.educations.length}건`} />
                     <Info label="아차사고" value={`${d.nearMiss.length}건`} />
                     <Info label="작업중지 행사" value={`${d.workStops.length}건`} />
                     <Info label="직원참여 기록" value={`${d.inputs.length}건`} />
@@ -394,6 +430,26 @@ function PrintAll() {
                 <section key={it.id} className="page">
                   <OpenChatReportSheet item={it} complexName={c.name} />
                 </section>
+              ))}
+
+              {/* 안전점검 (건별) */}
+              {docTypes.inspection && d.inspections.map((it: any) => (
+                <InspectionSection key={it.id} item={it} complexName={c.name} />
+              ))}
+
+              {/* TBM (건별) */}
+              {docTypes.tbm && d.tbms.map((it: any) => (
+                <TbmSection key={it.id} item={it} complexName={c.name} />
+              ))}
+
+              {/* 작업허가서 (건별) */}
+              {docTypes.permit && d.permits.map((it: any) => (
+                <PermitSection key={it.id} item={it} complexName={c.name} />
+              ))}
+
+              {/* 안전보건교육 (건별) */}
+              {docTypes.education && d.educations.map((it: any) => (
+                <EducationSection key={it.id} item={it} complexName={c.name} />
               ))}
             </div>
           );
@@ -589,6 +645,205 @@ function HearingReportSheet({ item, complexName }: { item: any; complexName: str
       </table>
       <PhotoStrip photos={photos} label="첨부사진" />
     </div>
+  );
+}
+
+// ── 신규 모듈 인쇄 섹션 (건별 1페이지) ──
+const cellTh = "border border-black/70 px-1 py-1 bg-gray-100";
+const cell = "border border-black/70 px-1 py-1";
+
+function ApprovalMini({ a }: { a?: Approval }) {
+  if (!a || (!a.drafter_name && !a.reviewer_name && !a.approver_name)) return null;
+  return (
+    <table className="border-collapse text-xs mb-3 ml-auto" style={{ width: "70mm" }}>
+      <thead><tr>{APPROVAL_ROLES.map((r) => <th key={r.label} className="border border-black/70 px-2 py-1 bg-gray-100">{r.label}</th>)}</tr></thead>
+      <tbody><tr>
+        {APPROVAL_ROLES.map(({ key, nameKey, label }) => (
+          <td key={label} className="border border-black/70 px-2 py-2 text-center align-top" style={{ height: "13mm" }}>
+            <div className="font-medium">{(a[nameKey] as string) || ""}</div>
+            <div className="text-[10px] text-gray-500 mt-1">{a[key] ? new Date(a[key] as string).toLocaleDateString("ko-KR") : ""}</div>
+          </td>
+        ))}
+      </tr></tbody>
+    </table>
+  );
+}
+
+function PrintHeading({ title, sub }: { title: string; sub?: string }) {
+  return (
+    <div className="text-center border-b-2 border-black pb-3 mb-4">
+      <h1 className="text-xl font-bold">{title}</h1>
+      {sub && <div className="text-xs mt-1">{sub}</div>}
+    </div>
+  );
+}
+
+function InspectionSection({ item, complexName }: { item: any; complexName: string }) {
+  const items = Array.isArray(item.items) ? item.items : [];
+  return (
+    <section className="page">
+      <PrintHeading title="안전점검표" sub={`${complexName}${item.checklist_category ? ` · ${item.checklist_category}` : ""} · ${item.inspection_type}`} />
+      <table className="w-full text-sm border-collapse mb-4"><tbody>
+        <Info label="점검명" value={item.title} />
+        <Info label="시설분류" value={item.checklist_category} />
+        <Info label="점검구분" value={item.inspection_type} />
+        <Info label="예정일" value={item.scheduled_date} />
+        <Info label="상태" value={item.status} />
+        <Info label="점검일시" value={fmtDT(item.performed_at)} />
+      </tbody></table>
+      <table className="w-full text-[11px] border-collapse">
+        <thead><tr>
+          <th className={cellTh + " w-8"}>No</th><th className={cellTh}>점검 항목</th>
+          <th className={cellTh + " w-14"}>결과</th><th className={cellTh}>개선 필요사항 / 조치</th>
+          <th className={cellTh + " w-16"}>담당</th><th className={cellTh + " w-12"}>완료</th>
+        </tr></thead>
+        <tbody>
+          {items.map((it: any, i: number) => {
+            const bad = isBadItem(it.result);
+            return (
+              <tr key={i} className="align-top">
+                <td className={cell + " text-center"}>{i + 1}</td>
+                <td className={cell}>{it.text}</td>
+                <td className={cell + " text-center"}>{it.result || "-"}</td>
+                <td className={cell + " whitespace-pre-wrap"}>{bad ? ([it.improvement, it.action].filter(Boolean).join(" / ") || "-") : ""}</td>
+                <td className={cell + " text-center"}>{bad ? (it.assignee || "-") : ""}</td>
+                <td className={cell + " text-center"}>{bad ? (it.actionDone ? "완료" : "미완") : "-"}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </section>
+  );
+}
+
+function TbmSection({ item, complexName }: { item: any; complexName: string }) {
+  const attendees = Array.isArray(item.attendees) ? item.attendees : [];
+  const hazards = Array.isArray(item.hazards) ? item.hazards : [];
+  return (
+    <section className="page">
+      <PrintHeading title="작업 전 안전미팅(TBM) 일지" sub={complexName} />
+      <ApprovalMini a={item.approval} />
+      <table className="w-full text-sm border-collapse mb-4"><tbody>
+        <Info label="조/작업명" value={item.title} />
+        <Info label="일시" value={fmtDT(item.held_at)} />
+        <Info label="장소" value={item.location} />
+        <Info label="진행자" value={item.leader_name} />
+        <Info label="교육 인정시간" value={`${item.edu_minutes ?? 0}분`} />
+        <Info label="작업내용" value={item.work_content} />
+      </tbody></table>
+      <table className="w-full text-[11px] border-collapse mb-4">
+        <thead><tr>
+          <th className={cellTh}>성명</th><th className={cellTh + " w-16"}>구분</th>
+          <th className={cellTh + " w-12"}>발열</th><th className={cellTh + " w-12"}>음주</th>
+          <th className={cellTh + " w-12"}>약물</th><th className={cellTh + " w-14"}>보호구</th>
+        </tr></thead>
+        <tbody>
+          {attendees.length === 0 ? (<tr><td className={cell + " text-center"} colSpan={6}>참석자 없음</td></tr>) :
+            attendees.map((a: any, i: number) => (
+              <tr key={i}>
+                <td className={cell}>{a.name}</td><td className={cell + " text-center"}>{a.role}</td>
+                <td className={cell + " text-center"}>{a.fever ? "이상" : "정상"}</td>
+                <td className={cell + " text-center"}>{a.alcohol ? "유" : "무"}</td>
+                <td className={cell + " text-center"}>{a.drug ? "유" : "무"}</td>
+                <td className={cell + " text-center"}>{a.ppe ? "착용" : "미착용"}</td>
+              </tr>
+            ))}
+        </tbody>
+      </table>
+      <table className="w-full text-[11px] border-collapse">
+        <thead><tr><th className={cellTh + " w-1/2"}>유해위험요인</th><th className={cellTh}>감소대책</th></tr></thead>
+        <tbody>
+          {hazards.length === 0 ? (<tr><td className={cell + " text-center"} colSpan={2}>등록된 위험요인 없음</td></tr>) :
+            hazards.map((h: any, i: number) => (<tr key={i}><td className={cell}>{h.hazard}</td><td className={cell}>{h.measure}</td></tr>))}
+        </tbody>
+      </table>
+      {item.result_note && (
+        <table className="w-full text-sm border-collapse mt-4"><tbody><Info label="회의결과" value={item.result_note} /></tbody></table>
+      )}
+    </section>
+  );
+}
+
+function PermitSection({ item, complexName }: { item: any; complexName: string }) {
+  const workers = Array.isArray(item.workers) ? item.workers : [];
+  const checklist = Array.isArray(item.checklist) ? item.checklist : [];
+  const gas = item.gas ?? {};
+  return (
+    <section className="page">
+      <PrintHeading title="작업허가서" sub={`${complexName} · ${item.permit_type}`} />
+      <ApprovalMini a={item.approval} />
+      <table className="w-full text-sm border-collapse mb-4"><tbody>
+        <Info label="작업유형" value={item.permit_type} />
+        <Info label="제목" value={item.title} />
+        <Info label="작업일" value={item.work_date} />
+        <Info label="작업장소" value={item.work_location} />
+        <Info label="시행업체/담당" value={item.performer} />
+        <Info label="작업책임자" value={item.supervisor_name} />
+        <Info label="안전(화재)감시인" value={item.safety_watcher} />
+        <Info label="작업인원" value={workers.join(", ")} />
+      </tbody></table>
+      {item.gas_required && (
+        <table className="w-full text-[11px] border-collapse mb-4">
+          <thead><tr>
+            {GAS_FIELDS.map((f) => <th key={f.key} className={cellTh}>{f.label}</th>)}
+            <th className={cellTh}>측정시각</th><th className={cellTh}>측정자</th>
+          </tr></thead>
+          <tbody><tr>
+            {GAS_FIELDS.map((f) => <td key={f.key} className={cell + " text-center"}>{gas[f.key] || "-"}</td>)}
+            <td className={cell + " text-center"}>{gas.measuredAt ? fmtDT(gas.measuredAt) : "-"}</td>
+            <td className={cell + " text-center"}>{gas.measuredBy || "-"}</td>
+          </tr></tbody>
+        </table>
+      )}
+      <table className="w-full text-[11px] border-collapse">
+        <thead><tr><th className={cellTh}>착수 전 안전점검 항목</th><th className={cellTh + " w-20"}>결과</th></tr></thead>
+        <tbody>
+          {checklist.map((c: any, i: number) => (<tr key={i}><td className={cell}>{c.text}</td><td className={cell + " text-center"}>{c.result || "-"}</td></tr>))}
+        </tbody>
+      </table>
+      {item.note && (
+        <table className="w-full text-sm border-collapse mt-4"><tbody><Info label="특이사항" value={item.note} /></tbody></table>
+      )}
+    </section>
+  );
+}
+
+function EducationSection({ item, complexName }: { item: any; complexName: string }) {
+  const attendees = Array.isArray(item.attendees) ? item.attendees : [];
+  return (
+    <section className="page">
+      <PrintHeading title="안전보건교육 일지" sub={`${complexName}${item.legal_basis ? ` · ${item.legal_basis}` : ""}`} />
+      <table className="w-full text-sm border-collapse mb-4"><tbody>
+        <Info label="교육명" value={item.title} />
+        <Info label="종류" value={item.category} />
+        <Info label="방식" value={item.method} />
+        <Info label="일자" value={item.edu_date} />
+        <Info label="시간" value={`${item.duration_minutes ?? 0}분`} />
+        <Info label="강사/실시자" value={item.instructor} />
+        <Info label="상태" value={item.status} />
+        {item.content && <Info label="교육내용" value={item.content} />}
+      </tbody></table>
+      <table className="w-full text-[11px] border-collapse">
+        <thead><tr>
+          <th className={cellTh + " w-8"}>No</th><th className={cellTh}>성명</th>
+          <th className={cellTh + " w-16"}>구분</th><th className={cellTh + " w-16"}>참석</th>
+          <th className={cellTh + " w-16"}>이수</th><th className={cellTh + " w-20"}>내부/외부</th>
+        </tr></thead>
+        <tbody>
+          {attendees.length === 0 ? (<tr><td className={cell + " text-center"} colSpan={6}>참석자 없음</td></tr>) :
+            attendees.map((a: any, i: number) => (
+              <tr key={i}>
+                <td className={cell + " text-center"}>{i + 1}</td><td className={cell}>{a.name}</td>
+                <td className={cell + " text-center"}>{a.role}</td>
+                <td className={cell + " text-center"}>{a.attended ? "참석" : "불참"}</td>
+                <td className={cell + " text-center"}>{a.completed ? "이수" : "미이수"}</td>
+                <td className={cell + " text-center"}>{a.source}</td>
+              </tr>
+            ))}
+        </tbody>
+      </table>
+    </section>
   );
 }
 
