@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { writeErrorMessage } from "@/lib/write-error";
 import { uploadPhotos } from "@/lib/photo-upload";
 import { TBM_HAZARD_PRESETS, HEALTH_CHECKS, ATTENDEE_ROLES } from "@/lib/tbm-presets";
+import { ApprovalLineEditor, EMPTY_APPROVAL, type Approval } from "@/components/approval-line";
 
 export const Route = createFileRoute("/_app/tbm/$id")({
   component: TbmDetail,
@@ -32,6 +33,7 @@ function TbmDetail() {
   const [resultNote, setResultNote] = useState("");
   const [photos, setPhotos] = useState<string[]>([]);
   const [eduMinutes, setEduMinutes] = useState(0);
+  const [approval, setApproval] = useState<Approval>({ ...EMPTY_APPROVAL });
   const [newName, setNewName] = useState("");
   const [newRole, setNewRole] = useState(ATTENDEE_ROLES[0]);
   const [loading, setLoading] = useState(true);
@@ -51,6 +53,7 @@ function TbmDetail() {
     setResultNote(data?.result_note ?? "");
     setPhotos((data?.photos ?? []) as string[]);
     setEduMinutes(data?.edu_minutes ?? 0);
+    setApproval({ ...EMPTY_APPROVAL, ...(data?.approval ?? {}) });
     setLoading(false);
   }
 
@@ -77,7 +80,7 @@ function TbmDetail() {
   }
 
   function payload(extra: Record<string, any> = {}) {
-    return { work_content: workContent || null, leader_name: leaderName || null, attendees, hazards, result_note: resultNote || null, photos, edu_minutes: eduMinutes, ...extra };
+    return { work_content: workContent || null, leader_name: leaderName || null, attendees, hazards, result_note: resultNote || null, photos, edu_minutes: eduMinutes, approval, ...extra };
   }
 
   async function save(extra: Record<string, any> = {}, silent = false) {
@@ -223,6 +226,7 @@ function TbmDetail() {
           </div>
           <input ref={fileRef} type="file" accept="image/*" capture="environment" multiple className="hidden" onChange={(e) => e.target.files && addPhotos(e.target.files)} />
         </div>
+        <ApprovalLineEditor value={approval} onChange={setApproval} />
       </CardContent></Card>
 
       <div className="sticky bottom-16 md:bottom-4 bg-background/80 backdrop-blur rounded-xl border p-3 flex gap-2">

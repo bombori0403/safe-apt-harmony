@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { writeErrorMessage } from "@/lib/write-error";
 import { uploadPhotos } from "@/lib/photo-upload";
 import { GAS_FIELDS } from "@/lib/permit-presets";
+import { ApprovalLineEditor, EMPTY_APPROVAL, type Approval } from "@/components/approval-line";
 
 export const Route = createFileRoute("/_app/work-permit/$id")({
   component: PermitDetail,
@@ -31,7 +32,7 @@ function PermitDetail() {
   const [newWorker, setNewWorker] = useState("");
   const [supervisor, setSupervisor] = useState("");
   const [watcher, setWatcher] = useState("");
-  const [approver, setApprover] = useState("");
+  const [approval, setApproval] = useState<Approval>({ ...EMPTY_APPROVAL });
   const [note, setNote] = useState("");
   const [photos, setPhotos] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,7 +50,7 @@ function PermitDetail() {
     setWorkers((data?.workers ?? []) as string[]);
     setSupervisor(data?.supervisor_name ?? "");
     setWatcher(data?.safety_watcher ?? "");
-    setApprover(data?.approver_name ?? "");
+    setApproval({ ...EMPTY_APPROVAL, ...(data?.approval ?? {}) });
     setNote(data?.note ?? "");
     setPhotos((data?.photos ?? []) as string[]);
     setLoading(false);
@@ -65,7 +66,7 @@ function PermitDetail() {
   function payload(extra: Record<string, any> = {}) {
     return {
       checklist, gas, workers, supervisor_name: supervisor || null, safety_watcher: watcher || null,
-      approver_name: approver || null, note: note || null, photos, ...extra,
+      approval, approver_name: approval.approver_name || null, note: note || null, photos, ...extra,
     };
   }
 
@@ -86,8 +87,11 @@ function PermitDetail() {
     if (unchecked > 0) { toast.error(`점검하지 않은 필수 항목이 ${unchecked}개 있습니다`); return; }
     if (failed > 0) { toast.error("'불량' 항목이 있어 승인할 수 없습니다. 조치 후 다시 점검하세요."); return; }
     if (gasMissing) { toast.error("가스농도 측정값을 모두 입력해야 승인할 수 있습니다"); return; }
-    if (!approver.trim()) { toast.error("승인자(관리소장 등)를 입력하세요"); return; }
-    if (await save({ status: "승인", approved_at: new Date().toISOString() }, true)) {
+    if (!approval.approver_name.trim()) { toast.error("결재라인의 승인자 성명을 입력하세요"); return; }
+    // 승인 시점에 결재라인 '승인'란 서명일자 자동 기록(미서명이면)
+    const signedApproval = { ...approval, approver_signed_at: approval.approver_signed_at || new Date().toISOString() };
+    setApproval(signedApproval);
+    if (await save({ status: "승인", approved_at: new Date().toISOString(), approval: signedApproval, approver_name: signedApproval.approver_name }, true)) {
       toast.success("작업이 허가(승인)되었습니다"); load();
     }
   }
@@ -198,10 +202,7 @@ function PermitDetail() {
 
       {/* 승인 · 사진 */}
       <Card><CardContent className="p-4 space-y-3">
-        <div>
-          <Label>승인자 (관리소장 등)</Label>
-          <Input value={approver} onChange={(e) => setApprover(e.target.value)} className="h-10 mt-1" placeholder="승인 시 필수" disabled={done} />
-        </div>
+        <ApprovalLineEditor value={approval} onChange={setApproval} />
         <div>
           <Label>특이사항 (선택)</Label>
           <Textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} className="mt-1" />

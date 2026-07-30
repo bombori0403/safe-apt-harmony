@@ -186,5 +186,9 @@ CREATE INDEX IF NOT EXISTS idx_se_date ON public.safety_educations(edu_date);
 ALTER TABLE public.near_miss ADD COLUMN IF NOT EXISTS urgent boolean NOT NULL DEFAULT false;
 ALTER TABLE public.employee_inputs ADD COLUMN IF NOT EXISTS urgent boolean NOT NULL DEFAULT false;
 
+-- ===== 5b) TBM · 작업허가서 결재라인 =====
+ALTER TABLE public.tbm_meetings ADD COLUMN IF NOT EXISTS approval jsonb NOT NULL DEFAULT '{}'::jsonb;
+ALTER TABLE public.work_permits ADD COLUMN IF NOT EXISTS approval jsonb NOT NULL DEFAULT '{}'::jsonb;
+
 -- ===== 6) PostgREST 스키마 캐시 갱신 (schema cache 오류 방지) =====
 NOTIFY pgrst, 'reload schema';
