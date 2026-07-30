@@ -12,7 +12,7 @@ import { Calendar as CalendarComp } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, AlertTriangle, Calendar, Users, TrendingUp, Building2, MessageCircle, CalendarClock, Download, Printer, CreditCard } from "lucide-react";
+import { Plus, AlertTriangle, Calendar, Users, TrendingUp, Building2, MessageCircle, CalendarClock, Download, Printer, CreditCard, ClipboardCheck, FileCheck2, GraduationCap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import JSZip from "jszip";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
@@ -64,6 +64,10 @@ function Dashboard() {
   const [nearMisses, setNearMisses] = useState<any[]>([]);
   const [workStops, setWorkStops] = useState<any[]>([]);
   const [employeeInputs, setEmployeeInputs] = useState<any[]>([]);
+  const [inspections, setInspections] = useState<any[]>([]);
+  const [tbms, setTbms] = useState<any[]>([]);
+  const [permits, setPermits] = useState<any[]>([]);
+  const [safetyStats, setSafetyStats] = useState({ scheduledInspections: 0, openImprovements: 0, tbmThisMonth: 0, permitsInProgress: 0, eduThisYear: 0 });
   const [unresolvedHigh, setUnresolvedHigh] = useState(0);
   const [monthCount, setMonthCount] = useState(0);
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -124,6 +128,40 @@ function Dashboard() {
       if (scoped) eiQ = eiQ.eq("complex_id", selectedComplexId);
       const { data: ei } = await eiQ;
       setEmployeeInputs(ei ?? []);
+
+      // ── 신규 안전활동 모듈 요약 ──
+      const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
+      const yearStart = new Date(new Date().getFullYear(), 0, 1);
+      const isBadOpen = (it: any) => (it?.result === "미흡" || it?.result === "불량") && !it?.actionDone;
+
+      let inspQ = (supabase as any).from("safety_inspections").select("id,title,checklist_category,status,scheduled_date,items,created_at").order("created_at", { ascending: false });
+      if (scoped) inspQ = inspQ.eq("complex_id", selectedComplexId);
+      const { data: insp } = await inspQ;
+      const inspList = insp ?? [];
+      setInspections(inspList.slice(0, 5));
+      const scheduledInspections = inspList.filter((x: any) => x.status !== "완료").length;
+      const openImprovements = inspList.reduce((sum: number, x: any) => sum + ((x.items ?? []).filter(isBadOpen).length), 0);
+
+      let tbmQ = (supabase as any).from("tbm_meetings").select("id,title,held_at,attendees,hazards").order("held_at", { ascending: false }).limit(5);
+      if (scoped) tbmQ = tbmQ.eq("complex_id", selectedComplexId);
+      const { data: tbmData } = await tbmQ;
+      setTbms(tbmData ?? []);
+      let tbmCountQ = (supabase as any).from("tbm_meetings").select("id", { count: "exact", head: true }).gte("held_at", monthStart.toISOString());
+      if (scoped) tbmCountQ = tbmCountQ.eq("complex_id", selectedComplexId);
+      const { count: tbmThisMonth } = await tbmCountQ;
+
+      let permQ = (supabase as any).from("work_permits").select("id,title,permit_type,status,work_date,gas_required,created_at").order("created_at", { ascending: false });
+      if (scoped) permQ = permQ.eq("complex_id", selectedComplexId);
+      const { data: permData } = await permQ;
+      const permList = permData ?? [];
+      setPermits(permList.slice(0, 5));
+      const permitsInProgress = permList.filter((x: any) => x.status !== "완료").length;
+
+      let eduQ = (supabase as any).from("safety_educations").select("id", { count: "exact", head: true }).gte("edu_date", yearStart.toISOString().slice(0, 10));
+      if (scoped) eduQ = eduQ.eq("complex_id", selectedComplexId);
+      const { count: eduThisYear } = await eduQ;
+
+      setSafetyStats({ scheduledInspections, openImprovements, tbmThisMonth: tbmThisMonth ?? 0, permitsInProgress, eduThisYear: eduThisYear ?? 0 });
 
       const startMonth = new Date(); startMonth.setDate(1); startMonth.setHours(0,0,0,0);
       let mQ = supabase.from("assessments").select("*", { count: "exact", head: true }).gte("created_at", startMonth.toISOString());
@@ -501,6 +539,94 @@ function Dashboard() {
         <KpiCard title="정기평가 기한초과" value={overdueComplexes.length} icon={CalendarClock} danger />
       </div>
 
+      {!isMember && (
+        <div className="space-y-4">
+          <h2 className="font-semibold">안전 활동 현황</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            <SafetyStat to="/safety-inspection" title="진행/예정 점검" value={safetyStats.scheduledInspections} icon={ClipboardCheck} />
+            <SafetyStat to="/safety-inspection" title="개선 필요 항목" value={safetyStats.openImprovements} icon={AlertTriangle} danger />
+            <SafetyStat to="/tbm" title="이번 달 TBM" value={safetyStats.tbmThisMonth} icon={Users} />
+            <SafetyStat to="/work-permit" title="진행중 허가서" value={safetyStats.permitsInProgress} icon={FileCheck2} />
+            <SafetyStat to="/education" title="올해 교육" value={safetyStats.eduThisYear} icon={GraduationCap} />
+          </div>
+
+          <div className="grid xl:grid-cols-3 gap-4">
+            <Card><CardContent className="p-4 md:p-6">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-sm">최근 안전점검</h3>
+                <Link to="/safety-inspection" className="text-sm text-primary hover:underline">전체 보기</Link>
+              </div>
+              {inspections.length === 0 ? (
+                <div className="text-center text-muted-foreground py-8 text-sm">등록된 점검이 없습니다.</div>
+              ) : (
+                <div className="divide-y">
+                  {inspections.map((it) => {
+                    const open = (it.items ?? []).filter((x: any) => (x.result === "미흡" || x.result === "불량") && !x.actionDone).length;
+                    return (
+                      <Link key={it.id} to="/safety-inspection/$id" params={{ id: it.id }} className="py-3 flex items-center justify-between gap-3 hover:bg-muted/30 -mx-2 px-2 rounded">
+                        <div className="min-w-0 flex-1">
+                          <div className="font-medium truncate text-sm">{it.title}</div>
+                          <div className="text-xs text-muted-foreground mt-0.5">{it.checklist_category}{it.scheduled_date && <> · {it.scheduled_date}</>}</div>
+                        </div>
+                        {open > 0 ? <Badge variant="destructive" className="text-[10px] shrink-0">개선 {open}</Badge> : <Badge variant="outline" className="shrink-0">{it.status}</Badge>}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent></Card>
+
+            <Card><CardContent className="p-4 md:p-6">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-sm">최근 TBM</h3>
+                <Link to="/tbm" className="text-sm text-primary hover:underline">전체 보기</Link>
+              </div>
+              {tbms.length === 0 ? (
+                <div className="text-center text-muted-foreground py-8 text-sm">작성된 TBM이 없습니다.</div>
+              ) : (
+                <div className="divide-y">
+                  {tbms.map((it) => (
+                    <Link key={it.id} to="/tbm/$id" params={{ id: it.id }} className="py-3 flex items-center justify-between gap-3 hover:bg-muted/30 -mx-2 px-2 rounded">
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium truncate text-sm">{it.title}</div>
+                        <div className="text-xs text-muted-foreground mt-0.5">
+                          {it.held_at ? new Date(it.held_at).toLocaleDateString() : ""} · 참석 {it.attendees?.length ?? 0}명
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </CardContent></Card>
+
+            <Card><CardContent className="p-4 md:p-6">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-sm">최근 작업허가서</h3>
+                <Link to="/work-permit" className="text-sm text-primary hover:underline">전체 보기</Link>
+              </div>
+              {permits.length === 0 ? (
+                <div className="text-center text-muted-foreground py-8 text-sm">작성된 허가서가 없습니다.</div>
+              ) : (
+                <div className="divide-y">
+                  {permits.map((it) => (
+                    <Link key={it.id} to="/work-permit/$id" params={{ id: it.id }} className="py-3 flex items-center justify-between gap-3 hover:bg-muted/30 -mx-2 px-2 rounded">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted font-medium shrink-0">{it.permit_type}</span>
+                          <span className="font-medium truncate text-sm">{it.title}</span>
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-0.5">{it.work_date || ""}{it.gas_required && <span className="text-danger"> · 가스측정</span>}</div>
+                      </div>
+                      <Badge variant="outline" className="shrink-0">{it.status}</Badge>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </CardContent></Card>
+          </div>
+        </div>
+      )}
+
       <Card>
         <CardContent className="p-4 md:p-6">
           <div className="flex items-center justify-between mb-3">
@@ -671,6 +797,23 @@ function KpiCard({ title, value, icon: Icon, sub, danger }: { title: string; val
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function SafetyStat({ to, title, value, icon: Icon, danger }: { to: string; title: string; value: number; icon: any; danger?: boolean }) {
+  const alert = danger && value > 0;
+  return (
+    <Link to={to}>
+      <Card className={cn("transition-colors hover:border-primary/40", alert && "border-danger/40")}>
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between text-muted-foreground text-xs">
+            <span>{title}</span>
+            <Icon className={cn("h-4 w-4", alert && "text-danger")} />
+          </div>
+          <div className={cn("text-2xl md:text-3xl font-bold mt-2", alert && "text-danger")}>{value}</div>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
 
