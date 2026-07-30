@@ -7,12 +7,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Camera, Loader2, X, CheckCircle2, Trash2 } from "lucide-react";
+import { ArrowLeft, Camera, Loader2, X, CheckCircle2, Trash2, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { writeErrorMessage } from "@/lib/write-error";
 import { uploadPhotos } from "@/lib/photo-upload";
 import { getCurrentUserContext } from "@/lib/user-context";
 import { nextScheduledDate } from "@/lib/inspection-presets";
+import { PrintSheet, printSheet } from "@/components/print-sheet";
 
 export const Route = createFileRoute("/_app/safety-inspection/$id")({
   component: InspectionDetail,
@@ -140,7 +141,10 @@ function InspectionDetail() {
             {" · "}<span className={done ? "text-success font-medium" : "text-warning font-medium"}>{row.status}</span>
           </p>
         </div>
-        <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-danger" onClick={remove}><Trash2 className="h-4 w-4" /></Button>
+        <div className="flex items-center gap-1 shrink-0">
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => printSheet(items.flatMap((it) => it.actionPhotos ?? []))}><Printer className="h-4 w-4" />출력</Button>
+          <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-danger" onClick={remove}><Trash2 className="h-4 w-4" /></Button>
+        </div>
       </div>
 
       <div className="space-y-3">
@@ -222,6 +226,42 @@ function InspectionDetail() {
           </Button>
         </div>
       </div>
+
+      <PrintSheet title="안전점검표" subtitle={`${row.checklist_category ?? ""} · ${row.inspection_type} 점검`}>
+        <table className="ps-table"><tbody>
+          <tr><th className="ps-label" style={{ width: "24mm" }}>점검명</th><td>{row.title}</td><th className="ps-label" style={{ width: "24mm" }}>시설분류</th><td>{row.checklist_category || "-"}</td></tr>
+          <tr><th className="ps-label">점검구분</th><td>{row.inspection_type}</td><th className="ps-label">예정일</th><td>{row.scheduled_date || "-"}</td></tr>
+          <tr><th className="ps-label">상태</th><td>{row.status}</td><th className="ps-label">점검일시</th><td>{row.performed_at ? new Date(row.performed_at).toLocaleString("ko-KR") : "-"}</td></tr>
+        </tbody></table>
+
+        <table className="ps-table">
+          <thead>
+            <tr>
+              <th className="ps-label" style={{ width: "8mm" }}>No</th>
+              <th className="ps-label">점검 항목</th>
+              <th className="ps-label" style={{ width: "18mm" }}>결과</th>
+              <th className="ps-label">개선 필요사항 / 조치</th>
+              <th className="ps-label" style={{ width: "18mm" }}>담당</th>
+              <th className="ps-label" style={{ width: "14mm" }}>완료</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((it, i) => {
+              const bad = isBad(it.result);
+              return (
+                <tr key={i}>
+                  <td className="ps-center">{i + 1}</td>
+                  <td>{it.text}</td>
+                  <td className="ps-center">{it.result || "-"}</td>
+                  <td>{bad ? [it.improvement, it.action].filter(Boolean).join(" / ") || "-" : ""}</td>
+                  <td className="ps-center">{bad ? (it.assignee || "-") : ""}</td>
+                  <td className="ps-center">{bad ? (it.actionDone ? "완료" : "미완") : "-"}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </PrintSheet>
     </div>
   );
 }

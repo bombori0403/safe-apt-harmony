@@ -7,11 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Camera, Loader2, X, CheckCircle2, Trash2, UserPlus } from "lucide-react";
+import { ArrowLeft, Camera, Loader2, X, CheckCircle2, Trash2, UserPlus, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { writeErrorMessage } from "@/lib/write-error";
 import { uploadPhotos } from "@/lib/photo-upload";
 import { ATTENDEE_ROLES } from "@/lib/tbm-presets";
+import { PrintSheet, printSheet } from "@/components/print-sheet";
 
 export const Route = createFileRoute("/_app/education/$id")({
   component: EducationDetail,
@@ -99,7 +100,10 @@ function EducationDetail() {
           </p>
           {row.legal_basis && <p className="text-xs text-primary mt-1">{row.legal_basis}</p>}
         </div>
-        <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-danger" onClick={remove}><Trash2 className="h-4 w-4" /></Button>
+        <div className="flex items-center gap-1 shrink-0">
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => printSheet(photos)}><Printer className="h-4 w-4" />출력</Button>
+          <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-danger" onClick={remove}><Trash2 className="h-4 w-4" /></Button>
+        </div>
       </div>
 
       <Card><CardContent className="p-4">
@@ -160,6 +164,51 @@ function EducationDetail() {
         <Button variant="outline" className="flex-1 h-11" onClick={() => save()} disabled={saving}>{saving ? "저장 중..." : "임시 저장"}</Button>
         <Button className="flex-1 h-11 gap-1.5" onClick={complete} disabled={saving || done}><CheckCircle2 className="h-4 w-4" />{done ? "완료됨" : "교육 완료"}</Button>
       </div>
+
+      <PrintSheet title="안전보건교육 일지" subtitle={row.legal_basis || "산업안전보건법 제29조 근로자 안전보건교육"}>
+        <table className="ps-table"><tbody>
+          <tr><th className="ps-label" style={{ width: "24mm" }}>교육명</th><td colSpan={3}>{row.title}</td></tr>
+          <tr><th className="ps-label">종류</th><td>{row.category}</td><th className="ps-label" style={{ width: "24mm" }}>방식</th><td>{row.method}</td></tr>
+          <tr><th className="ps-label">일자</th><td>{row.edu_date || "-"}</td><th className="ps-label">시간</th><td>{row.duration_minutes}분</td></tr>
+          <tr><th className="ps-label">강사</th><td>{row.instructor || "-"}</td><th className="ps-label">상태</th><td>{row.status}</td></tr>
+          {content && <tr><th className="ps-label">교육내용</th><td colSpan={3} style={{ whiteSpace: "pre-wrap" }}>{content}</td></tr>}
+        </tbody></table>
+
+        <table className="ps-table">
+          <thead>
+            <tr>
+              <th className="ps-label" style={{ width: "8mm" }}>No</th>
+              <th className="ps-label">성명</th>
+              <th className="ps-label" style={{ width: "20mm" }}>구분</th>
+              <th className="ps-label" style={{ width: "20mm" }}>참석</th>
+              <th className="ps-label" style={{ width: "20mm" }}>이수</th>
+              <th className="ps-label" style={{ width: "24mm" }}>내부/외부</th>
+            </tr>
+          </thead>
+          <tbody>
+            {attendees.length === 0 ? (
+              <tr><td colSpan={6} className="ps-center">참석자 없음</td></tr>
+            ) : attendees.map((a, i) => (
+              <tr key={i}>
+                <td className="ps-center">{i + 1}</td>
+                <td>{a.name}</td>
+                <td className="ps-center">{a.role}</td>
+                <td className="ps-center">{a.attended ? "참석" : "불참"}</td>
+                <td className="ps-center">{a.completed ? "이수" : "미이수"}</td>
+                <td className="ps-center">{a.source}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {photos.length > 0 && (
+          <table className="ps-table"><tbody>
+            <tr><th className="ps-label" style={{ width: "24mm" }}>사진/수료증</th><td>
+              <div className="ps-photo-row">{photos.map((url, i) => <div key={i} className="ps-photo-box"><SignedImg src={url} alt="" /></div>)}</div>
+            </td></tr>
+          </tbody></table>
+        )}
+      </PrintSheet>
     </div>
   );
 }

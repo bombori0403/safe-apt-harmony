@@ -7,12 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Camera, Loader2, X, CheckCircle2, Trash2, Plus, UserPlus } from "lucide-react";
+import { ArrowLeft, Camera, Loader2, X, CheckCircle2, Trash2, Plus, UserPlus, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { writeErrorMessage } from "@/lib/write-error";
 import { uploadPhotos } from "@/lib/photo-upload";
 import { TBM_HAZARD_PRESETS, HEALTH_CHECKS, ATTENDEE_ROLES } from "@/lib/tbm-presets";
 import { ApprovalLineEditor, EMPTY_APPROVAL, type Approval } from "@/components/approval-line";
+import { PrintSheet, printSheet } from "@/components/print-sheet";
 
 export const Route = createFileRoute("/_app/tbm/$id")({
   component: TbmDetail,
@@ -123,7 +124,10 @@ function TbmDetail() {
             {" · "}<span className={done ? "text-success font-medium" : "text-warning font-medium"}>{row.status}</span>
           </p>
         </div>
-        <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-danger" onClick={remove}><Trash2 className="h-4 w-4" /></Button>
+        <div className="flex items-center gap-1 shrink-0">
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => printSheet(photos)}><Printer className="h-4 w-4" />출력</Button>
+          <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-danger" onClick={remove}><Trash2 className="h-4 w-4" /></Button>
+        </div>
       </div>
 
       <Card><CardContent className="p-4 space-y-3">
@@ -233,6 +237,63 @@ function TbmDetail() {
         <Button variant="outline" className="flex-1 h-11" onClick={() => save()} disabled={saving}>{saving ? "저장 중..." : "임시 저장"}</Button>
         <Button className="flex-1 h-11 gap-1.5" onClick={complete} disabled={saving || done}><CheckCircle2 className="h-4 w-4" />{done ? "완료됨" : "TBM 완료"}</Button>
       </div>
+
+      <PrintSheet title="작업 전 안전미팅(TBM) 일지" subtitle="산업안전보건법 근로자 안전보건교육 · 작업 전 안전점검회의" approval={approval}>
+        <table className="ps-table">
+          <tbody>
+            <tr><th className="ps-label" style={{ width: "24mm" }}>조/작업명</th><td>{row.title}</td><th className="ps-label" style={{ width: "24mm" }}>일시</th><td>{new Date(row.held_at).toLocaleString("ko-KR")}</td></tr>
+            <tr><th className="ps-label">장소</th><td>{row.location || "-"}</td><th className="ps-label">진행자</th><td>{leaderName || "-"}</td></tr>
+            <tr><th className="ps-label">교육 인정시간</th><td>{eduMinutes}분</td><th className="ps-label">작성상태</th><td>{row.status}</td></tr>
+            <tr><th className="ps-label">작업내용</th><td colSpan={3} style={{ whiteSpace: "pre-wrap" }}>{workContent || "-"}</td></tr>
+          </tbody>
+        </table>
+
+        <table className="ps-table">
+          <thead>
+            <tr><th className="ps-label">성명</th><th className="ps-label" style={{ width: "18mm" }}>구분</th><th className="ps-label" style={{ width: "16mm" }}>발열</th><th className="ps-label" style={{ width: "16mm" }}>음주</th><th className="ps-label" style={{ width: "16mm" }}>약물</th><th className="ps-label" style={{ width: "16mm" }}>보호구</th></tr>
+          </thead>
+          <tbody>
+            {attendees.length === 0 ? (
+              <tr><td colSpan={6} className="ps-center">참석자 없음</td></tr>
+            ) : attendees.map((a, i) => (
+              <tr key={i}>
+                <td>{a.name}</td><td className="ps-center">{a.role}</td>
+                <td className="ps-center">{a.fever ? "이상" : "정상"}</td>
+                <td className="ps-center">{a.alcohol ? "유" : "무"}</td>
+                <td className="ps-center">{a.drug ? "유" : "무"}</td>
+                <td className="ps-center">{a.ppe ? "착용" : "미착용"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <table className="ps-table">
+          <thead><tr><th className="ps-label" style={{ width: "50%" }}>유해위험요인</th><th className="ps-label">감소대책</th></tr></thead>
+          <tbody>
+            {hazards.length === 0 ? (
+              <tr><td colSpan={2} className="ps-center">등록된 위험요인 없음</td></tr>
+            ) : hazards.map((h, i) => (
+              <tr key={i}><td>{h.hazard}</td><td>{h.measure}</td></tr>
+            ))}
+          </tbody>
+        </table>
+
+        {resultNote && (
+          <table className="ps-table"><tbody>
+            <tr><th className="ps-label" style={{ width: "24mm" }}>회의결과</th><td style={{ whiteSpace: "pre-wrap" }}>{resultNote}</td></tr>
+          </tbody></table>
+        )}
+
+        {photos.length > 0 && (
+          <table className="ps-table"><tbody>
+            <tr><th className="ps-label" style={{ width: "24mm" }}>현장사진</th><td>
+              <div className="ps-photo-row">
+                {photos.map((url, i) => <div key={i} className="ps-photo-box"><SignedImg src={url} alt="" /></div>)}
+              </div>
+            </td></tr>
+          </tbody></table>
+        )}
+      </PrintSheet>
     </div>
   );
 }

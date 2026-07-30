@@ -7,12 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Camera, Loader2, X, CheckCircle2, Trash2, ShieldCheck, UserPlus, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Camera, Loader2, X, CheckCircle2, Trash2, ShieldCheck, UserPlus, AlertTriangle, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { writeErrorMessage } from "@/lib/write-error";
 import { uploadPhotos } from "@/lib/photo-upload";
 import { GAS_FIELDS } from "@/lib/permit-presets";
 import { ApprovalLineEditor, EMPTY_APPROVAL, type Approval } from "@/components/approval-line";
+import { PrintSheet, printSheet } from "@/components/print-sheet";
 
 export const Route = createFileRoute("/_app/work-permit/$id")({
   component: PermitDetail,
@@ -124,7 +125,10 @@ function PermitDetail() {
             {" · "}<span className={done ? "text-success font-medium" : approved ? "text-primary font-medium" : "text-warning font-medium"}>{row.status}</span>
           </p>
         </div>
-        <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-danger" onClick={remove}><Trash2 className="h-4 w-4" /></Button>
+        <div className="flex items-center gap-1 shrink-0">
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => printSheet(photos)}><Printer className="h-4 w-4" />출력</Button>
+          <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-danger" onClick={remove}><Trash2 className="h-4 w-4" /></Button>
+        </div>
       </div>
 
       {/* 작업자 · 책임자 */}
@@ -241,6 +245,51 @@ function PermitDetail() {
           )}
         </div>
       </div>
+
+      <PrintSheet title="작업허가서" subtitle={`위험작업 사전 점검·허가 · ${row.permit_type}`} approval={approval}>
+        <table className="ps-table"><tbody>
+          <tr><th className="ps-label" style={{ width: "24mm" }}>작업유형</th><td>{row.permit_type}</td><th className="ps-label" style={{ width: "24mm" }}>작업일</th><td>{row.work_date || "-"}</td></tr>
+          <tr><th className="ps-label">제목</th><td colSpan={3}>{row.title}</td></tr>
+          <tr><th className="ps-label">작업장소</th><td>{row.work_location || "-"}</td><th className="ps-label">시행업체/담당</th><td>{row.performer || "-"}</td></tr>
+          <tr><th className="ps-label">작업책임자</th><td>{supervisor || "-"}</td><th className="ps-label">안전(화재)감시인</th><td>{watcher || "-"}</td></tr>
+          <tr><th className="ps-label">작업인원</th><td colSpan={3}>{workers.length ? workers.join(", ") : "-"}</td></tr>
+        </tbody></table>
+
+        {row.gas_required && (
+          <table className="ps-table"><tbody>
+            <tr>
+              {GAS_FIELDS.map((f) => <th key={f.key} className="ps-label">{f.label}</th>)}
+              <th className="ps-label">측정시각</th><th className="ps-label">측정자</th>
+            </tr>
+            <tr>
+              {GAS_FIELDS.map((f) => <td key={f.key} className="ps-center">{gas[f.key] || "-"}</td>)}
+              <td className="ps-center">{gas.measuredAt ? new Date(gas.measuredAt).toLocaleString("ko-KR") : "-"}</td>
+              <td className="ps-center">{gas.measuredBy || "-"}</td>
+            </tr>
+          </tbody></table>
+        )}
+
+        <table className="ps-table">
+          <thead><tr><th className="ps-label">착수 전 안전점검 항목</th><th className="ps-label" style={{ width: "22mm" }}>결과</th></tr></thead>
+          <tbody>
+            {checklist.map((c, i) => <tr key={i}><td>{c.text}</td><td className="ps-center">{c.result || "-"}</td></tr>)}
+          </tbody>
+        </table>
+
+        {note && (
+          <table className="ps-table"><tbody>
+            <tr><th className="ps-label" style={{ width: "24mm" }}>특이사항</th><td style={{ whiteSpace: "pre-wrap" }}>{note}</td></tr>
+          </tbody></table>
+        )}
+
+        {photos.length > 0 && (
+          <table className="ps-table"><tbody>
+            <tr><th className="ps-label" style={{ width: "24mm" }}>현장사진</th><td>
+              <div className="ps-photo-row">{photos.map((url, i) => <div key={i} className="ps-photo-box"><SignedImg src={url} alt="" /></div>)}</div>
+            </td></tr>
+          </tbody></table>
+        )}
+      </PrintSheet>
     </div>
   );
 }
