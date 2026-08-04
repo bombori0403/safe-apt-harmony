@@ -7,13 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Camera, Loader2, X, CheckCircle2, Trash2, Plus, UserPlus, Printer } from "lucide-react";
+import { ArrowLeft, Camera, Loader2, X, CheckCircle2, Trash2, Plus, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { writeErrorMessage } from "@/lib/write-error";
 import { uploadPhotos } from "@/lib/photo-upload";
-import { TBM_HAZARD_PRESETS, HEALTH_CHECKS, ATTENDEE_ROLES } from "@/lib/tbm-presets";
+import { TBM_HAZARD_PRESETS, HEALTH_CHECKS } from "@/lib/tbm-presets";
 import { ApprovalLineEditor, EMPTY_APPROVAL, type Approval } from "@/components/approval-line";
 import { PrintSheet, printSheet } from "@/components/print-sheet";
+import { AttendeePicker } from "@/components/attendee-picker";
 
 export const Route = createFileRoute("/_app/tbm/$id")({
   component: TbmDetail,
@@ -35,8 +36,6 @@ function TbmDetail() {
   const [photos, setPhotos] = useState<string[]>([]);
   const [eduMinutes, setEduMinutes] = useState(0);
   const [approval, setApproval] = useState<Approval>({ ...EMPTY_APPROVAL });
-  const [newName, setNewName] = useState("");
-  const [newRole, setNewRole] = useState(ATTENDEE_ROLES[0]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -58,10 +57,9 @@ function TbmDetail() {
     setLoading(false);
   }
 
-  function addAttendee() {
-    if (!newName.trim()) return;
-    setAttendees([...attendees, { name: newName.trim(), role: newRole, fever: false, alcohol: false, drug: false, ppe: true, signed: false }]);
-    setNewName("");
+  function pickAttendee(name: string, role: string) {
+    if (attendees.some((a) => a.name === name)) return;
+    setAttendees([...attendees, { name, role, fever: false, alcohol: false, drug: false, ppe: true, signed: false }]);
   }
   function patchAttendee(i: number, p: Partial<Attendee>) {
     setAttendees((prev) => prev.map((a, j) => (j === i ? { ...a, ...p } : a)));
@@ -170,13 +168,7 @@ function TbmDetail() {
             </div>
           </div>
         ))}
-        <div className="flex gap-2">
-          <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="참석자 이름" className="h-10 flex-1" onKeyDown={(e) => e.key === "Enter" && addAttendee()} />
-          <select value={newRole} onChange={(e) => setNewRole(e.target.value)} className="h-10 px-2 rounded-md border bg-background text-sm">
-            {ATTENDEE_ROLES.map((r) => <option key={r}>{r}</option>)}
-          </select>
-          <Button type="button" variant="outline" className="h-10 shrink-0" onClick={addAttendee}><UserPlus className="h-4 w-4" /></Button>
-        </div>
+        <AttendeePicker complexId={row.complex_id} orgId={row.organization_id} selectedNames={attendees.map((a) => a.name)} onPick={pickAttendee} />
       </CardContent></Card>
 
       {/* 유해위험요인 + 대책 */}

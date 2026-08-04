@@ -4,15 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { SignedImg } from "@/components/signed-img";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Camera, Loader2, X, CheckCircle2, Trash2, UserPlus, Printer } from "lucide-react";
+import { ArrowLeft, Camera, Loader2, X, CheckCircle2, Trash2, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { writeErrorMessage } from "@/lib/write-error";
 import { uploadPhotos } from "@/lib/photo-upload";
-import { ATTENDEE_ROLES } from "@/lib/tbm-presets";
 import { PrintSheet, printSheet } from "@/components/print-sheet";
+import { AttendeePicker } from "@/components/attendee-picker";
 
 export const Route = createFileRoute("/_app/education/$id")({
   component: EducationDetail,
@@ -28,8 +27,6 @@ function EducationDetail() {
   const [content, setContent] = useState("");
   const [attendees, setAttendees] = useState<Attendee[]>([]);
   const [photos, setPhotos] = useState<string[]>([]);
-  const [newName, setNewName] = useState("");
-  const [newRole, setNewRole] = useState(ATTENDEE_ROLES[0]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -46,10 +43,9 @@ function EducationDetail() {
     setLoading(false);
   }
 
-  function addAttendee() {
-    if (!newName.trim()) return;
-    setAttendees([...attendees, { name: newName.trim(), role: newRole, attended: true, completed: true, source: "내부", note: "" }]);
-    setNewName("");
+  function pickAttendee(name: string, role: string) {
+    if (attendees.some((a) => a.name === name)) return;
+    setAttendees([...attendees, { name, role, attended: true, completed: true, source: "내부", note: "" }]);
   }
   function patch(i: number, p: Partial<Attendee>) {
     setAttendees((prev) => prev.map((a, j) => (j === i ? { ...a, ...p } : a)));
@@ -135,13 +131,7 @@ function EducationDetail() {
             </div>
           </div>
         ))}
-        <div className="flex gap-2">
-          <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="참석자 이름" className="h-10 flex-1" onKeyDown={(e) => e.key === "Enter" && addAttendee()} />
-          <select value={newRole} onChange={(e) => setNewRole(e.target.value)} className="h-10 px-2 rounded-md border bg-background text-sm">
-            {ATTENDEE_ROLES.map((r) => <option key={r}>{r}</option>)}
-          </select>
-          <Button type="button" variant="outline" className="h-10 shrink-0" onClick={addAttendee}><UserPlus className="h-4 w-4" /></Button>
-        </div>
+        <AttendeePicker complexId={row.complex_id} orgId={row.organization_id} selectedNames={attendees.map((a) => a.name)} onPick={pickAttendee} />
       </CardContent></Card>
 
       <Card><CardContent className="p-4">
