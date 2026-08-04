@@ -15,12 +15,13 @@ import { TBM_HAZARD_PRESETS, HEALTH_CHECKS } from "@/lib/tbm-presets";
 import { ApprovalLineEditor, EMPTY_APPROVAL, type Approval } from "@/components/approval-line";
 import { PrintSheet, printSheet } from "@/components/print-sheet";
 import { AttendeePicker } from "@/components/attendee-picker";
+import { SignatureButton } from "@/components/signature-pad";
 
 export const Route = createFileRoute("/_app/tbm/$id")({
   component: TbmDetail,
 });
 
-type Attendee = { name: string; role: string; fever: boolean; alcohol: boolean; drug: boolean; ppe: boolean; signed: boolean };
+type Attendee = { name: string; role: string; fever: boolean; alcohol: boolean; drug: boolean; ppe: boolean; signed: boolean; signature?: string };
 type Hazard = { hazard: string; measure: string };
 
 function TbmDetail() {
@@ -152,6 +153,7 @@ function TbmDetail() {
           <div key={i} className="rounded-md border p-3 space-y-2">
             <div className="flex items-center gap-2">
               <span className="font-medium text-sm flex-1">{a.name} <span className="text-xs text-muted-foreground">{a.role}</span></span>
+              <SignatureButton value={a.signature} onChange={(d) => patchAttendee(i, { signature: d })} name={a.name} />
               <button type="button" onClick={() => setAttendees(attendees.filter((_, j) => j !== i))} className="text-muted-foreground hover:text-danger"><X className="h-4 w-4" /></button>
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -242,11 +244,11 @@ function TbmDetail() {
 
         <table className="ps-table">
           <thead>
-            <tr><th className="ps-label">성명</th><th className="ps-label" style={{ width: "18mm" }}>구분</th><th className="ps-label" style={{ width: "16mm" }}>발열</th><th className="ps-label" style={{ width: "16mm" }}>음주</th><th className="ps-label" style={{ width: "16mm" }}>약물</th><th className="ps-label" style={{ width: "16mm" }}>보호구</th></tr>
+            <tr><th className="ps-label">성명</th><th className="ps-label" style={{ width: "16mm" }}>구분</th><th className="ps-label" style={{ width: "13mm" }}>발열</th><th className="ps-label" style={{ width: "13mm" }}>음주</th><th className="ps-label" style={{ width: "13mm" }}>약물</th><th className="ps-label" style={{ width: "14mm" }}>보호구</th><th className="ps-label" style={{ width: "28mm" }}>서명</th></tr>
           </thead>
           <tbody>
             {attendees.length === 0 ? (
-              <tr><td colSpan={6} className="ps-center">참석자 없음</td></tr>
+              <tr><td colSpan={7} className="ps-center">참석자 없음</td></tr>
             ) : attendees.map((a, i) => (
               <tr key={i}>
                 <td>{a.name}</td><td className="ps-center">{a.role}</td>
@@ -254,6 +256,7 @@ function TbmDetail() {
                 <td className="ps-center">{a.alcohol ? "유" : "무"}</td>
                 <td className="ps-center">{a.drug ? "유" : "무"}</td>
                 <td className="ps-center">{a.ppe ? "착용" : "미착용"}</td>
+                <td className="ps-center" style={{ height: "12mm" }}>{a.signature ? <img src={a.signature} style={{ height: "10mm", maxWidth: "26mm", objectFit: "contain" }} /> : ""}</td>
               </tr>
             ))}
           </tbody>

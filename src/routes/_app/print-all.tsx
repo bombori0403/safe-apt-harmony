@@ -736,10 +736,10 @@ function TbmSection({ item, complexName }: { item: any; complexName: string }) {
         <thead><tr>
           <th className={cellTh}>성명</th><th className={cellTh + " w-16"}>구분</th>
           <th className={cellTh + " w-12"}>발열</th><th className={cellTh + " w-12"}>음주</th>
-          <th className={cellTh + " w-12"}>약물</th><th className={cellTh + " w-14"}>보호구</th>
+          <th className={cellTh + " w-12"}>약물</th><th className={cellTh + " w-14"}>보호구</th><th className={cellTh + " w-24"}>서명</th>
         </tr></thead>
         <tbody>
-          {attendees.length === 0 ? (<tr><td className={cell + " text-center"} colSpan={6}>참석자 없음</td></tr>) :
+          {attendees.length === 0 ? (<tr><td className={cell + " text-center"} colSpan={7}>참석자 없음</td></tr>) :
             attendees.map((a: any, i: number) => (
               <tr key={i}>
                 <td className={cell}>{a.name}</td><td className={cell + " text-center"}>{a.role}</td>
@@ -747,6 +747,7 @@ function TbmSection({ item, complexName }: { item: any; complexName: string }) {
                 <td className={cell + " text-center"}>{a.alcohol ? "유" : "무"}</td>
                 <td className={cell + " text-center"}>{a.drug ? "유" : "무"}</td>
                 <td className={cell + " text-center"}>{a.ppe ? "착용" : "미착용"}</td>
+                <td className={cell + " text-center"} style={{ height: "11mm" }}>{a.signature ? <img src={a.signature} style={{ height: "9mm", maxWidth: "22mm", objectFit: "contain" }} /> : ""}</td>
               </tr>
             ))}
         </tbody>
@@ -828,10 +829,10 @@ function EducationSection({ item, complexName }: { item: any; complexName: strin
         <thead><tr>
           <th className={cellTh + " w-8"}>No</th><th className={cellTh}>성명</th>
           <th className={cellTh + " w-16"}>구분</th><th className={cellTh + " w-16"}>참석</th>
-          <th className={cellTh + " w-16"}>이수</th><th className={cellTh + " w-20"}>내부/외부</th>
+          <th className={cellTh + " w-16"}>이수</th><th className={cellTh + " w-20"}>내부/외부</th><th className={cellTh + " w-24"}>서명</th>
         </tr></thead>
         <tbody>
-          {attendees.length === 0 ? (<tr><td className={cell + " text-center"} colSpan={6}>참석자 없음</td></tr>) :
+          {attendees.length === 0 ? (<tr><td className={cell + " text-center"} colSpan={7}>참석자 없음</td></tr>) :
             attendees.map((a: any, i: number) => (
               <tr key={i}>
                 <td className={cell + " text-center"}>{i + 1}</td><td className={cell}>{a.name}</td>
@@ -839,6 +840,7 @@ function EducationSection({ item, complexName }: { item: any; complexName: strin
                 <td className={cell + " text-center"}>{a.attended ? "참석" : "불참"}</td>
                 <td className={cell + " text-center"}>{a.completed ? "이수" : "미이수"}</td>
                 <td className={cell + " text-center"}>{a.source}</td>
+                <td className={cell + " text-center"} style={{ height: "11mm" }}>{a.signature ? <img src={a.signature} style={{ height: "9mm", maxWidth: "22mm", objectFit: "contain" }} /> : ""}</td>
               </tr>
             ))}
         </tbody>

@@ -12,12 +12,13 @@ import { writeErrorMessage } from "@/lib/write-error";
 import { uploadPhotos } from "@/lib/photo-upload";
 import { PrintSheet, printSheet } from "@/components/print-sheet";
 import { AttendeePicker } from "@/components/attendee-picker";
+import { SignatureButton } from "@/components/signature-pad";
 
 export const Route = createFileRoute("/_app/education/$id")({
   component: EducationDetail,
 });
 
-type Attendee = { name: string; role: string; attended: boolean; completed: boolean; source: string; note: string };
+type Attendee = { name: string; role: string; attended: boolean; completed: boolean; source: string; note: string; signature?: string };
 
 function EducationDetail() {
   const { id } = useParams({ from: "/_app/education/$id" });
@@ -119,7 +120,7 @@ function EducationDetail() {
               </select>
               <button type="button" onClick={() => setAttendees(attendees.filter((_, j) => j !== i))} className="text-muted-foreground hover:text-danger"><X className="h-4 w-4" /></button>
             </div>
-            <div className="flex gap-1.5">
+            <div className="flex items-center gap-1.5">
               <button type="button" onClick={() => patch(i, { attended: !a.attended })}
                 className={`flex-1 py-1.5 rounded-md border text-xs font-medium ${a.attended ? "bg-primary/10 text-primary border-primary/40" : "bg-background"}`}>
                 {a.attended ? "참석" : "불참"}
@@ -128,6 +129,7 @@ function EducationDetail() {
                 className={`flex-1 py-1.5 rounded-md border text-xs font-medium ${a.completed ? "bg-success text-white border-success" : "bg-background"}`}>
                 {a.completed ? "이수 완료" : "미이수"}
               </button>
+              <SignatureButton value={a.signature} onChange={(d) => patch(i, { signature: d })} name={a.name} />
             </div>
           </div>
         ))}
@@ -170,14 +172,15 @@ function EducationDetail() {
               <th className="ps-label" style={{ width: "8mm" }}>No</th>
               <th className="ps-label">성명</th>
               <th className="ps-label" style={{ width: "20mm" }}>구분</th>
-              <th className="ps-label" style={{ width: "20mm" }}>참석</th>
-              <th className="ps-label" style={{ width: "20mm" }}>이수</th>
-              <th className="ps-label" style={{ width: "24mm" }}>내부/외부</th>
+              <th className="ps-label" style={{ width: "16mm" }}>참석</th>
+              <th className="ps-label" style={{ width: "16mm" }}>이수</th>
+              <th className="ps-label" style={{ width: "18mm" }}>내부/외부</th>
+              <th className="ps-label" style={{ width: "28mm" }}>서명</th>
             </tr>
           </thead>
           <tbody>
             {attendees.length === 0 ? (
-              <tr><td colSpan={6} className="ps-center">참석자 없음</td></tr>
+              <tr><td colSpan={7} className="ps-center">참석자 없음</td></tr>
             ) : attendees.map((a, i) => (
               <tr key={i}>
                 <td className="ps-center">{i + 1}</td>
@@ -186,6 +189,7 @@ function EducationDetail() {
                 <td className="ps-center">{a.attended ? "참석" : "불참"}</td>
                 <td className="ps-center">{a.completed ? "이수" : "미이수"}</td>
                 <td className="ps-center">{a.source}</td>
+                <td className="ps-center" style={{ height: "12mm" }}>{a.signature ? <img src={a.signature} style={{ height: "10mm", maxWidth: "26mm", objectFit: "contain" }} /> : ""}</td>
               </tr>
             ))}
           </tbody>

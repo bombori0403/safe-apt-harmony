@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Eraser } from "lucide-react";
+import { Eraser, Pencil } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 interface Props {
   onChange?: (dataUrl: string | null) => void;
@@ -84,5 +86,40 @@ export function SignaturePad({ onChange, height = 160 }: Props) {
         <Eraser className="h-3.5 w-3.5" /> 다시 서명
       </Button>
     </div>
+  );
+}
+
+/**
+ * 참석자 이름 옆 서명 컨트롤. 값이 없으면 [서명] 버튼, 있으면 서명 썸네일(누르면 다시).
+ * 서명은 작은 PNG dataURL로 참석자 객체에 저장 → 별도 업로드/마이그레이션 없음.
+ * 소장 기기 한 대를 돌려가며 각자 손가락으로 서명하는 현장 방식. 출력물에도 인쇄됨.
+ */
+export function SignatureButton({ value, onChange, name }: { value?: string; onChange: (dataUrl: string) => void; name?: string }) {
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState<string | null>(null);
+  function openPad() { setDraft(null); setOpen(true); }
+  return (
+    <>
+      {value ? (
+        <button type="button" onClick={openPad} title="서명 다시" className="shrink-0">
+          <img src={value} alt="서명" className="h-8 w-20 object-contain border rounded bg-white" />
+        </button>
+      ) : (
+        <Button type="button" variant="outline" size="sm" className="h-8 gap-1 text-xs shrink-0" onClick={openPad}>
+          <Pencil className="h-3 w-3" />서명
+        </Button>
+      )}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle>{name ? `${name} 서명` : "서명"}</DialogTitle></DialogHeader>
+          <SignaturePad onChange={setDraft} />
+          <DialogFooter className="gap-2 sm:gap-2">
+            {value && <Button variant="ghost" className="text-danger hover:text-danger mr-auto" onClick={() => { onChange(""); setOpen(false); }}>서명 삭제</Button>}
+            <Button variant="outline" onClick={() => setOpen(false)}>취소</Button>
+            <Button onClick={() => { if (!draft) { toast.error("서명을 입력해주세요"); return; } onChange(draft); setOpen(false); }}>저장</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
