@@ -1,4 +1,5 @@
 import { createContext, useContext } from "react";
+import { REGULATION_HTML } from "@/lib/regulation-html";
 
 // ============ 기본 텍스트 (조직 override가 없으면 사용) ============
 export const REGULATION_DEFAULTS: Record<string, string> = {
@@ -280,75 +281,8 @@ function ArticleSec({ no, k }: { no: string; k: string }) {
   );
 }
 
-export function RegulationDocument({ get, orgName }: { get: (k: string) => string; orgName?: string | null }) {
-  const g = (k: string) => resolveOrgTokens(get(k), orgName);
-  return (
-    <GetCtx.Provider value={g}>
-      <div className="space-y-8 text-black">
-        <header className="text-center border-b pb-4">
-          <h1 className="text-2xl font-bold"><F k="doc_title" /></h1>
-          <div className="text-sm text-gray-600 mt-2 flex flex-wrap gap-x-6 gap-y-1 justify-center">
-            <div>▢ 사업장명: <F k="header_site" /></div>
-            <div>▢ 작성일자: <F k="header_date" /></div>
-          </div>
-        </header>
 
-        <section className="bg-muted/30 rounded-md p-5 space-y-3 break-inside-avoid">
-          <h2 className="font-bold text-lg"><F k="policy_heading" /></h2>
-          <div className="text-sm leading-7"><F k="policy_intro" /></div>
-          <ul className="list-disc pl-5 space-y-1 text-sm leading-7">
-            {g("policy_bullets").split("\n").filter(Boolean).map((line, i) => (
-              <li key={i}>{line}</li>
-            ))}
-          </ul>
-          <div className="text-sm font-semibold pt-2"><F k="policy_goal" /></div>
-        </section>
-
-        <ArticleSec no="1" k="article_1" />
-        <ArticleSec no="2" k="article_2" />
-
-        <section className="space-y-3 break-inside-avoid">
-          <h3 className="font-bold text-base">제3조(<F k="article_3_title" />)</h3>
-          <div className="text-sm leading-7"><F k="article_3" /></div>
-          <OrgChart />
-        </section>
-
-        <section className="space-y-2">
-          <h3 className="font-bold text-base">제4조(<F k="article_4_title" />)</h3>
-          <div className="text-sm leading-7"><F k="article_4" /></div>
-          <TableBlock k="article_4_table" />
-        </section>
-
-        <ArticleSec no="5" k="article_5" />
-        <ArticleSec no="6" k="article_6" />
-        <ArticleSec no="7" k="article_7" />
-        <ArticleSec no="8" k="article_8" />
-        <ArticleSec no="9" k="article_9" />
-
-        <section className="space-y-2">
-          <h3 className="font-bold text-base">제10조(<F k="article_10_title" />)</h3>
-          <div className="text-sm leading-7"><F k="article_10" /></div>
-          <TableBlock k="article_10_table" />
-        </section>
-
-        <ArticleSec no="11" k="article_11" />
-        <ArticleSec no="12" k="article_12" />
-        <ArticleSec no="13" k="article_13" />
-        <ArticleSec no="14" k="article_14" />
-        <ArticleSec no="15" k="article_15" />
-        <ArticleSec no="16" k="article_16" />
-
-        <section className="space-y-2">
-          <h3 className="font-bold text-base">제17조(<F k="article_17_title" />)</h3>
-          <div className="text-sm leading-7"><F k="article_17" /></div>
-          <TableBlock k="article_17_table" />
-        </section>
-
-        <section className="space-y-2 pt-4 border-t break-inside-avoid">
-          <h3 className="font-bold text-base"><F k="appendix_title" /></h3>
-          <TableBlock k="appendix_table" />
-        </section>
-      </div>
-    </GetCtx.Provider>
-  );
+export function RegulationDocument(_props?: { get?: (k: string) => string; orgName?: string | null }) {
+  // 원본 hwpx 서식을 그대로 재현한 HTML(커버·결재표·방침 도식 + 본문 표)을 렌더.
+  return <div dangerouslySetInnerHTML={{ __html: REGULATION_HTML }} />;
 }
