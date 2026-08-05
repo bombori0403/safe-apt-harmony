@@ -16,6 +16,7 @@ import { Plus, AlertTriangle, Calendar, Users, TrendingUp, Building2, MessageCir
 import { cn } from "@/lib/utils";
 import JSZip from "jszip";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import { RelatedApps } from "@/components/related-apps";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -733,6 +734,8 @@ function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <RelatedApps />
 
       <p className="text-[11px] text-muted-foreground text-center">
         본 시스템은 산업안전보건법 제36조 및 고용노동부 고시 제2024-76호에 따른 위험성평가 6단계 표준 절차를 지원합니다.
