@@ -11,14 +11,14 @@ export type RelatedApp = {
 export const RELATED_APPS: RelatedApp[] = [
   {
     name: "장비이력카드",
-    desc: "시설 장비 이력·점검주기·QR을 폰으로 관리",
+    desc: "장비 이력·점검주기·QR 관리",
     url: "https://equipment-history.pages.dev",
     emoji: "🗂️",
     tag: "웹앱",
   },
   {
     name: "블러웍스",
-    desc: "CCTV 영상 속 얼굴·번호판 모자이크·개인정보 비식별",
+    desc: "CCTV 얼굴·번호판 모자이크",
     url: "https://blurworks.vercel.app/",
     emoji: "🎞️",
     tag: "웹",
