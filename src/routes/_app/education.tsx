@@ -22,7 +22,7 @@ function fmtMin(m: number) {
 function EducationList() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [items, setItems] = useState<Row[]>([]);
-  const [tally, setTally] = useState<{ name: string; role: string; minutes: number }[]>([]);
+  const [tally, setTally] = useState<{ name: string; role: string; eduMin: number; tbmMin: number }[]>([]);
   const [showTally, setShowTally] = useState(false);
   const [loading, setLoading] = useState(true);
   const year = new Date().getFullYear();
@@ -36,28 +36,28 @@ function EducationList() {
     const { data: edus } = await (supabase as any).from("safety_educations").select("*").order("edu_date", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false });
     setItems(edus ?? []);
 
-    // 이수현황: 올해 교육(완료분) + TBM(edu_minutes) 을 이름 기준 합산
+    // 이수현황: 올해 교육(완료분)과 TBM(edu_minutes)을 이름 기준으로 "각각" 집계(합치지 않음)
     const start = new Date(year, 0, 1).toISOString();
-    const map = new Map<string, { name: string; role: string; minutes: number }>();
-    const add = (name: string, role: string, minutes: number) => {
+    const map = new Map<string, { name: string; role: string; eduMin: number; tbmMin: number }>();
+    const add = (name: string, role: string, kind: "edu" | "tbm", minutes: number) => {
       if (!name) return;
       const key = name.trim();
-      const cur = map.get(key) ?? { name: key, role, minutes: 0 };
-      cur.minutes += minutes;
+      const cur = map.get(key) ?? { name: key, role, eduMin: 0, tbmMin: 0 };
+      if (kind === "edu") cur.eduMin += minutes; else cur.tbmMin += minutes;
       if (!cur.role && role) cur.role = role;
       map.set(key, cur);
     };
     for (const e of (edus ?? []) as Row[]) {
       if (e.status !== "완료") continue;
       if (e.edu_date && e.edu_date < start.slice(0, 10)) continue;
-      for (const a of (e.attendees ?? []) as any[]) if (a.completed) add(a.name, a.role, e.duration_minutes || 0);
+      for (const a of (e.attendees ?? []) as any[]) if (a.completed) add(a.name, a.role, "edu", e.duration_minutes || 0);
     }
     const { data: tbms } = await (supabase as any).from("tbm_meetings").select("held_at,edu_minutes,attendees,status").gte("held_at", start);
     for (const t of (tbms ?? []) as any[]) {
       if (!t.edu_minutes) continue;
-      for (const a of (t.attendees ?? []) as any[]) add(a.name, a.role, t.edu_minutes || 0);
+      for (const a of (t.attendees ?? []) as any[]) add(a.name, a.role, "tbm", t.edu_minutes || 0);
     }
-    setTally([...map.values()].sort((a, b) => b.minutes - a.minutes));
+    setTally([...map.values()].sort((a, b) => (b.eduMin + b.tbmMin) - (a.eduMin + a.tbmMin)));
     setLoading(false);
   }
 
@@ -66,7 +66,7 @@ function EducationList() {
       <div className="flex items-center justify-between gap-2">
         <div>
           <h1 className="text-2xl font-bold">안전보건교육</h1>
-          <p className="text-sm text-muted-foreground mt-1">법정 교육을 실시·기록하고 이수현황을 관리합니다. TBM 시간도 교육시간으로 합산됩니다.</p>
+          <p className="text-sm text-muted-foreground mt-1">법정 교육을 실시·기록하고 이수현황을 관리합니다. 교육과 TBM 시간은 각각 따로 표시됩니다.</p>
         </div>
         <Link to="/education/new">
           <Button className="gap-1.5"><Plus className="h-4 w-4" />교육 등록</Button>
@@ -84,18 +84,22 @@ function EducationList() {
             tally.length === 0 ? (
               <p className="text-sm text-muted-foreground mt-3">아직 이수 기록이 없습니다. 교육을 완료 처리하거나 TBM에 교육시간을 입력하세요.</p>
             ) : (
-              <div className="mt-3 space-y-1.5">
-                {tally.map((t) => (
-                  <div key={t.name} className="flex items-center gap-2 text-sm">
-                    <span className="font-medium w-24 truncate">{t.name}</span>
-                    <span className="text-xs text-muted-foreground w-12">{t.role}</span>
-                    <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
-                      <div className="h-full bg-primary" style={{ width: `${Math.min(100, (t.minutes / 360) * 100)}%` }} />
+              <div className="mt-3">
+                <div className="flex items-center gap-2 text-[11px] font-semibold text-muted-foreground pb-1.5 border-b">
+                  <span className="flex-1">이름</span>
+                  <span className="w-20 text-right">교육</span>
+                  <span className="w-20 text-right">TBM</span>
+                </div>
+                <div className="divide-y">
+                  {tally.map((t) => (
+                    <div key={t.name} className="flex items-center gap-2 text-sm py-1.5">
+                      <span className="flex-1 min-w-0 truncate"><span className="font-medium">{t.name}</span>{t.role && <span className="text-xs text-muted-foreground ml-1.5">{t.role}</span>}</span>
+                      <span className="w-20 text-right tabular-nums">{t.eduMin > 0 ? fmtMin(t.eduMin) : <span className="text-muted-foreground">-</span>}</span>
+                      <span className="w-20 text-right tabular-nums text-muted-foreground">{t.tbmMin > 0 ? fmtMin(t.tbmMin) : "-"}</span>
                     </div>
-                    <span className="text-xs tabular-nums w-20 text-right">{fmtMin(t.minutes)}</span>
-                  </div>
-                ))}
-                <p className="text-[11px] text-muted-foreground pt-1">막대는 정기교육 반기 기준(6시간=360분) 대비 비율입니다. 실제 법정 기준은 직종에 따라 다르니 담당자가 확인하세요.</p>
+                  ))}
+                </div>
+                <p className="text-[11px] text-muted-foreground pt-2">‘교육’은 안전보건교육 완료분, ‘TBM’은 작업 전 안전미팅 인정시간입니다. 실제 법정 이수 기준은 직종에 따라 다르니 담당자가 확인하세요.</p>
               </div>
             )
           )}
