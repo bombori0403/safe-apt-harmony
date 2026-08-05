@@ -178,6 +178,29 @@
   .mascot-walk, .mascot-bob, .mascot-face { animation: none; }
 }
 
+/* 사이드바 추천 도구(광고) — 빛 스침 + 이모지 살짝 흔들 + 테두리 은은한 맥동 */
+@keyframes promo-shimmer {
+  0% { transform: translateX(-140%) skewX(-12deg); }
+  55%, 100% { transform: translateX(360%) skewX(-12deg); }
+}
+@keyframes promo-wiggle {
+  0%, 90%, 100% { transform: rotate(0deg); }
+  93% { transform: rotate(-13deg); }
+  96% { transform: rotate(11deg); }
+  98% { transform: rotate(-5deg); }
+}
+@keyframes promo-glow {
+  0%, 100% { box-shadow: 0 0 0 1px color-mix(in oklab, var(--primary) 35%, transparent); }
+  50% { box-shadow: 0 0 12px 1px color-mix(in oklab, var(--primary) 45%, transparent); }
+}
+.promo-card { animation: promo-glow 3.2s ease-in-out infinite; }
+.promo-shimmer { animation: promo-shimmer 4.5s ease-in-out infinite; }
+.promo-emoji { display: inline-block; animation: promo-wiggle 5s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .promo-card, .promo-shimmer, .promo-emoji { animation: none; }
+  .promo-shimmer { display: none; }
+}
+
 @layer utilities {
   .risk-low { background-color: color-mix(in oklab, var(--success) 14%, transparent); color: var(--success); }
   .risk-mid { background-color: color-mix(in oklab, var(--warning) 18%, transparent); color: oklch(0.45 0.16 70); }

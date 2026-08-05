@@ -12,21 +12,25 @@ export function RelatedApps({ variant = "card" }: { variant?: "card" | "sidebar"
 
   if (variant === "sidebar") {
     return (
-      <div className="m-2 rounded-lg bg-sidebar-accent/40 p-2">
-        <div className="flex items-center justify-between px-1 pb-1.5">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/45">추천 도구</span>
-          <span className="text-[9px] px-1 py-px rounded bg-sidebar-foreground/10 text-sidebar-foreground/50">AD</span>
+      <div className="promo-card relative m-2 overflow-hidden rounded-xl p-2 bg-gradient-to-br from-primary/25 via-sidebar-accent/50 to-primary/10">
+        {/* 빛 스침 효과 */}
+        <div aria-hidden className="promo-shimmer pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+        <div className="relative flex items-center justify-between px-1 pb-1.5">
+          <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-sidebar-foreground/70">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary" />추천 도구
+          </span>
+          <span className="text-[9px] px-1.5 py-px rounded-full bg-primary/80 text-white font-semibold">AD</span>
         </div>
-        <div className="space-y-0.5">
+        <div className="relative space-y-0.5">
           {apps.map((a) => (
             <a key={a.name} href={a.url} target="_blank" rel="noreferrer noopener"
-              className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-sidebar-accent text-sidebar-foreground/80 transition-colors">
-              <span className="text-base leading-none shrink-0">{a.emoji}</span>
+              className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-white/10 text-sidebar-foreground/90 transition-colors">
+              <span className="promo-emoji text-lg leading-none shrink-0">{a.emoji}</span>
               <span className="min-w-0 flex-1">
-                <span className="block text-xs font-medium truncate">{a.name}</span>
-                <span className="block text-[10px] text-sidebar-foreground/45 truncate">{a.desc}</span>
+                <span className="block text-xs font-semibold truncate">{a.name}</span>
+                <span className="block text-[10px] text-sidebar-foreground/55 truncate">{a.desc}</span>
               </span>
-              <ExternalLink className="h-3 w-3 opacity-40 shrink-0" />
+              <ExternalLink className="h-3 w-3 opacity-50 shrink-0" />
             </a>
           ))}
         </div>
