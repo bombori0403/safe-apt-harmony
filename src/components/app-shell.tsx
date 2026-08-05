@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SupportFab } from "@/components/support-fab";
 import { MascotBuddy } from "@/components/mascot-buddy";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { RelatedApps } from "@/components/related-apps";
 
 /**
  * mobileTab: 휴대폰 하단 탭바에 직접 노출할 항목.
@@ -144,6 +145,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
         <nav className="flex-1 p-3 overflow-y-auto">{navTree()}</nav>
+        <RelatedApps variant="sidebar" />
         <div className="p-3 border-t text-xs space-y-2">
           <div className="text-muted-foreground truncate">{user?.email}</div>
           <Button variant="outline" size="sm" className="w-full" onClick={signOut}>
@@ -209,6 +211,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
           <nav className="flex-1 p-3 overflow-y-auto">{navTree()}</nav>
+          <RelatedApps variant="sidebar" />
           <div className="p-3 border-t text-xs space-y-2 shrink-0">
             <div className="text-muted-foreground truncate">{user?.email}</div>
             <Button variant="outline" size="sm" className="w-full" onClick={signOut}>
