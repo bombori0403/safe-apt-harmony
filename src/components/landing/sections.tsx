@@ -128,7 +128,7 @@ export function RiskSection() {
   );
 }
 
-/* ── 섹션 4: 지금 방식 vs 안전데스크 ──────────────────────────────────── */
+/* ── 섹션 4: 지금 방식 vs 리스크로그 ──────────────────────────────────── */
 
 export function ComparisonSection() {
   return (
@@ -144,7 +144,7 @@ export function ComparisonSection() {
         <div className="hidden md:grid md:grid-cols-[10rem_1fr_1fr] bg-muted/40 border-b border-border/70 text-sm font-bold">
           <div className="px-5 py-3.5" />
           <div className="px-5 py-3.5 text-muted-foreground">지금 방식</div>
-          <div className="px-5 py-3.5 text-primary">안전데스크</div>
+          <div className="px-5 py-3.5 text-primary">리스크로그</div>
         </div>
 
         <div className="divide-y divide-border/70">

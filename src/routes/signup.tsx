@@ -58,8 +58,8 @@ function Signup() {
       {/* Left brand panel */}
       <div className="hidden lg:flex lg:w-[46%] xl:w-[42%] relative flex-col justify-between overflow-hidden bg-gradient-to-br from-primary via-primary to-[oklch(0.3_0.14_262)] text-primary-foreground px-12 py-12">
         <div className="flex items-center gap-2.5">
-          <img src="/logo-mark.png" alt="안전데스크" className="w-9 h-9 rounded-full object-cover" />
-          <span className="font-bold tracking-tight">안전데스크</span>
+          <img src="/logo-mark.png" alt="리스크로그" className="w-9 h-9 rounded-full object-cover" />
+          <span className="font-bold tracking-tight">리스크로그</span>
         </div>
 
         <div className="absolute inset-0 flex items-center justify-center opacity-90 pointer-events-none">

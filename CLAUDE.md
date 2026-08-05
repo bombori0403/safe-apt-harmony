@@ -1,8 +1,8 @@
-# 안전데스크 (safe-apt-harmony)
+# 리스크로그 (safe-apt-harmony)
 
 공동주택(임대주택) 관리사무소용 **위험성평가 SaaS**. 원래 Lovable로 만들었고 현재 Claude Code + GitHub로 독립 운영.
 
-- 브랜드명: **안전데스크** (로고: `public/logo-mark.png`, 원본 `brand/logo-source.png`)
+- 브랜드명: **리스크로그** (로고: `public/logo-mark.png`, 원본 `brand/logo-source.png`)
 - 스택: React 19, TanStack Start/Router(파일 기반 라우트), Supabase(Postgres+RLS+Storage), Tailwind v4 + shadcn/ui, Pretendard
 - 배포: Cloudflare Workers → `https://tanstack-start-app.anjeondesk.workers.dev`
 

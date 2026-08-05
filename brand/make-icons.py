@@ -60,7 +60,7 @@ f_title = ImageFont.truetype(BOLD, 96)
 f_sub = ImageFont.truetype(REG, 40)
 dr = ImageDraw.Draw(og)
 tx = 540
-dr.text((tx, 258), "안전데스크", font=f_title, fill=(30, 64, 175, 255))
+dr.text((tx, 258), "리스크로그", font=f_title, fill=(30, 64, 175, 255))
 dr.text((tx, 378), "공동주택 위험성평가 통합 관리", font=f_sub, fill=(71, 85, 105, 255))
 og.convert("RGB").save(os.path.join(OUT, "logo-full.png"))
 

@@ -18,7 +18,7 @@ export function BrowserFrame({
         <span className="h-2.5 w-2.5 rounded-full bg-destructive/50" />
         <span className="h-2.5 w-2.5 rounded-full bg-warning/60" />
         <span className="h-2.5 w-2.5 rounded-full bg-success/50" />
-        <span className="ml-3 truncate text-[10px] text-muted-foreground">안전데스크</span>
+        <span className="ml-3 truncate text-[10px] text-muted-foreground">리스크로그</span>
       </div>
       {failed ? (
         <div className="aspect-[16/10] flex flex-col items-center justify-center gap-2 bg-muted/30 text-muted-foreground">
@@ -100,7 +100,7 @@ export function ScreenshotsSection() {
         <SectionHeading
           eyebrow="실제 화면"
           title="말보다 화면을 보시는 게 빠릅니다"
-          sub="아래는 실제 안전데스크 화면입니다. 샘플 단지 데이터로 채워 두었습니다."
+          sub="아래는 실제 리스크로그 화면입니다. 샘플 단지 데이터로 채워 두었습니다."
         />
 
         {/* 탭 — 모바일에서는 가로 스크롤 */}

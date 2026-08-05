@@ -74,7 +74,7 @@ ${data.title ? `제목: ${data.title}<br/>` : ""}
 ${data.location ? `위치: ${data.location}<br/>` : ""}
 ${data.reporter ? `신고자: ${data.reporter}<br/>` : ""}</p>
 ${data.situation ? `<p>내용:<br/>${data.situation.replace(/\n/g, "<br/>")}</p>` : ""}
-<p>안전데스크 앱에서 즉시 확인하고 조치해 주세요.</p>`,
+<p>리스크로그 앱에서 즉시 확인하고 조치해 주세요.</p>`,
       }),
     }).catch(() => {});
 

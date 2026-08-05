@@ -137,9 +137,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* Sidebar - desktop only */}
       <aside className="hidden md:flex w-60 shrink-0 flex-col border-r bg-sidebar text-sidebar-foreground print:hidden">
         <div className="flex items-center gap-2 px-5 h-16 border-b">
-          <img src="/logo-mark.png" alt="안전데스크" className="h-9 w-9 rounded-full object-cover shrink-0" />
+          <img src="/logo-mark.png" alt="리스크로그" className="h-9 w-9 rounded-full object-cover shrink-0" />
           <div className="min-w-0">
-            <div className="font-bold text-lg tracking-tight leading-tight">안전데스크</div>
+            <div className="font-bold text-lg tracking-tight leading-tight">리스크로그</div>
             {orgName && <div className="text-[11px] text-muted-foreground truncate">{orgName}</div>}
           </div>
         </div>
@@ -156,8 +156,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div className="flex-1 flex flex-col min-w-0">
         <header className="md:hidden h-14 flex items-center justify-between px-4 border-b bg-card print:hidden">
           <div className="flex items-center gap-2 font-bold min-w-0">
-            <img src="/logo-mark.png" alt="안전데스크" className="h-7 w-7 rounded-full object-cover shrink-0" />
-            <span className="truncate">안전데스크{orgName && <span className="text-xs text-muted-foreground font-normal ml-1">· {orgName}</span>}</span>
+            <img src="/logo-mark.png" alt="리스크로그" className="h-7 w-7 rounded-full object-cover shrink-0" />
+            <span className="truncate">리스크로그{orgName && <span className="text-xs text-muted-foreground font-normal ml-1">· {orgName}</span>}</span>
           </div>
           <Button variant="ghost" size="sm" onClick={signOut}>로그아웃</Button>
         </header>

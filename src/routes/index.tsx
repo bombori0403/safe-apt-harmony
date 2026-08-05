@@ -31,8 +31,8 @@ function Landing() {
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/70 backdrop-blur-xl">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <img src="/logo-mark.png" alt="안전데스크" className="w-9 h-9 rounded-full object-cover" />
-            <span className="font-bold tracking-tight text-[17px]">안전데스크</span>
+            <img src="/logo-mark.png" alt="리스크로그" className="w-9 h-9 rounded-full object-cover" />
+            <span className="font-bold tracking-tight text-[17px]">리스크로그</span>
           </div>
           <div className="flex items-center gap-2">
             <a href="#pricing" className="hidden sm:inline-flex px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">요금</a>
@@ -129,7 +129,7 @@ function Landing() {
       {/* 3. 우리 단지도 대상입니다 */}
       <RiskSection />
 
-      {/* 4. 지금 방식 vs 안전데스크 */}
+      {/* 4. 지금 방식 vs 리스크로그 */}
       <ComparisonSection />
 
       {/* 5. 실제 화면 */}
@@ -227,8 +227,8 @@ function Landing() {
       <footer className="border-t border-border/60">
         <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col md:flex-row items-center justify-between gap-3 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
-            <img src="/logo-mark.png" alt="안전데스크" className="w-5 h-5 rounded-full object-cover" />
-            <span className="font-medium text-foreground">안전데스크</span>
+            <img src="/logo-mark.png" alt="리스크로그" className="w-5 h-5 rounded-full object-cover" />
+            <span className="font-medium text-foreground">리스크로그</span>
           </div>
           <div className="flex items-center gap-4">
             <a href={KAKAO_CHANNEL_URL} target="_blank" rel="noreferrer noopener" className="hover:text-foreground transition-colors">문의</a>

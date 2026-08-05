@@ -68,7 +68,7 @@ function Billing() {
       const base = {
         amount: { currency: "KRW", value: order.amount },
         orderId: order.orderId,
-        orderName: `안전데스크 연간 이용료 (${order.orgName})`,
+        orderName: `리스크로그 연간 이용료 (${order.orgName})`,
         successUrl: `${origin}/billing-result`,
         failUrl: `${origin}/billing-result`,
       };

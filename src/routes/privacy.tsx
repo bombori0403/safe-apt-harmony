@@ -10,8 +10,8 @@ function Privacy() {
       <header className="border-b border-border/60">
         <div className="max-w-3xl mx-auto px-5 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2.5">
-            <img src="/logo-mark.png" alt="안전데스크" className="w-8 h-8 rounded-full object-cover" />
-            <span className="font-semibold tracking-tight">안전데스크</span>
+            <img src="/logo-mark.png" alt="리스크로그" className="w-8 h-8 rounded-full object-cover" />
+            <span className="font-semibold tracking-tight">리스크로그</span>
           </Link>
           <Link to="/"><Button variant="ghost" size="sm" className="gap-1"><ArrowLeft className="h-4 w-4" />홈</Button></Link>
         </div>
@@ -20,7 +20,7 @@ function Privacy() {
       <main className="max-w-3xl mx-auto px-5 py-12 prose-sm">
         <h1 className="text-2xl font-bold tracking-tight">개인정보처리방침</h1>
         <p className="text-sm text-muted-foreground mt-2">
-          안전데스크(이하 "회사")는 「개인정보 보호법」 등 관련 법령을 준수하며, 이용자의 개인정보를
+          리스크로그(이하 "회사")는 「개인정보 보호법」 등 관련 법령을 준수하며, 이용자의 개인정보를
           다음과 같이 처리합니다.
         </p>
 
