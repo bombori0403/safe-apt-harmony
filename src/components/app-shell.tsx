@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, ClipboardList, FilePlus2, Building2, Building, Settings, Shield, Users, AlertTriangle, ShieldAlert, MessageCircle, BookOpen, ShieldCheck, BarChart3, Menu, ClipboardCheck, FileCheck2, GraduationCap } from "lucide-react";
+import { LayoutDashboard, ClipboardList, FilePlus2, Building2, Building, Settings, Shield, Users, AlertTriangle, ShieldAlert, MessageCircle, BookOpen, ShieldCheck, BarChart3, Menu, ClipboardCheck, FileCheck2, GraduationCap, HelpCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -57,6 +57,7 @@ const NAV_GROUPS = [
   {
     title: null,
     items: [
+      { to: "/manual/", label: "사용 설명서", icon: HelpCircle, external: true },
       { to: "/settings", label: "설정", icon: Settings },
     ],
   },
@@ -111,7 +112,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           )}
           <div className="space-y-1">
-            {items.map(({ to, label, icon: Icon }) => {
+            {items.map((it) => {
+              const { to, label, icon: Icon } = it;
+              const external = (it as any).external as boolean | undefined;
+              const cls = "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors text-sidebar-foreground/80 hover:bg-sidebar-accent/60";
+              if (external) {
+                return (
+                  <a key={to} href={to} target="_blank" rel="noreferrer noopener" className={cls}>
+                    <Icon className="h-4 w-4" />{label}
+                  </a>
+                );
+              }
               const active = path === to || path.startsWith(to + "/");
               return (
                 <Link
