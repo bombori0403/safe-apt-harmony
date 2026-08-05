@@ -18,9 +18,9 @@ export const RELATED_APPS: RelatedApp[] = [
   },
   {
     name: "블러웍스",
-    desc: "CCTV 영상 속 얼굴·번호판 모자이크(로컬 처리)",
-    url: "", // TODO: 블러웍스 다운로드/소개 페이지 주소 (데스크톱 앱)
+    desc: "CCTV 영상 속 얼굴·번호판 모자이크·개인정보 비식별",
+    url: "https://blurworks.vercel.app/",
     emoji: "🎞️",
-    tag: "데스크톱 앱",
+    tag: "웹",
   },
 ];
