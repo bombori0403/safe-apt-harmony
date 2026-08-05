@@ -9,6 +9,7 @@ import {
 import { BrowserFrame, ScreenshotsSection } from "@/components/landing/screenshots-section";
 import { PricingSection } from "@/components/landing/pricing-section";
 import { KAKAO_CHANNEL_URL } from "@/components/landing/landing-data";
+import { BusinessFooter } from "@/components/business-footer";
 import {
   Shield, ClipboardCheck, FileCheck2, Users, ScrollText, BadgeCheck,
   ArrowRight, Check, Sparkles, MessageCircle,
@@ -225,17 +226,20 @@ function Landing() {
 
       {/* Footer */}
       <footer className="border-t border-border/60">
-        <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col md:flex-row items-center justify-between gap-3 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <img src="/logo-mark.png" alt="리스크로그" className="w-5 h-5 rounded-full object-cover" />
-            <span className="font-medium text-foreground">리스크로그</span>
+        <div className="max-w-6xl mx-auto px-4 py-8 space-y-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-3 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <img src="/logo-mark.png" alt="리스크로그" className="w-5 h-5 rounded-full object-cover" />
+              <span className="font-medium text-foreground">리스크로그</span>
+            </div>
+            <div className="flex items-center gap-4">
+              <a href={KAKAO_CHANNEL_URL} target="_blank" rel="noreferrer noopener" className="hover:text-foreground transition-colors">문의</a>
+              <Link to="/privacy" className="hover:text-foreground transition-colors">개인정보처리방침</Link>
+              <Link to="/login" className="hover:text-foreground transition-colors">로그인</Link>
+              <Link to="/signup" className="hover:text-foreground transition-colors">회사 가입</Link>
+            </div>
           </div>
-          <div className="flex items-center gap-4">
-            <a href={KAKAO_CHANNEL_URL} target="_blank" rel="noreferrer noopener" className="hover:text-foreground transition-colors">문의</a>
-            <Link to="/privacy" className="hover:text-foreground transition-colors">개인정보처리방침</Link>
-            <Link to="/login" className="hover:text-foreground transition-colors">로그인</Link>
-            <Link to="/signup" className="hover:text-foreground transition-colors">회사 가입</Link>
-          </div>
+          <BusinessFooter className="text-center md:text-left" />
         </div>
       </footer>
     </div>
