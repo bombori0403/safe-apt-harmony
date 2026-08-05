@@ -1,5 +1,22 @@
 import { createContext, useContext } from "react";
-import { REGULATION_HTML } from "@/lib/regulation-html";
+import { REGULATION_HTML, DEFAULT_ORG_CHART_HTML } from "@/lib/regulation-html";
+
+// 실시규정 원본 HTML의 토큰({{사업장}}, {{조직도}})을 실제 값으로 치환.
+// 조직도는 업로드 이미지가 있으면 그 이미지를, 없으면 기본 조직도 도식을 넣는다.
+// 조직도 자리는 <!--ORG-->..<!--/ORG--> 주석으로 감싸 편집 저장 시 다시 토큰으로 복원한다.
+export function resolveRegulationHtml(source?: string | null, orgName?: string | null, orgChartUrl?: string | null): string {
+  const org = orgChartUrl
+    ? `<div class="org-frame"><p class="org-title">[위험성평가 조직도]</p><img class="org-img" src="${orgChartUrl}" alt="조직도"></div>`
+    : DEFAULT_ORG_CHART_HTML;
+  return (source || REGULATION_HTML)
+    .replace("{{조직도}}", `<!--ORG-->${org}<!--/ORG-->`)
+    .split("{{사업장}}").join(orgName || "○○○○");
+}
+
+// 편집 저장 시 조직도 영역을 다시 {{조직도}} 토큰으로 되돌려 저장(조직도는 별도 설정으로 관리).
+export function stripOrgMarker(html: string): string {
+  return html.replace(/<!--ORG-->[\s\S]*?<!--\/ORG-->/, "{{조직도}}");
+}
 
 // ============ 기본 텍스트 (조직 override가 없으면 사용) ============
 export const REGULATION_DEFAULTS: Record<string, string> = {

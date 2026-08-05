@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useSubscription } from "@/hooks/use-subscription";
 import { TrialWatermark, TrialExpiredBlock } from "@/components/trial-watermark";
 import { KrasReportTable } from "@/components/kras-report-table";
-import { RegulationDocument, DEFAULT_REGULATION_HTML } from "@/components/regulation-document";
+import { RegulationDocument, DEFAULT_REGULATION_HTML, resolveRegulationHtml } from "@/components/regulation-document";
 import { SignedImg } from "@/components/signed-img";
 import { GAS_FIELDS } from "@/lib/permit-presets";
 
@@ -267,7 +267,7 @@ function PrintAll() {
         {docTypes.regulation && (() => {
           const overrides = (regulation?.overrides && typeof regulation.overrides === "object")
             ? (regulation.overrides as Record<string, string>) : {};
-          const regHtml = ((overrides as any).full_html || DEFAULT_REGULATION_HTML).replaceAll("{{사업장}}", orgName || "○○○○");
+          const regHtml = resolveRegulationHtml((overrides as any).full_html || DEFAULT_REGULATION_HTML, orgName, (overrides as any).org_chart_url);
           return (
             <section className="page">
               <RegulationDocument html={regHtml} />
