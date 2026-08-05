@@ -282,7 +282,10 @@ function ArticleSec({ no, k }: { no: string; k: string }) {
 }
 
 
-export function RegulationDocument(_props?: { get?: (k: string) => string; orgName?: string | null }) {
+export const DEFAULT_REGULATION_HTML = REGULATION_HTML;
+
+export function RegulationDocument({ html }: { html?: string; get?: (k: string) => string; orgName?: string | null } = {}) {
   // 원본 hwpx 서식을 그대로 재현한 HTML(커버·결재표·방침 도식 + 본문 표)을 렌더.
-  return <div dangerouslySetInnerHTML={{ __html: REGULATION_HTML }} />;
+  // 조직이 수정 저장한 html이 있으면 그것을, 없으면 기본 서식을 표시.
+  return <div dangerouslySetInnerHTML={{ __html: html || REGULATION_HTML }} />;
 }
