@@ -6,9 +6,26 @@ import { ExternalLink } from "lucide-react";
  * "함께 쓰면 좋은 도구" — 관련 업무 앱 크로스링크. url 있는 항목만 노출, 새 탭.
  * variant="card": 넓은 카드(대시보드 등). variant="sidebar": 사이드바 하단 광고형(어두운 톤 컴팩트).
  */
-export function RelatedApps({ variant = "card" }: { variant?: "card" | "sidebar" }) {
+export function RelatedApps({ variant = "card" }: { variant?: "card" | "sidebar" | "topbar" }) {
   const apps = RELATED_APPS.filter((a) => a.url);
   if (apps.length === 0) return null;
+
+  if (variant === "topbar") {
+    return (
+      <div className="relative overflow-hidden flex items-center gap-2 justify-end px-4 py-1.5">
+        <div aria-hidden className="promo-shimmer pointer-events-none absolute inset-y-0 -left-1/3 w-1/4 bg-gradient-to-r from-transparent via-primary/15 to-transparent" />
+        <span className="relative hidden sm:inline text-[11px] font-medium text-muted-foreground mr-0.5">추천 도구</span>
+        {apps.map((a) => (
+          <a key={a.name} href={a.url} target="_blank" rel="noreferrer noopener"
+            className="promo-card relative inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/5 px-2.5 py-1 text-xs font-medium hover:bg-primary/10 transition-colors">
+            <span className="promo-emoji text-sm leading-none">{a.emoji}</span>
+            <span className="truncate max-w-[130px]">{a.name}</span>
+            <ExternalLink className="h-3 w-3 opacity-60 shrink-0" />
+          </a>
+        ))}
+      </div>
+    );
+  }
 
   if (variant === "sidebar") {
     return (

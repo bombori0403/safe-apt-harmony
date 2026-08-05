@@ -145,7 +145,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
         <nav className="flex-1 p-3 overflow-y-auto">{navTree()}</nav>
-        <RelatedApps variant="sidebar" />
         <div className="p-3 border-t text-xs space-y-2">
           <div className="text-muted-foreground truncate">{user?.email}</div>
           <Button variant="outline" size="sm" className="w-full" onClick={signOut}>
@@ -163,6 +162,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
           <Button variant="ghost" size="sm" onClick={signOut}>로그아웃</Button>
         </header>
+        {/* 상단 추천 도구 바 (데스크톱) — 스크롤해도 상단에 고정 */}
+        <div className="hidden md:block sticky top-0 z-30 border-b bg-background/85 backdrop-blur print:hidden">
+          <RelatedApps variant="topbar" />
+        </div>
         <main className="flex-1 pb-20 md:pb-0 print:pb-0">{children}</main>
 
         {/* Bottom tabbar - mobile */}
