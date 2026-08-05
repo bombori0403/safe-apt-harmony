@@ -1,14 +1,17 @@
+import { useEffect, useState } from "react";
 import { RELATED_APPS } from "@/lib/related-apps";
 import { Card, CardContent } from "@/components/ui/card";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, X, Sparkles } from "lucide-react";
 
 /**
  * "함께 쓰면 좋은 도구" — 관련 업무 앱 크로스링크. url 있는 항목만 노출, 새 탭.
  * variant="card": 넓은 카드(대시보드 등). variant="sidebar": 사이드바 하단 광고형(어두운 톤 컴팩트).
  */
-export function RelatedApps({ variant = "card" }: { variant?: "card" | "sidebar" | "topbar" }) {
+export function RelatedApps({ variant = "card" }: { variant?: "card" | "sidebar" | "topbar" | "float" }) {
   const apps = RELATED_APPS.filter((a) => a.url);
   if (apps.length === 0) return null;
+
+  if (variant === "float") return <FloatPromo apps={apps} />;
 
   if (variant === "topbar") {
     return (
@@ -74,6 +77,57 @@ export function RelatedApps({ variant = "card" }: { variant?: "card" | "sidebar"
                 </div>
               </CardContent>
             </Card>
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** 우측 상단 고정 광고 카드. 어두운 카드+애니메이션으로 밝은 본문 위에서 눈에 띔. 접기(X) 기억. */
+function FloatPromo({ apps }: { apps: typeof RELATED_APPS }) {
+  const [collapsed, setCollapsed] = useState(false);
+  useEffect(() => {
+    try { setCollapsed(localStorage.getItem("rl_promo_collapsed") === "1"); } catch { /* ignore */ }
+  }, []);
+  function setC(v: boolean) {
+    setCollapsed(v);
+    try { localStorage.setItem("rl_promo_collapsed", v ? "1" : "0"); } catch { /* ignore */ }
+  }
+
+  if (collapsed) {
+    return (
+      <button type="button" onClick={() => setC(false)}
+        className="promo-card fixed top-3 right-3 z-40 inline-flex items-center gap-1.5 rounded-full bg-sidebar text-sidebar-foreground px-3 py-2 text-xs font-semibold shadow-lg ring-1 ring-primary/50">
+        <Sparkles className="promo-emoji h-3.5 w-3.5 text-primary" />추천 도구
+      </button>
+    );
+  }
+
+  return (
+    <div className="promo-card fixed top-3 right-3 z-40 w-56 overflow-hidden rounded-xl bg-sidebar text-sidebar-foreground shadow-xl ring-1 ring-primary/50">
+      <div aria-hidden className="promo-shimmer pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+      <div className="relative flex items-center justify-between px-3 pt-2 pb-1">
+        <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-sidebar-foreground/70">
+          <Sparkles className="h-3 w-3 text-primary" />추천 도구
+        </span>
+        <div className="flex items-center gap-1">
+          <span className="text-[9px] px-1.5 py-px rounded-full bg-primary/80 text-white font-semibold">AD</span>
+          <button type="button" onClick={() => setC(true)} aria-label="접기" className="text-sidebar-foreground/50 hover:text-sidebar-foreground">
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
+      <div className="relative space-y-0.5 p-1.5 pt-0">
+        {apps.map((a) => (
+          <a key={a.name} href={a.url} target="_blank" rel="noreferrer noopener"
+            className="flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-white/10 text-sidebar-foreground/90 transition-colors">
+            <span className="promo-emoji text-lg leading-none shrink-0">{a.emoji}</span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-xs font-semibold truncate">{a.name}</span>
+              <span className="block text-[10px] text-sidebar-foreground/55 truncate">{a.desc}</span>
+            </span>
+            <ExternalLink className="h-3 w-3 opacity-50 shrink-0" />
           </a>
         ))}
       </div>
