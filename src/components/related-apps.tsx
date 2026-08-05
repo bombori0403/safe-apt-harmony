@@ -15,17 +15,20 @@ export function RelatedApps({ variant = "card" }: { variant?: "card" | "sidebar"
 
   if (variant === "topbar") {
     return (
-      <div className="relative overflow-hidden flex items-center gap-2 justify-end px-4 py-1.5">
-        <div aria-hidden className="promo-shimmer pointer-events-none absolute inset-y-0 -left-1/3 w-1/4 bg-gradient-to-r from-transparent via-primary/15 to-transparent" />
-        <span className="relative hidden sm:inline text-[11px] font-medium text-muted-foreground mr-0.5">추천 도구</span>
+      <div className="relative overflow-hidden flex items-center gap-2 justify-end px-4 py-2 bg-gradient-to-r from-primary/10 via-transparent to-primary/10">
+        <div aria-hidden className="promo-shimmer pointer-events-none absolute inset-y-0 -left-1/3 w-1/4 bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+        <span className="relative hidden sm:flex items-center gap-1 text-[11px] font-bold text-primary mr-0.5">
+          <Sparkles className="h-3.5 w-3.5" />추천 도구
+        </span>
         {apps.map((a) => (
           <a key={a.name} href={a.url} target="_blank" rel="noreferrer noopener"
-            className="promo-card relative inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/5 px-2.5 py-1 text-xs font-medium hover:bg-primary/10 transition-colors">
+            className="promo-card relative inline-flex items-center gap-1.5 rounded-full border-2 border-primary/50 bg-primary/10 px-3 py-1 text-[13px] font-semibold text-primary hover:bg-primary/20 transition-colors">
             <span className="promo-emoji text-sm leading-none">{a.emoji}</span>
             <span className="truncate max-w-[130px]">{a.name}</span>
-            <ExternalLink className="h-3 w-3 opacity-60 shrink-0" />
+            <ExternalLink className="h-3.5 w-3.5 opacity-70 shrink-0" />
           </a>
         ))}
+        <span className="relative text-[9px] px-1.5 py-px rounded-full bg-primary text-white font-bold">AD</span>
       </div>
     );
   }

@@ -162,6 +162,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
           <Button variant="ghost" size="sm" onClick={signOut}>로그아웃</Button>
         </header>
+        {/* 추천 도구 바 — 자리를 차지(콘텐츠를 가리지 않음) + 스크롤 시 상단 고정. 데스크톱만. */}
+        <div className="hidden md:block sticky top-0 z-30 border-b bg-background/90 backdrop-blur print:hidden">
+          <RelatedApps variant="topbar" />
+        </div>
         <main className="flex-1 pb-20 md:pb-0 print:pb-0">{children}</main>
 
         {/* Bottom tabbar - mobile */}
@@ -219,9 +223,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </SheetContent>
       </Sheet>
-
-      {/* 우측 상단 고정 추천 도구 광고 (데스크톱) */}
-      <div className="hidden md:block print:hidden"><RelatedApps variant="float" /></div>
 
       <MascotBuddy />
       <SupportFab />
