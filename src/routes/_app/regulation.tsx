@@ -75,7 +75,8 @@ function RegulationPage() {
     setHtml(DEFAULT_REGULATION_HTML);
     setEditing(false);
     setRenderKey((k) => k + 1);
-    await upsertOverrides({ full_html: DEFAULT_REGULATION_HTML });
+    // 스냅샷으로 저장하지 않고 저장본을 비운다 → 이후 항상 최신 원본 서식을 따라감(업데이트 자동 반영)
+    await upsertOverrides({ full_html: null });
     toast.success("원본 서식으로 되돌렸습니다");
   }
 
