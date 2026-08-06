@@ -120,7 +120,8 @@ export function parseStandardSheet(ws: XLSX.WorkSheet, sheetName: string): Parse
     const row = aoa[r]; if (!row) continue;
     const desc = txt(row[col.desc]);
     if (!desc || desc.length < 5) continue;
-    if (hit(norm(desc), ["유해", "위험발생상황"])) continue; // 헤더 잔여 스킵
+    // 헤더 잔여행만 스킵. "유해" 부분일치는 실제 위험요인("유해가스 중독" 등)까지 버리므로 헤더 문구 전체로 매칭
+    if (hit(norm(desc), ["유해·위험요인", "유해위험요인", "위험발생상황"])) continue;
 
     const legal = col.legal >= 0 ? txt(row[col.legal]) : "";
     const am = legal.match(/제\s*(\d+)\s*조/);

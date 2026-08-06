@@ -39,7 +39,16 @@ export const submitParticipantConfirmation = createServerFn({ method: "POST" })
     if (!a) throw new Error("존재하지 않는 평가입니다.");
 
     let participantId = data.participantId ?? null;
-    if (!participantId) {
+    if (participantId) {
+      // 전달된 참석자가 이 평가 소속인지 검증(다른 평가의 participant_id를 붙이는 것 방지)
+      const { data: owner } = await supabaseAdmin
+        .from("participants")
+        .select("id")
+        .eq("id", participantId)
+        .eq("assessment_id", data.assessmentId)
+        .maybeSingle();
+      if (!owner) throw new Error("잘못된 참석자 정보입니다.");
+    } else {
       if (!data.name) throw new Error("이름을 입력하세요.");
       const { data: p, error } = await supabaseAdmin
         .from("participants")

@@ -54,6 +54,7 @@ function EducationList() {
     }
     const { data: tbms } = await (supabase as any).from("tbm_meetings").select("held_at,edu_minutes,attendees,status").gte("held_at", start);
     for (const t of (tbms ?? []) as any[]) {
+      if (t.status !== "완료") continue; // 미완료(작성중) TBM은 법정 이수시간에 넣지 않음
       if (!t.edu_minutes) continue;
       for (const a of (t.attendees ?? []) as any[]) add(a.name, a.role, "tbm", t.edu_minutes || 0);
     }

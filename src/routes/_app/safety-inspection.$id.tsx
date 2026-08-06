@@ -92,20 +92,23 @@ function InspectionDetail() {
       const next = nextScheduledDate(base, row.recurrence);
       const withinLimit = !row.recurrence_until || (next && next <= new Date(row.recurrence_until + "T23:59:59"));
       if (next && withinLimit) {
-        await (supabase as any).from("safety_inspections").insert({
+        // 로컬 날짜 문자열로 저장(next.toISOString()은 UTC라 KST에서 하루 당겨져 회차마다 날짜가 밀림)
+        const nextStr = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, "0")}-${String(next.getDate()).padStart(2, "0")}`;
+        const { error: genErr } = await (supabase as any).from("safety_inspections").insert({
           complex_id: row.complex_id,
           organization_id: row.organization_id,
           title: row.title,
           inspection_type: row.inspection_type,
           checklist_category: row.checklist_category,
-          scheduled_date: next.toISOString().slice(0, 10),
+          scheduled_date: nextStr,
           recurrence: row.recurrence,
           recurrence_until: row.recurrence_until,
           status: "예정",
           items: items.map((it) => ({ ...it, result: "", improvement: "", assignee: "", action: "", actionPhotos: [], actionDone: false })),
           created_by: userRowId || null,
         });
-        toast.success("점검 완료 · 다음 회차가 예정으로 생성되었습니다");
+        // 다음 회차 생성이 실패하면(RLS/제약 등) 완료만 알리고 거짓 성공 문구를 띄우지 않는다
+        toast.success(genErr ? "점검이 완료되었습니다" : "점검 완료 · 다음 회차가 예정으로 생성되었습니다");
       } else {
         toast.success("점검이 완료되었습니다");
       }

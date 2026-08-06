@@ -110,7 +110,9 @@ function Results() {
     const h = hazards.find(x => x.id === hid);
     const lvl = standardize(a.method, patch.level ?? h.level, patch.likelihood ?? h.likelihood, patch.severity ?? h.severity, patch.ops_data ?? h.ops_data);
     if (lvl) { merged.level = merged.level ?? lvl; merged.level_standardized = lvl; }
-    await supabase.from("hazards").update(merged).eq("id", hid);
+    const { data, error } = await supabase.from("hazards").update(merged).eq("id", hid).select();
+    if (error) { console.error(error); toast.error(writeErrorMessage(error)); return; }
+    if (!data || data.length === 0) { toast.error("권한이 없거나 체험 기간이 종료되어 저장되지 않았습니다"); return; }
     await load();
   }
 

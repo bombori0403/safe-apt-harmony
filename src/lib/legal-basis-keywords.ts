@@ -44,8 +44,8 @@ const RULES: Rule[] = [
   { keywords: ["안전교육 미이수", "교육 미이수"], article_no: "법 제29조", legal_basis: "산업안전보건법 제29조(근로자에 대한 안전보건교육)" },
 ];
 
-export function suggestLegalBasis(description: string): { article_no: string; legal_basis: string } | null {
-  const text = description.trim();
+export function suggestLegalBasis(description: string | null | undefined): { article_no: string; legal_basis: string } | null {
+  const text = (description ?? "").trim();
   if (!text) return null;
   for (const rule of RULES) {
     if (rule.keywords.some((k) => text.includes(k))) {

@@ -97,6 +97,10 @@ function PermitDetail() {
     }
   }
   async function complete() {
+    // 승인 후에도 가스/체크리스트가 편집 가능하므로 완료 시점에 다시 검증한다
+    if (unchecked > 0) { toast.error(`점검하지 않은 필수 항목이 ${unchecked}개 있습니다`); return; }
+    if (failed > 0) { toast.error("'불량' 항목이 있어 완료할 수 없습니다. 조치 후 다시 점검하세요."); return; }
+    if (gasMissing) { toast.error("가스농도 측정값을 모두 입력해야 완료할 수 있습니다"); return; }
     if (await save({ status: "완료" }, true)) { toast.success("작업이 완료 처리되었습니다"); navigate({ to: "/work-permit" }); }
   }
   async function remove() {

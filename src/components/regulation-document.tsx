@@ -13,9 +13,14 @@ export function resolveRegulationHtml(source?: string | null, orgName?: string |
     .split("{{사업장}}").join(orgName || "○○○○");
 }
 
-// 편집 저장 시 조직도 영역을 다시 {{조직도}} 토큰으로 되돌려 저장(조직도는 별도 설정으로 관리).
-export function stripOrgMarker(html: string): string {
-  return html.replace(/<!--ORG-->[\s\S]*?<!--\/ORG-->/, "{{조직도}}");
+// 편집 저장 시 조직도 영역을 다시 {{조직도}} 토큰으로, 치환됐던 사업장명을 다시 {{사업장}} 토큰으로 되돌려 저장.
+// (사업장명을 토큰으로 복원하지 않으면 저장 후 단지명을 바꿔도 문서에 반영되지 않고 옛 이름이 박제된다.)
+// 날짜 자리표시자 "○○○○"(article_6 등)까지 망가뜨리지 않도록, 실제 조직명이 있을 때만 복원한다.
+export function stripOrgMarker(html: string, orgName?: string | null): string {
+  let out = html.replace(/<!--ORG-->[\s\S]*?<!--\/ORG-->/, "{{조직도}}");
+  const name = (orgName ?? "").trim();
+  if (name && name !== "○○○○") out = out.split(name).join("{{사업장}}");
+  return out;
 }
 
 // ============ 기본 텍스트 (조직 override가 없으면 사용) ============
