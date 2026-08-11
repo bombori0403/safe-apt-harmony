@@ -193,11 +193,12 @@ function WorkStopRecords() {
       supervisor_name: supName || null,
       supervisor_phone: supPhone || null,
     };
-    const { error } = editId
-      ? await (supabase as any).from("work_stop_records").update(payload).eq("id", editId)
-      : await (supabase as any).from("work_stop_records").insert({ ...payload, reported_by: userRowId || null, reflected_in_assessment: false });
+    const { data: rows, error } = editId
+      ? await (supabase as any).from("work_stop_records").update(payload).eq("id", editId).select("id")
+      : await (supabase as any).from("work_stop_records").insert({ ...payload, reported_by: userRowId || null, reflected_in_assessment: false }).select("id");
     setSaving(false);
     if (error) { toast.error(writeErrorMessage(error)); return; }
+    if (editId && (!rows || rows.length === 0)) { toast.error("수정 권한이 없거나 체험 기간이 종료되어 저장되지 않았습니다"); return; }
     toast.success(editId ? "수정되었습니다" : "등록되었습니다");
     setOpen(false);
     resetForm();
@@ -221,14 +222,15 @@ function WorkStopRecords() {
     if (resumePhotos.length < MIN_PHOTOS) { toast.error(`시정 완료 사진을 최소 ${MIN_PHOTOS}장 첨부해주세요`); return; }
     setResumeSaving(true);
     const mergedCause = [...existingCausePhotos, ...beforeFixPhotos];
-    const { error } = await (supabase as any).from("work_stop_records").update({
+    const { data: rrows, error } = await (supabase as any).from("work_stop_records").update({
       result: "작업재개",
       result_detail: resumeDetail || null,
       cause_photos: mergedCause,
       resolution_photos: resumePhotos,
-    }).eq("id", resumeId);
+    }).eq("id", resumeId).select("id");
     setResumeSaving(false);
     if (error) { toast.error(writeErrorMessage(error)); return; }
+    if (!rrows || rrows.length === 0) { toast.error("처리 권한이 없거나 체험 기간이 종료되어 저장되지 않았습니다"); return; }
     toast.success("작업 재개 처리되었습니다");
     setResumeId(null); setResumeDetail(""); setResumePhotos([]); setBeforeFixPhotos([]); setExistingCausePhotos([]);
     load();

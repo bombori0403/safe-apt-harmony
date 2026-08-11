@@ -85,9 +85,11 @@ function TbmDetail() {
 
   async function save(extra: Record<string, any> = {}, silent = false) {
     setSaving(true);
-    const { error } = await (supabase as any).from("tbm_meetings").update(payload(extra)).eq("id", id);
+    const { data, error } = await (supabase as any).from("tbm_meetings").update(payload(extra)).eq("id", id).select("id");
     setSaving(false);
     if (error) { toast.error(writeErrorMessage(error)); return false; }
+    // RLS로 막히면 에러 없이 0행 → 거짓 성공 방지(만료·권한 시 명확히 알림)
+    if (!data || data.length === 0) { toast.error("저장 권한이 없거나 체험 기간이 종료되어 저장되지 않았습니다"); return false; }
     if (!silent) toast.success("저장되었습니다");
     return true;
   }
