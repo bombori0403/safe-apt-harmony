@@ -18,12 +18,28 @@ import { Link } from "@tanstack/react-router";
 import { WORK_STOP_LAW_TITLE, WORK_STOP_LAW_TEXT } from "@/lib/work-stop-law";
 
 // 위험 등급 색상(초록→빨강). 허용수준 선택을 직관적으로 보이게 하는 데 사용.
-const RISK_COLORS: Record<RiskLevel, string> = {
+// 3단계(상/중/하)·체크리스트(적정/보완) 값도 같은 색 계열에 대응.
+const RISK_COLORS: Record<string, string> = {
   매우낮음: "oklch(0.78 0.1 162)",
   낮음: "oklch(0.7 0.14 162)",
   보통: "oklch(0.78 0.16 70)",
   높음: "oklch(0.68 0.2 30)",
   매우높음: "oklch(0.58 0.23 27)",
+  하: "oklch(0.7 0.14 162)", 중: "oklch(0.78 0.16 70)", 상: "oklch(0.58 0.23 27)",
+  적정: "oklch(0.7 0.14 162)", 보완: "oklch(0.68 0.2 30)",
+};
+
+// 평가법별 '허용 가능한 위험성 수준' 선택지(낮음→높음 순). Step 3의 판단기준과 척도를 맞춘다.
+const ALLOWABLE_OPTIONS: Record<AssessmentMethod, string[]> = {
+  "5단계_판단법": ["매우낮음", "낮음", "보통", "높음", "매우높음"],
+  "빈도강도법": ["매우낮음", "낮음", "보통", "높음", "매우높음"],
+  "3단계_판단법": ["하", "중", "상"],
+  "체크리스트법": ["적정", "보완"],
+  "OPS": ["낮음", "보통", "높음"],
+};
+// 방법별 기본 허용수준(보통 '낮은' 쪽을 허용선으로).
+const ALLOWABLE_DEFAULT: Record<AssessmentMethod, string> = {
+  "5단계_판단법": "낮음", "빈도강도법": "낮음", "3단계_판단법": "하", "체크리스트법": "적정", "OPS": "낮음",
 };
 
 export const Route = createFileRoute("/_app/assessment/new")({
@@ -43,7 +59,12 @@ function NewAssessment() {
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [location, setLocation] = useState("");
   const [method, setMethod] = useState<AssessmentMethod>("5단계_판단법");
-  const [allowable, setAllowable] = useState<RiskLevel>("낮음");
+  const [allowable, setAllowable] = useState<string>("낮음");
+  // 평가법이 바뀌면 허용수준 척도가 달라지므로, 현재 값이 그 방법의 선택지에 없으면 기본값으로 맞춘다.
+  useEffect(() => {
+    if (!ALLOWABLE_OPTIONS[method].includes(allowable)) setAllowable(ALLOWABLE_DEFAULT[method]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [method]);
   const [participantConsent, setParticipantConsent] = useState(false);
   const [workStopConsent, setWorkStopConsent] = useState(false);
   const [nearMiss, setNearMiss] = useState<any[]>([]);
@@ -369,11 +390,14 @@ function NewAssessment() {
       {step === 4 && (
         <Card><CardContent className="p-5 space-y-3">
           <h2 className="font-semibold text-lg">Step 4. 허용 가능한 위험성 수준 확정</h2>
-          <p className="text-sm text-muted-foreground">이 수준 <b>이하</b>는 허용 가능한 것으로 보고, 이보다 <b>높은</b> 위험성은 개선(감소대책) 대상이 됩니다.</p>
-          <div className="grid grid-cols-5 gap-1.5 md:gap-2 mt-2">
-            {(["매우낮음","낮음","보통","높음","매우높음"] as RiskLevel[]).map(l => {
+          <p className="text-sm text-muted-foreground">
+            선택한 방법(<span className="font-semibold text-primary">{METHOD_INFO[method].title}</span>)의 척도에 맞춘 선택지입니다.
+            이 수준 <b>이하</b>는 허용, 이보다 <b>높은</b> 위험성은 개선(감소대책) 대상이 됩니다.
+          </p>
+          <div className="grid gap-1.5 md:gap-2 mt-2" style={{ gridTemplateColumns: `repeat(${ALLOWABLE_OPTIONS[method].length}, minmax(0,1fr))` }}>
+            {ALLOWABLE_OPTIONS[method].map(l => {
               const sel = allowable === l;
-              const c = RISK_COLORS[l];
+              const c = RISK_COLORS[l] ?? "oklch(0.7 0.14 162)";
               return (
                 <button key={l} type="button" onClick={() => setAllowable(l)} aria-pressed={sel}
                   className={`relative flex flex-col items-center gap-1.5 py-2.5 px-1 rounded-lg border-2 text-[11px] md:text-sm font-semibold transition-all ${sel ? "shadow-md -translate-y-0.5" : "bg-white hover:bg-muted/30"}`}
