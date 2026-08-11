@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { getSignedUrls } from "@/lib/storage";
 import { APPROVAL_ROLES, type Approval } from "@/components/approval-line";
 
@@ -16,17 +18,18 @@ const PRINT_CSS = `
 .print-sheet { display: none; }
 @media print {
   @page { size: A4 portrait; margin: 10mm; }
-  body.printing-single-active * { visibility: hidden !important; }
-  body.printing-single-active .print-sheet,
-  body.printing-single-active .print-sheet * { visibility: visible !important; }
+  /* 시트는 body 직속으로 포탈됨 → body 직계 자식 중 시트만 빼고 숨기면 빈 페이지 없이 이것만 인쇄된다. */
+  body.printing-single-active > *:not(.print-sheet) { display: none !important; }
   body.printing-single-active .print-sheet {
     display: block !important;
-    position: absolute; left: 0; top: 0; width: 100%;
+    width: 100%;
     font-family: 'Malgun Gothic', system-ui, sans-serif; color: #000; font-size: 10pt;
   }
   .print-sheet * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   .ps-table { page-break-inside: auto; }
   .ps-table tr { page-break-inside: avoid; }
+  /* 한 장을 꽉 채우는 표: 남은 높이만큼 행이 늘어난다(항목 적은 점검표도 페이지를 채움). */
+  .print-sheet .ps-fill { height: 200mm; }
 }
 .print-sheet .ps-title { text-align: center; font-size: 17pt; font-weight: 800; margin: 0; }
 .print-sheet .ps-sub { text-align: center; font-size: 8.5pt; color: #333; margin: 1mm 0 0; }
@@ -75,7 +78,11 @@ export function PrintSheet({
   approval?: Approval;
   children: React.ReactNode;
 }) {
-  return (
+  // body 직속으로 포탈해야 인쇄 시 앱(#root)을 통째로 숨겨도 시트는 남는다(빈 페이지 방지).
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
+  return createPortal(
     <div className="print-sheet">
       <style>{PRINT_CSS}</style>
       <div className="ps-headwrap">
@@ -106,6 +113,7 @@ export function PrintSheet({
       </div>
       {children}
       <div className="ps-footer">출력일: {new Date().toLocaleString("ko-KR")}</div>
-    </div>
+    </div>,
+    document.body,
   );
 }

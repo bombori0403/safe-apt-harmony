@@ -251,7 +251,7 @@ function InspectionDetail() {
           <tr><th className="ps-label">상태</th><td>{row.status}</td><th className="ps-label">점검일시</th><td>{row.performed_at ? new Date(row.performed_at).toLocaleString("ko-KR") : "-"}</td></tr>
         </tbody></table>
 
-        <table className="ps-table ps-compact">
+        <table className="ps-table ps-compact ps-fill">
           <thead>
             <tr>
               <th className="ps-label" style={{ width: "22mm" }}>구분</th>
