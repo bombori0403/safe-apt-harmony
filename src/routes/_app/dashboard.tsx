@@ -69,6 +69,7 @@ function Dashboard() {
   const [permits, setPermits] = useState<any[]>([]);
   const [safetyStats, setSafetyStats] = useState({ scheduledInspections: 0, openImprovements: 0, tbmThisMonth: 0, permitsInProgress: 0, eduThisYear: 0 });
   const [unresolvedHigh, setUnresolvedHigh] = useState(0);
+  const [highAssessmentIds, setHighAssessmentIds] = useState<string[]>([]);
   const [monthCount, setMonthCount] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -176,25 +177,30 @@ function Dashboard() {
       const { count: tc } = await tQ;
       setTotalCount(tc ?? 0);
 
+      // 고위험(높음·매우높음) 위험요인 + 그것이 속한 평가 id(클릭 이동용)
+      const applyHigh = (hi: any[]) => {
+        setUnresolvedHigh(hi.length);
+        setHighAssessmentIds([...new Set(hi.map((x: any) => x.assessment_id))]);
+      };
       if (scoped) {
         const { data: aids } = await supabase.from("assessments").select("id").eq("complex_id", selectedComplexId);
         const ids = (aids ?? []).map((x: any) => x.id);
         if (ids.length === 0) {
-          setUnresolvedHigh(0);
+          applyHigh([]);
         } else {
-          const { count: hc } = await supabase
+          const { data: hi } = await supabase
             .from("hazards")
-            .select("*", { count: "exact", head: true })
+            .select("assessment_id")
             .or("level.in.(높음,매우높음),level_standardized.in.(높음,매우높음)")
             .in("assessment_id", ids);
-          setUnresolvedHigh(hc ?? 0);
+          applyHigh(hi ?? []);
         }
       } else {
-        const { count: hc } = await supabase
+        const { data: hi } = await supabase
           .from("hazards")
-          .select("*", { count: "exact", head: true })
+          .select("assessment_id")
           .or("level.in.(높음,매우높음),level_standardized.in.(높음,매우높음)");
-        setUnresolvedHigh(hc ?? 0);
+        applyHigh(hi ?? []);
       }
     })();
   }, [user, selectedComplexId]);
@@ -495,7 +501,13 @@ function Dashboard() {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <KpiCard title="전체 평가" value={totalCount} sub={`건 · 이번 달 ${monthCount}건`} icon={TrendingUp} />
-        <KpiCard title="높음·매우높음 미해결" value={unresolvedHigh} icon={AlertTriangle} danger />
+        {unresolvedHigh > 0 && highAssessmentIds[0] ? (
+          <Link to="/assessment/$id/results" params={{ id: highAssessmentIds[0] }} className="block">
+            <KpiCard title="높음·매우높음 미해결" value={unresolvedHigh} icon={AlertTriangle} danger sub="· 눌러서 확인" />
+          </Link>
+        ) : (
+          <KpiCard title="높음·매우높음 미해결" value={unresolvedHigh} icon={AlertTriangle} danger />
+        )}
         <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
           <PopoverTrigger asChild>
             <button type="button" className="text-left" disabled={!canPickDate}>
