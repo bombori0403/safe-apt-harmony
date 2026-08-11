@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { METHOD_INFO, recommendMethod } from "@/lib/method-recommend";
-import { ASSESSMENT_METHODS, METHOD_LABEL, type AssessmentMethod, type AssessmentType, type RiskLevel } from "@/lib/types";
+import { ASSESSMENT_METHODS, METHOD_LABEL, WORK_CATEGORIES, CATEGORY_LABEL, type WorkCategory, type AssessmentMethod, type AssessmentType, type RiskLevel } from "@/lib/types";
 import { getCurrentUserContext } from "@/lib/user-context";
 import { toast } from "sonner";
 import { Star, AlertTriangle, ShieldAlert, ChevronDown, ChevronUp, History, Settings } from "lucide-react";
@@ -42,6 +42,29 @@ const ALLOWABLE_DEFAULT: Record<AssessmentMethod, string> = {
   "5단계_판단법": "낮음", "빈도강도법": "낮음", "3단계_판단법": "하", "체크리스트법": "적정", "OPS": "낮음",
 };
 
+// 작업명으로 작업 카테고리 자동 추측(키워드). 확실치 않으면 null.
+const CATEGORY_KEYWORDS: [WorkCategory, string[]][] = [
+  ["승강기_점검정비", ["승강기", "엘리베이터", "에스컬레이터", "리프트"]],
+  ["소방시설", ["소방", "스프링클러", "소화", "제연", "피난", "화재감지"]],
+  ["어린이놀이시설", ["놀이터", "놀이시설", "놀이기구", "어린이", "미끄럼", "그네"]],
+  ["전기실_변전실", ["전기실", "변전", "수전", "배전", "분전", "발전기", "축전지", "감전", "전기"]],
+  ["기계실_보일러실", ["기계실", "보일러", "펌프", "급수", "급탕", "난방", "배관", "물탱크", "저수조", "열교환", "냉각탑"]],
+  ["옥상_외벽", ["옥상", "외벽", "고소", "방수", "로프", "난간", "사다리", "비계"]],
+  ["지하주차장_환기", ["환기", "급배기", "배기팬", "환풍", "지하주차"]],
+  ["조경_외부작업", ["조경", "제초", "잡초", "전정", "예초", "제설", "살수", "화단", "수목", "정원"]],
+  ["경비_보안", ["경비", "보안", "초소", "순찰", "cctv"]],
+  ["주차관리", ["주차관리", "주차차단", "차단기", "주차장"]],
+  ["청소_미화_사무", ["청소", "미화", "분리수거", "재활용", "쓰레기", "사무"]],
+];
+function guessCategory(workName: string): WorkCategory | null {
+  const w = workName.replace(/\s+/g, "").toLowerCase();
+  if (!w) return null;
+  for (const [cat, kws] of CATEGORY_KEYWORDS) {
+    for (const kw of kws) if (w.includes(kw.replace(/\s+/g, "").toLowerCase())) return cat;
+  }
+  return null;
+}
+
 export const Route = createFileRoute("/_app/assessment/new")({
   component: NewAssessment,
 });
@@ -59,6 +82,15 @@ function NewAssessment() {
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [location, setLocation] = useState("");
   const [method, setMethod] = useState<AssessmentMethod>("5단계_판단법");
+  const [workCategory, setWorkCategory] = useState<WorkCategory>("승강기_점검정비");
+  const [catTouched, setCatTouched] = useState(false); // 사용자가 직접 카테고리를 바꿨는지
+  // 작업명을 입력하면 카테고리를 자동 추측(사용자가 직접 고른 적 없을 때만).
+  useEffect(() => {
+    if (catTouched) return;
+    const g = guessCategory(workName);
+    if (g) setWorkCategory(g);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workName]);
   const [allowable, setAllowable] = useState<string>("낮음");
   // 평가법이 바뀌면 허용수준 척도가 달라지므로, 현재 값이 그 방법의 선택지에 없으면 기본값으로 맞춘다.
   useEffect(() => {
@@ -139,6 +171,7 @@ function NewAssessment() {
           created_by: userRowId || null,
           assessment_type: type,
           work_name: workName,
+          work_category: workCategory,
           method,
           assessment_date: date,
           location,
@@ -303,6 +336,16 @@ function NewAssessment() {
           <div>
             <Label htmlFor="wn">평가 대상 작업명</Label>
             <Input id="wn" value={workName} onChange={e=>setWorkName(e.target.value)} placeholder="예: 승강기 정기점검" />
+          </div>
+          <div>
+            <Label>작업 카테고리</Label>
+            <p className="text-xs text-muted-foreground mt-1 mb-1.5">
+              작업명에 따라 자동 선택됩니다. 이 카테고리 기준으로 유해·위험요인 목록이 제안됩니다.
+            </p>
+            <select value={workCategory} onChange={e=>{ setWorkCategory(e.target.value as WorkCategory); setCatTouched(true); }}
+              className="w-full h-10 px-3 rounded-md border bg-background text-sm">
+              {WORK_CATEGORIES.map(c => <option key={c} value={c}>{CATEGORY_LABEL[c]}</option>)}
+            </select>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
