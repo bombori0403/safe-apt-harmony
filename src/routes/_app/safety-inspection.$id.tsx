@@ -81,6 +81,13 @@ function InspectionDetail() {
 
   const openActions = items.filter((it) => isBad(it.result) && !it.actionDone).length;
   const unrated = items.filter((it) => !it.result).length;
+  // 인쇄용 구분(그룹) 세로병합 계산
+  const groupRuns = items.map((it, i) => {
+    const first = i === 0 || items[i - 1].category !== it.category;
+    let span = 0;
+    if (first) for (let j = i; j < items.length && items[j].category === it.category; j++) span++;
+    return { first, span };
+  });
 
   async function complete() {
     if (unrated > 0) { toast.error(`아직 판정하지 않은 항목이 ${unrated}개 있습니다`); return; }
@@ -152,8 +159,12 @@ function InspectionDetail() {
       </div>
 
       <div className="space-y-3">
-        {items.map((it, i) => (
-          <Card key={i} className={isBad(it.result) && !it.actionDone ? "border-danger/50" : ""}>
+        {items.map((it, i) => {
+          const showGroup = it.category && (i === 0 || items[i - 1].category !== it.category);
+          return (
+          <div key={i} className="space-y-3">
+          {showGroup && <div className="text-xs font-bold text-primary bg-primary/5 border border-primary/20 rounded px-2 py-1">▸ {it.category}</div>}
+          <Card className={isBad(it.result) && !it.actionDone ? "border-danger/50" : ""}>
             <CardContent className="p-4 space-y-3">
               <div className="font-medium text-sm">{i + 1}. {it.text}</div>
               <div className="grid grid-cols-4 gap-1.5">
@@ -209,7 +220,9 @@ function InspectionDetail() {
               )}
             </CardContent>
           </Card>
-        ))}
+          </div>
+          );
+        })}
       </div>
 
       <input ref={fileRef} type="file" accept="image/*" capture="environment" multiple className="hidden" onChange={(e) => e.target.files && addPhotos(e.target.files)} />
@@ -238,28 +251,25 @@ function InspectionDetail() {
           <tr><th className="ps-label">상태</th><td>{row.status}</td><th className="ps-label">점검일시</th><td>{row.performed_at ? new Date(row.performed_at).toLocaleString("ko-KR") : "-"}</td></tr>
         </tbody></table>
 
-        <table className="ps-table">
+        <table className="ps-table ps-compact">
           <thead>
             <tr>
-              <th className="ps-label" style={{ width: "8mm" }}>No</th>
-              <th className="ps-label">점검 항목</th>
-              <th className="ps-label" style={{ width: "18mm" }}>결과</th>
-              <th className="ps-label">개선 필요사항 / 조치</th>
-              <th className="ps-label" style={{ width: "18mm" }}>담당</th>
-              <th className="ps-label" style={{ width: "14mm" }}>완료</th>
+              <th className="ps-label" style={{ width: "22mm" }}>구분</th>
+              <th className="ps-label">점검 내용</th>
+              <th className="ps-label" style={{ width: "13mm" }}>점검결과</th>
+              <th className="ps-label">조치 내용</th>
             </tr>
           </thead>
           <tbody>
             {items.map((it, i) => {
               const bad = isBad(it.result);
+              const action = bad ? ([it.improvement, it.action].filter(Boolean).join(" / ") || "개선 필요") : "";
               return (
                 <tr key={i}>
-                  <td className="ps-center">{i + 1}</td>
+                  {groupRuns[i].first && <td className="ps-center" rowSpan={groupRuns[i].span} style={{ verticalAlign: "middle" }}>{it.category || "-"}</td>}
                   <td>{it.text}</td>
                   <td className="ps-center">{it.result || "-"}</td>
-                  <td>{bad ? [it.improvement, it.action].filter(Boolean).join(" / ") || "-" : ""}</td>
-                  <td className="ps-center">{bad ? (it.assignee || "-") : ""}</td>
-                  <td className="ps-center">{bad ? (it.actionDone ? "완료" : "미완") : "-"}</td>
+                  <td>{action}</td>
                 </tr>
               );
             })}

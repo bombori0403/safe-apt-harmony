@@ -42,6 +42,8 @@ const PRINT_CSS = `
 .print-sheet .ps-photo-box img { width: 100%; height: 100%; object-fit: cover; }
 .print-sheet .ps-footer { text-align: right; font-size: 7.5pt; color: #555; margin-top: 2mm; }
 .print-sheet .ps-center { text-align: center; }
+/* 점검표 항목 표: 항목이 많아도(최대 30여개) A4 1장에 들어가도록 조밀하게 */
+.print-sheet .ps-compact th, .print-sheet .ps-compact td { padding: 0.6mm 1.4mm; font-size: 8.3pt; line-height: 1.2; }
 `;
 
 function preload(url: string) {

@@ -34,7 +34,7 @@ function NewInspection() {
   const [title, setTitle] = useState("");
   const [scheduledDate, setScheduledDate] = useState(() => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10));
   const [recurrence, setRecurrence] = useState("monthly");
-  const [items, setItems] = useState<Item[]>(() => INSPECTION_PRESETS[0].items.map((t) => blankItem(INSPECTION_PRESETS[0].category, t)));
+  const [items, setItems] = useState<Item[]>(() => INSPECTION_PRESETS[0].items.map((it) => blankItem(it.group, it.name)));
   const [newItemText, setNewItemText] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -59,7 +59,7 @@ function NewInspection() {
   function applyPreset(cat: string) {
     setCategory(cat);
     const preset = INSPECTION_PRESETS.find((p) => p.category === cat);
-    if (preset) setItems(preset.items.map((t) => blankItem(cat, t)));
+    if (preset) setItems(preset.items.map((it) => blankItem(it.group, it.name)));
   }
 
   const preset = INSPECTION_PRESETS.find((p) => p.category === category);
@@ -142,7 +142,7 @@ function NewInspection() {
           <div className="mt-2 space-y-1.5">
             {items.map((it, i) => (
               <div key={i} className="flex items-center gap-2 text-sm bg-muted/40 rounded-md px-3 py-2">
-                <span className="flex-1">{it.text}</span>
+                <span className="flex-1">{it.category && <span className="text-[11px] text-muted-foreground mr-1.5">[{it.category}]</span>}{it.text}</span>
                 <button type="button" onClick={() => setItems(items.filter((_, j) => j !== i))} className="text-muted-foreground hover:text-danger">
                   <X className="h-4 w-4" />
                 </button>
@@ -151,8 +151,8 @@ function NewInspection() {
           </div>
           <div className="flex gap-2 mt-2">
             <Input value={newItemText} onChange={(e) => setNewItemText(e.target.value)} placeholder="항목 직접 추가" className="h-10"
-              onKeyDown={(e) => { if (e.key === "Enter" && newItemText.trim()) { setItems([...items, blankItem(category, newItemText.trim())]); setNewItemText(""); } }} />
-            <Button type="button" variant="outline" className="h-10 shrink-0" onClick={() => { if (newItemText.trim()) { setItems([...items, blankItem(category, newItemText.trim())]); setNewItemText(""); } }}>
+              onKeyDown={(e) => { if (e.key === "Enter" && newItemText.trim()) { setItems([...items, blankItem("기타", newItemText.trim())]); setNewItemText(""); } }} />
+            <Button type="button" variant="outline" className="h-10 shrink-0" onClick={() => { if (newItemText.trim()) { setItems([...items, blankItem("기타", newItemText.trim())]); setNewItemText(""); } }}>
               <Plus className="h-4 w-4" />추가
             </Button>
           </div>
