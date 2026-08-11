@@ -70,6 +70,7 @@ function Dashboard() {
   const [safetyStats, setSafetyStats] = useState({ scheduledInspections: 0, openImprovements: 0, tbmThisMonth: 0, permitsInProgress: 0, eduThisYear: 0 });
   const [unresolvedHigh, setUnresolvedHigh] = useState(0);
   const [monthCount, setMonthCount] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
   const [calendarOpen, setCalendarOpen] = useState(false);
 
   useEffect(() => {
@@ -168,6 +169,12 @@ function Dashboard() {
       if (scoped) mQ = mQ.eq("complex_id", selectedComplexId);
       const { count: mc } = await mQ;
       setMonthCount(mc ?? 0);
+
+      // 전체 평가 건수(누적)
+      let tQ = supabase.from("assessments").select("*", { count: "exact", head: true });
+      if (scoped) tQ = tQ.eq("complex_id", selectedComplexId);
+      const { count: tc } = await tQ;
+      setTotalCount(tc ?? 0);
 
       if (scoped) {
         const { data: aids } = await supabase.from("assessments").select("id").eq("complex_id", selectedComplexId);
@@ -487,7 +494,7 @@ function Dashboard() {
       )}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-        <KpiCard title="이번 달 평가" value={monthCount} icon={TrendingUp} />
+        <KpiCard title="전체 평가" value={totalCount} sub={`건 · 이번 달 ${monthCount}건`} icon={TrendingUp} />
         <KpiCard title="높음·매우높음 미해결" value={unresolvedHigh} icon={AlertTriangle} danger />
         <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
           <PopoverTrigger asChild>
