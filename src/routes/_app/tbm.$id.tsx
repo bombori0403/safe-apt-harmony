@@ -230,8 +230,17 @@ function TbmDetail() {
       </CardContent></Card>
 
       <div className="sticky bottom-16 md:bottom-4 bg-background/80 backdrop-blur rounded-xl border p-3 flex gap-2">
-        <Button variant="outline" className="flex-1 h-11" onClick={() => save()} disabled={saving}>{saving ? "저장 중..." : "임시 저장"}</Button>
-        <Button className="flex-1 h-11 gap-1.5" onClick={complete} disabled={saving || done}><CheckCircle2 className="h-4 w-4" />{done ? "완료됨" : "TBM 완료"}</Button>
+        {done ? (
+          <>
+            <span className="flex-1 h-11 flex items-center justify-center gap-1.5 rounded-md bg-success/10 text-success text-sm font-semibold"><CheckCircle2 className="h-4 w-4" />완료됨</span>
+            <Button className="flex-1 h-11" onClick={() => save()} disabled={saving}>{saving ? "저장 중..." : "수정 저장"}</Button>
+          </>
+        ) : (
+          <>
+            <Button variant="outline" className="flex-1 h-11" onClick={() => save()} disabled={saving}>{saving ? "저장 중..." : "임시 저장"}</Button>
+            <Button className="flex-1 h-11 gap-1.5" onClick={complete} disabled={saving}><CheckCircle2 className="h-4 w-4" />TBM 완료</Button>
+          </>
+        )}
       </div>
 
       <PrintSheet title="작업 전 안전미팅(TBM) 일지" subtitle="산업안전보건법 근로자 안전보건교육 · 작업 전 안전점검회의" approval={approval}>
