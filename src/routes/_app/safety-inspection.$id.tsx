@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { writeErrorMessage } from "@/lib/write-error";
 import { uploadPhotos } from "@/lib/photo-upload";
 import { getCurrentUserContext } from "@/lib/user-context";
-import { nextScheduledDate } from "@/lib/inspection-presets";
+import { nextScheduledDate, inspectionDocTitle } from "@/lib/inspection-presets";
 import { PrintSheet, printSheet } from "@/components/print-sheet";
 
 export const Route = createFileRoute("/_app/safety-inspection/$id")({
@@ -244,7 +244,7 @@ function InspectionDetail() {
         </div>
       </div>
 
-      <PrintSheet title="안전점검표" subtitle={`${row.checklist_category ?? ""} · ${row.inspection_type} 점검`}>
+      <PrintSheet title={inspectionDocTitle(row.checklist_category)} subtitle={`${row.title ?? ""} · ${row.inspection_type} 점검`}>
         <table className="ps-table"><tbody>
           <tr><th className="ps-label" style={{ width: "24mm" }}>점검명</th><td>{row.title}</td><th className="ps-label" style={{ width: "24mm" }}>시설분류</th><td>{row.checklist_category || "-"}</td></tr>
           <tr><th className="ps-label">점검구분</th><td>{row.inspection_type}</td><th className="ps-label">예정일</th><td>{row.scheduled_date || "-"}</td></tr>

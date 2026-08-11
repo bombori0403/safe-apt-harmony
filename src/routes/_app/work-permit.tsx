@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, FileCheck2, CircleCheck, CircleAlert } from "lucide-react";
+import { useComplexFilter } from "@/hooks/use-complex-filter";
 
 export const Route = createFileRoute("/_app/work-permit")({
   component: PermitList,
@@ -16,8 +17,9 @@ function PermitList() {
   const [items, setItems] = useState<Row[]>([]);
   const [status, setStatus] = useState("전체");
   const [loading, setLoading] = useState(true);
+  const { complexes, filterComplex, setFilterComplex } = useComplexFilter();
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [status]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [status, filterComplex]);
 
   if (path !== "/work-permit") return <Outlet />;
 
@@ -25,6 +27,7 @@ function PermitList() {
     setLoading(true);
     let q = (supabase as any).from("work_permits").select("*").order("work_date", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false });
     if (status !== "전체") q = q.eq("status", status);
+    if (filterComplex !== "all") q = q.eq("complex_id", filterComplex);
     const { data } = await q;
     setItems(data ?? []);
     setLoading(false);
@@ -42,11 +45,22 @@ function PermitList() {
         </Link>
       </div>
 
-      <Card><CardContent className="p-4">
-        <label className="text-xs text-muted-foreground">상태</label>
-        <select value={status} onChange={(e) => setStatus(e.target.value)} className="w-full md:w-48 h-10 px-3 rounded-md border bg-background text-sm mt-1">
-          {["전체", "신청", "승인", "완료"].map((o) => <option key={o} value={o}>{o}</option>)}
-        </select>
+      <Card><CardContent className="p-4 flex flex-wrap gap-3">
+        <div>
+          <label className="text-xs text-muted-foreground">상태</label>
+          <select value={status} onChange={(e) => setStatus(e.target.value)} className="w-full md:w-48 h-10 px-3 rounded-md border bg-background text-sm mt-1">
+            {["전체", "신청", "승인", "완료"].map((o) => <option key={o} value={o}>{o}</option>)}
+          </select>
+        </div>
+        {complexes.length > 1 && (
+          <div>
+            <label className="text-xs text-muted-foreground">단지</label>
+            <select value={filterComplex} onChange={(e) => setFilterComplex(e.target.value)} className="w-full md:w-48 h-10 px-3 rounded-md border bg-background text-sm mt-1">
+              <option value="all">전체 단지</option>
+              {complexes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
+        )}
       </CardContent></Card>
 
       {loading ? (

@@ -9,6 +9,23 @@ export type InspectionPreset = {
   items: InspectionItem[];
 };
 
+// 출력 제목(원본 점검일지 제목 그대로). 없으면 "○○ 안전점검 일지"로 자동 생성.
+const INSPECTION_DOC_TITLES: Record<string, string> = {
+  "기계설비": "기계설비 점검 일지",
+  "소방설비": "소방설비 점검 일지",
+  "전기설비": "전기설비 점검 일지",
+  "펌프설비": "펌프설비 안전점검표",
+  "부대·복리시설": "부대 및 복리시설 안전점검표",
+  "상가동": "상가동 안전점검표",
+  "저수조": "저수조 안전·위생 점검표",
+  "승강기": "승강기 안전점검 일지",
+  "어린이놀이터": "어린이 놀이터 안전점검 일지",
+};
+export function inspectionDocTitle(category?: string | null): string {
+  if (category && INSPECTION_DOC_TITLES[category]) return INSPECTION_DOC_TITLES[category];
+  return category ? `${category} 안전점검 일지` : "안전점검표";
+}
+
 export const INSPECTION_PRESETS: InspectionPreset[] = [
   {
     category: "기계설비",

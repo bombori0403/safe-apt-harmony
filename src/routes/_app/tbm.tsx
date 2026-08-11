@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Users, CircleCheck } from "lucide-react";
+import { useComplexFilter } from "@/hooks/use-complex-filter";
 
 export const Route = createFileRoute("/_app/tbm")({
   component: TbmList,
@@ -19,15 +20,18 @@ function TbmList() {
   const [items, setItems] = useState<Row[]>([]);
   const [days, setDays] = useState(90);
   const [loading, setLoading] = useState(true);
+  const { complexes, filterComplex, setFilterComplex } = useComplexFilter();
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [days]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [days, filterComplex]);
 
   if (path !== "/tbm") return <Outlet />;
 
   async function load() {
     setLoading(true);
     const since = new Date(Date.now() - days * 86400_000).toISOString();
-    const { data } = await (supabase as any).from("tbm_meetings").select("*").gte("held_at", since).order("held_at", { ascending: false });
+    let qb = (supabase as any).from("tbm_meetings").select("*").gte("held_at", since).order("held_at", { ascending: false });
+    if (filterComplex !== "all") qb = qb.eq("complex_id", filterComplex);
+    const { data } = await qb;
     setItems(data ?? []);
     setLoading(false);
   }
@@ -44,14 +48,25 @@ function TbmList() {
         </Link>
       </div>
 
-      <Card><CardContent className="p-4">
-        <label className="text-xs text-muted-foreground">기간</label>
-        <select value={days} onChange={(e) => setDays(Number(e.target.value))} className="w-full md:w-48 h-10 px-3 rounded-md border bg-background text-sm mt-1">
-          <option value={30}>최근 30일</option>
-          <option value={90}>최근 90일</option>
-          <option value={180}>최근 6개월</option>
-          <option value={365}>최근 12개월</option>
-        </select>
+      <Card><CardContent className="p-4 flex flex-wrap gap-3">
+        <div>
+          <label className="text-xs text-muted-foreground">기간</label>
+          <select value={days} onChange={(e) => setDays(Number(e.target.value))} className="w-full md:w-48 h-10 px-3 rounded-md border bg-background text-sm mt-1">
+            <option value={30}>최근 30일</option>
+            <option value={90}>최근 90일</option>
+            <option value={180}>최근 6개월</option>
+            <option value={365}>최근 12개월</option>
+          </select>
+        </div>
+        {complexes.length > 1 && (
+          <div>
+            <label className="text-xs text-muted-foreground">단지</label>
+            <select value={filterComplex} onChange={(e) => setFilterComplex(e.target.value)} className="w-full md:w-48 h-10 px-3 rounded-md border bg-background text-sm mt-1">
+              <option value="all">전체 단지</option>
+              {complexes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
+        )}
       </CardContent></Card>
 
       {loading ? (

@@ -4,12 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, ClipboardCheck, CircleAlert, CircleCheck, CalendarClock } from "lucide-react";
+import { useComplexFilter } from "@/hooks/use-complex-filter";
+import { INSPECTION_PRESETS } from "@/lib/inspection-presets";
 
 export const Route = createFileRoute("/_app/safety-inspection")({
   component: InspectionList,
 });
 
-const CAT_FILTER = ["전체", "승강기", "소방시설", "전기실·기계실", "저수조", "놀이터", "지하주차장", "옥상·외벽", "공용부(계단·복도)", "제설·수목(계절)"];
+const CAT_FILTER = ["전체", ...INSPECTION_PRESETS.map((p) => p.category)];
 
 type Row = {
   id: string; title: string; inspection_type: string; checklist_category: string | null;
@@ -29,8 +31,9 @@ function InspectionList() {
   const [cat, setCat] = useState("전체");
   const [status, setStatus] = useState("전체");
   const [loading, setLoading] = useState(true);
+  const { complexes, filterComplex, setFilterComplex } = useComplexFilter();
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [cat, status]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [cat, status, filterComplex]);
 
   if (path !== "/safety-inspection") return <Outlet />;
 
@@ -39,6 +42,7 @@ function InspectionList() {
     let q = (supabase as any).from("safety_inspections").select("*").order("scheduled_date", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false });
     if (cat !== "전체") q = q.eq("checklist_category", cat);
     if (status !== "전체") q = q.eq("status", status);
+    if (filterComplex !== "all") q = q.eq("complex_id", filterComplex);
     const { data } = await q;
     setItems(data ?? []);
     setLoading(false);
@@ -57,6 +61,15 @@ function InspectionList() {
       </div>
 
       <Card><CardContent className="p-4 grid grid-cols-2 md:grid-cols-3 gap-3">
+        {complexes.length > 1 && (
+          <div>
+            <label className="text-xs text-muted-foreground">단지</label>
+            <select value={filterComplex} onChange={(e) => setFilterComplex(e.target.value)} className="w-full h-10 px-3 rounded-md border bg-background text-sm mt-1">
+              <option value="all">전체 단지</option>
+              {complexes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
+        )}
         <div>
           <label className="text-xs text-muted-foreground">시설 분류</label>
           <select value={cat} onChange={(e) => setCat(e.target.value)} className="w-full h-10 px-3 rounded-md border bg-background text-sm mt-1">

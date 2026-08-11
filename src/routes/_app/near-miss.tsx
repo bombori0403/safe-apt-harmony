@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, AlertTriangle } from "lucide-react";
+import { useComplexFilter } from "@/hooks/use-complex-filter";
 
 export const Route = createFileRoute("/_app/near-miss")({
   component: NearMissList,
@@ -19,8 +20,9 @@ function NearMissList() {
   const [type, setType] = useState("전체");
   const [days, setDays] = useState(365);
   const [loading, setLoading] = useState(true);
+  const { complexes, filterComplex, setFilterComplex } = useComplexFilter();
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [loc, type, days]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [loc, type, days, filterComplex]);
 
   if (path !== "/near-miss") return <Outlet />;
 
@@ -30,6 +32,7 @@ function NearMissList() {
     let q = (supabase as any).from("near_miss").select("*").gte("occurred_at", since).order("occurred_at", { ascending: false });
     if (loc !== "전체") q = q.eq("location_category", loc);
     if (type !== "전체") q = q.eq("incident_type", type);
+    if (filterComplex !== "all") q = q.eq("complex_id", filterComplex);
     const { data } = await q;
     setItems(data ?? []);
     setLoading(false);
@@ -48,6 +51,15 @@ function NearMissList() {
       </div>
 
       <Card><CardContent className="p-4 grid grid-cols-2 md:grid-cols-3 gap-3">
+        {complexes.length > 1 && (
+          <div>
+            <label className="text-xs text-muted-foreground">단지</label>
+            <select value={filterComplex} onChange={(e) => setFilterComplex(e.target.value)} className="w-full h-10 px-3 rounded-md border bg-background text-sm mt-1">
+              <option value="all">전체 단지</option>
+              {complexes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
+        )}
         <div>
           <label className="text-xs text-muted-foreground">기간</label>
           <select value={days} onChange={e=>setDays(Number(e.target.value))} className="w-full h-10 px-3 rounded-md border bg-background text-sm mt-1">

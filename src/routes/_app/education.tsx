@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, GraduationCap, CircleCheck, BarChart3 } from "lucide-react";
+import { useComplexFilter } from "@/hooks/use-complex-filter";
 
 export const Route = createFileRoute("/_app/education")({
   component: EducationList,
@@ -26,14 +27,17 @@ function EducationList() {
   const [showTally, setShowTally] = useState(false);
   const [loading, setLoading] = useState(true);
   const year = new Date().getFullYear();
+  const { complexes, filterComplex, setFilterComplex } = useComplexFilter();
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [filterComplex]);
 
   if (path !== "/education") return <Outlet />;
 
   async function load() {
     setLoading(true);
-    const { data: edus } = await (supabase as any).from("safety_educations").select("*").order("edu_date", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false });
+    let eq = (supabase as any).from("safety_educations").select("*").order("edu_date", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false });
+    if (filterComplex !== "all") eq = eq.eq("complex_id", filterComplex);
+    const { data: edus } = await eq;
     setItems(edus ?? []);
 
     // 이수현황: 올해 교육(완료분)과 TBM(edu_minutes)을 이름 기준으로 "각각" 집계(합치지 않음)
@@ -52,7 +56,9 @@ function EducationList() {
       if (e.edu_date && e.edu_date < start.slice(0, 10)) continue;
       for (const a of (e.attendees ?? []) as any[]) if (a.completed) add(a.name, a.role, "edu", e.duration_minutes || 0);
     }
-    const { data: tbms } = await (supabase as any).from("tbm_meetings").select("held_at,edu_minutes,attendees,status").gte("held_at", start);
+    let tq = (supabase as any).from("tbm_meetings").select("held_at,edu_minutes,attendees,status,complex_id").gte("held_at", start);
+    if (filterComplex !== "all") tq = tq.eq("complex_id", filterComplex);
+    const { data: tbms } = await tq;
     for (const t of (tbms ?? []) as any[]) {
       if (t.status !== "완료") continue; // 미완료(작성중) TBM은 법정 이수시간에 넣지 않음
       if (!t.edu_minutes) continue;
@@ -73,6 +79,16 @@ function EducationList() {
           <Button className="gap-1.5"><Plus className="h-4 w-4" />교육 등록</Button>
         </Link>
       </div>
+
+      {complexes.length > 1 && (
+        <Card><CardContent className="p-4">
+          <label className="text-xs text-muted-foreground">단지</label>
+          <select value={filterComplex} onChange={(e) => setFilterComplex(e.target.value)} className="w-full md:w-48 h-10 px-3 rounded-md border bg-background text-sm mt-1">
+            <option value="all">전체 단지</option>
+            {complexes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </CardContent></Card>
+      )}
 
       {/* 이수현황 요약 */}
       <Card>
