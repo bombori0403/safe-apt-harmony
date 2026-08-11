@@ -17,6 +17,15 @@ import { Star, AlertTriangle, ShieldAlert, ChevronDown, ChevronUp, History, Sett
 import { Link } from "@tanstack/react-router";
 import { WORK_STOP_LAW_TITLE, WORK_STOP_LAW_TEXT } from "@/lib/work-stop-law";
 
+// 위험 등급 색상(초록→빨강). 허용수준 선택을 직관적으로 보이게 하는 데 사용.
+const RISK_COLORS: Record<RiskLevel, string> = {
+  매우낮음: "oklch(0.78 0.1 162)",
+  낮음: "oklch(0.7 0.14 162)",
+  보통: "oklch(0.78 0.16 70)",
+  높음: "oklch(0.68 0.2 30)",
+  매우높음: "oklch(0.58 0.23 27)",
+};
+
 export const Route = createFileRoute("/_app/assessment/new")({
   component: NewAssessment,
 });
@@ -360,16 +369,28 @@ function NewAssessment() {
       {step === 4 && (
         <Card><CardContent className="p-5 space-y-3">
           <h2 className="font-semibold text-lg">Step 4. 허용 가능한 위험성 수준 확정</h2>
-          <p className="text-sm text-muted-foreground">이 수준 이하의 위험성은 허용 가능한 것으로 판단됩니다.</p>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mt-2">
-            {(["매우낮음","낮음","보통","높음","매우높음"] as RiskLevel[]).map(l => (
-              <button key={l} type="button" onClick={() => setAllowable(l)}
-                className={`py-3 rounded-md border-2 text-sm font-medium ${allowable===l?"border-primary bg-accent/40":"border-border"}`}>
-                {l}
-              </button>
-            ))}
+          <p className="text-sm text-muted-foreground">이 수준 <b>이하</b>는 허용 가능한 것으로 보고, 이보다 <b>높은</b> 위험성은 개선(감소대책) 대상이 됩니다.</p>
+          <div className="grid grid-cols-5 gap-1.5 md:gap-2 mt-2">
+            {(["매우낮음","낮음","보통","높음","매우높음"] as RiskLevel[]).map(l => {
+              const sel = allowable === l;
+              const c = RISK_COLORS[l];
+              return (
+                <button key={l} type="button" onClick={() => setAllowable(l)} aria-pressed={sel}
+                  className={`relative flex flex-col items-center gap-1.5 py-2.5 px-1 rounded-lg border-2 text-[11px] md:text-sm font-semibold transition-all ${sel ? "shadow-md -translate-y-0.5" : "bg-white hover:bg-muted/30"}`}
+                  style={{ borderColor: c, borderWidth: sel ? "3px" : "2px", background: sel ? `color-mix(in oklch, ${c} 15%, white)` : undefined }}>
+                  <span className="inline-block h-3.5 w-3.5 rounded-full shrink-0" style={{ background: c }} />
+                  <span className="leading-tight text-center">{l}</span>
+                  {sel && <span className="absolute -top-2 -right-2 h-5 w-5 rounded-full text-white text-[11px] leading-none flex items-center justify-center shadow" style={{ background: c }}>✓</span>}
+                </button>
+              );
+            })}
           </div>
-          <p className="text-[11px] text-muted-foreground mt-2">
+          <div className="flex flex-wrap items-center gap-2 rounded-md border bg-muted/40 px-3 py-2 text-sm mt-1">
+            <span className="inline-block h-3.5 w-3.5 rounded-full shrink-0" style={{ background: RISK_COLORS[allowable] }} />
+            선택한 허용 수준: <b>{allowable}</b>
+            <span className="text-muted-foreground">— 이보다 높은 위험은 개선 대상</span>
+          </div>
+          <p className="text-[11px] text-muted-foreground mt-1">
             법령상 허용 가능한 위험성 수준은 산업안전보건법 등 관련 법령에서 정한 기준 이상이어야 합니다.
           </p>
         </CardContent></Card>
