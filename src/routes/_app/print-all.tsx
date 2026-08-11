@@ -10,7 +10,7 @@ import { TrialWatermark, TrialExpiredBlock } from "@/components/trial-watermark"
 import { KrasReportTable } from "@/components/kras-report-table";
 import { RegulationDocument, DEFAULT_REGULATION_HTML, resolveRegulationHtml } from "@/components/regulation-document";
 import { SignedImg } from "@/components/signed-img";
-import { GAS_FIELDS } from "@/lib/permit-presets";
+import { GAS_FIELDS, toGasRows } from "@/lib/permit-presets";
 
 const DOC_TYPES = [
   ["regulation", "실시규정"],
@@ -769,7 +769,7 @@ function TbmSection({ item, complexName }: { item: any; complexName: string }) {
 function PermitSection({ item, complexName }: { item: any; complexName: string }) {
   const workers = Array.isArray(item.workers) ? item.workers : [];
   const checklist = Array.isArray(item.checklist) ? item.checklist : [];
-  const gas = item.gas ?? {};
+  const gasRows = toGasRows(item.gas);
   return (
     <section className="page">
       <PrintHeading title="작업허가서" sub={`${complexName} · ${item.permit_type}`} />
@@ -787,14 +787,18 @@ function PermitSection({ item, complexName }: { item: any; complexName: string }
       {item.gas_required && (
         <table className="w-full text-[11px] border-collapse mb-4">
           <thead><tr>
+            <th className={cellTh}>회차</th>
             {GAS_FIELDS.map((f) => <th key={f.key} className={cellTh}>{f.label}</th>)}
             <th className={cellTh}>측정시각</th><th className={cellTh}>측정자</th>
           </tr></thead>
-          <tbody><tr>
-            {GAS_FIELDS.map((f) => <td key={f.key} className={cell + " text-center"}>{gas[f.key] || "-"}</td>)}
-            <td className={cell + " text-center"}>{gas.measuredAt ? fmtDT(gas.measuredAt) : "-"}</td>
-            <td className={cell + " text-center"}>{gas.measuredBy || "-"}</td>
-          </tr></tbody>
+          <tbody>{(gasRows.length ? gasRows : [{}]).map((m, i) => (
+            <tr key={i}>
+              <td className={cell + " text-center"}>{i + 1}회차</td>
+              {GAS_FIELDS.map((f) => <td key={f.key} className={cell + " text-center"}>{m[f.key] || "-"}</td>)}
+              <td className={cell + " text-center"}>{m.measuredAt ? fmtDT(m.measuredAt) : "-"}</td>
+              <td className={cell + " text-center"}>{m.measuredBy || "-"}</td>
+            </tr>
+          ))}</tbody>
         </table>
       )}
       <table className="w-full text-[11px] border-collapse">

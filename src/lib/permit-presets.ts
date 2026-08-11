@@ -91,3 +91,15 @@ export const GAS_FIELDS: { key: string; label: string; hint: string }[] = [
   { key: "h2s", label: "황화수소 H₂S (ppm)", hint: "10ppm 미만" },
   { key: "co", label: "일산화탄소 CO (ppm)", hint: "30ppm 미만" },
 ];
+
+// 가스측정은 회차 배열([{o2,lel,h2s,co,measuredAt,measuredBy}, ...])로 저장한다.
+// 구버전은 단일 객체로 저장돼 있어, 읽을 때 항상 배열로 정규화한다(밀폐공간은 작업 전+주기적 4회 이상 권장).
+export function toGasRows(gas: any): Record<string, string>[] {
+  if (Array.isArray(gas)) return gas as Record<string, string>[];
+  if (gas && typeof gas === "object" && Object.keys(gas).length) return [gas as Record<string, string>];
+  return [];
+}
+// 한 회차가 모든 가스값을 채웠는지(승인·완료 검증용)
+export function gasRowComplete(m: Record<string, string>): boolean {
+  return GAS_FIELDS.every((f) => (m?.[f.key] ?? "").toString().trim() !== "");
+}

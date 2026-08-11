@@ -7,11 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Camera, Loader2, X, CheckCircle2, Trash2, ShieldCheck, UserPlus, AlertTriangle, Printer } from "lucide-react";
+import { ArrowLeft, Camera, Loader2, X, Plus, CheckCircle2, Trash2, ShieldCheck, UserPlus, AlertTriangle, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { writeErrorMessage } from "@/lib/write-error";
 import { uploadPhotos } from "@/lib/photo-upload";
-import { GAS_FIELDS } from "@/lib/permit-presets";
+import { GAS_FIELDS, toGasRows, gasRowComplete } from "@/lib/permit-presets";
 import { ApprovalLineEditor, EMPTY_APPROVAL, type Approval } from "@/components/approval-line";
 import { PrintSheet, printSheet } from "@/components/print-sheet";
 
@@ -28,7 +28,7 @@ function PermitDetail() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [row, setRow] = useState<any>(null);
   const [checklist, setChecklist] = useState<Check[]>([]);
-  const [gas, setGas] = useState<Record<string, string>>({});
+  const [gasList, setGasList] = useState<Record<string, string>[]>([]);
   const [workers, setWorkers] = useState<string[]>([]);
   const [newWorker, setNewWorker] = useState("");
   const [supervisor, setSupervisor] = useState("");
@@ -47,7 +47,9 @@ function PermitDetail() {
     const { data } = await (supabase as any).from("work_permits").select("*").eq("id", id).maybeSingle();
     setRow(data);
     setChecklist((data?.checklist ?? []) as Check[]);
-    setGas((data?.gas ?? {}) as Record<string, string>);
+    // 회차 배열로 정규화. 밀폐·화기(가스 필수)인데 아직 없으면 1회차 빈칸을 기본 제공.
+    const rows = toGasRows(data?.gas);
+    setGasList(rows.length ? rows : (data?.gas_required ? [{}] : []));
     setWorkers((data?.workers ?? []) as string[]);
     setSupervisor(data?.supervisor_name ?? "");
     setWatcher(data?.safety_watcher ?? "");
@@ -66,7 +68,7 @@ function PermitDetail() {
 
   function payload(extra: Record<string, any> = {}) {
     return {
-      checklist, gas, workers, supervisor_name: supervisor || null, safety_watcher: watcher || null,
+      checklist, gas: gasList, workers, supervisor_name: supervisor || null, safety_watcher: watcher || null,
       approval, approver_name: approval.approver_name || null, note: note || null, photos, ...extra,
     };
   }
@@ -83,7 +85,8 @@ function PermitDetail() {
 
   const unchecked = checklist.filter((c) => c.required && !c.result).length;
   const failed = checklist.filter((c) => c.result === "불량").length;
-  const gasMissing = row?.gas_required && GAS_FIELDS.some((f) => !gas[f.key]);
+  // 가스 필수인데 '모든 값을 채운 측정 회차'가 하나도 없으면 미완(승인·완료 차단)
+  const gasMissing = row?.gas_required && !gasList.some(gasRowComplete);
 
   async function approve() {
     if (unchecked > 0) { toast.error(`점검하지 않은 필수 항목이 ${unchecked}개 있습니다`); return; }
@@ -168,24 +171,36 @@ function PermitDetail() {
       {row.gas_required && (
         <Card className={gasMissing ? "border-danger/50" : ""}><CardContent className="p-4 space-y-3">
           <div className="flex items-center gap-1.5 font-medium text-sm text-danger"><AlertTriangle className="h-4 w-4" />가스농도 측정 (필수)</div>
-          <div className="grid grid-cols-2 gap-3">
-            {GAS_FIELDS.map((f) => (
-              <div key={f.key}>
-                <label className="text-xs text-muted-foreground">{f.label}</label>
-                <Input value={gas[f.key] ?? ""} onChange={(e) => setGas({ ...gas, [f.key]: e.target.value })} className="h-10 mt-1" placeholder={f.hint} />
+          <p className="text-xs text-muted-foreground">밀폐공간은 <b>작업 시작 전</b>과 <b>작업 중 주기적</b>으로 측정합니다(권장 4회 이상). 회차를 추가해 기록하세요.</p>
+          {gasList.map((m, i) => (
+            <div key={i} className="rounded-md border p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold">측정 {i + 1}회차</span>
+                {gasList.length > 1 && (
+                  <button type="button" onClick={() => setGasList(gasList.filter((_, j) => j !== i))} className="text-muted-foreground hover:text-danger"><X className="h-4 w-4" /></button>
+                )}
               </div>
-            ))}
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs text-muted-foreground">측정 시각</label>
-              <Input type="datetime-local" value={gas.measuredAt ?? ""} onChange={(e) => setGas({ ...gas, measuredAt: e.target.value })} className="h-10 mt-1" />
+              <div className="grid grid-cols-2 gap-2">
+                {GAS_FIELDS.map((f) => (
+                  <div key={f.key}>
+                    <label className="text-xs text-muted-foreground">{f.label}</label>
+                    <Input value={m[f.key] ?? ""} onChange={(e) => setGasList(gasList.map((x, j) => j === i ? { ...x, [f.key]: e.target.value } : x))} className="h-10 mt-1" placeholder={f.hint} />
+                  </div>
+                ))}
+                <div>
+                  <label className="text-xs text-muted-foreground">측정 시각</label>
+                  <Input type="datetime-local" value={m.measuredAt ?? ""} onChange={(e) => setGasList(gasList.map((x, j) => j === i ? { ...x, measuredAt: e.target.value } : x))} className="h-10 mt-1" />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">측정자</label>
+                  <Input value={m.measuredBy ?? ""} onChange={(e) => setGasList(gasList.map((x, j) => j === i ? { ...x, measuredBy: e.target.value } : x))} className="h-10 mt-1" />
+                </div>
+              </div>
             </div>
-            <div>
-              <label className="text-xs text-muted-foreground">측정자</label>
-              <Input value={gas.measuredBy ?? ""} onChange={(e) => setGas({ ...gas, measuredBy: e.target.value })} className="h-10 mt-1" />
-            </div>
-          </div>
+          ))}
+          <Button type="button" variant="outline" size="sm" className="gap-1" onClick={() => setGasList([...gasList, {}])}>
+            <Plus className="h-3.5 w-3.5" />측정 회차 추가
+          </Button>
         </CardContent></Card>
       )}
 
@@ -263,14 +278,18 @@ function PermitDetail() {
         {row.gas_required && (
           <table className="ps-table"><tbody>
             <tr>
+              <th className="ps-label">회차</th>
               {GAS_FIELDS.map((f) => <th key={f.key} className="ps-label">{f.label}</th>)}
               <th className="ps-label">측정시각</th><th className="ps-label">측정자</th>
             </tr>
-            <tr>
-              {GAS_FIELDS.map((f) => <td key={f.key} className="ps-center">{gas[f.key] || "-"}</td>)}
-              <td className="ps-center">{gas.measuredAt ? new Date(gas.measuredAt).toLocaleString("ko-KR") : "-"}</td>
-              <td className="ps-center">{gas.measuredBy || "-"}</td>
-            </tr>
+            {(gasList.length ? gasList : [{}]).map((m, i) => (
+              <tr key={i}>
+                <td className="ps-center">{i + 1}회차</td>
+                {GAS_FIELDS.map((f) => <td key={f.key} className="ps-center">{m[f.key] || "-"}</td>)}
+                <td className="ps-center">{m.measuredAt ? new Date(m.measuredAt).toLocaleString("ko-KR") : "-"}</td>
+                <td className="ps-center">{m.measuredBy || "-"}</td>
+              </tr>
+            ))}
           </tbody></table>
         )}
 
