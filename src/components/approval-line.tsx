@@ -84,3 +84,59 @@ export function ApprovalLineView({ approval }: { approval?: Approval }) {
     </div>
   );
 }
+
+// ── 안전점검 전용 결재란(담당/과장/팀장/소장 4단계) ──
+// 공용 결재(담당/검토/승인)와 별개. jsonb approval 컬럼에 { 역할: {name, at} } 로 저장.
+export const INSP_APPROVAL_ROLES = ["담당", "과장", "팀장", "소장"] as const;
+export type InspApproval = Record<string, { name: string; at: string }>;
+
+export function InspectionApprovalEditor({ value, onChange }: { value?: InspApproval; onChange: (a: InspApproval) => void }) {
+  const v = value ?? {};
+  const setRole = (role: string, patch: Partial<{ name: string; at: string }>) =>
+    onChange({ ...v, [role]: { name: v[role]?.name ?? "", at: v[role]?.at ?? "", ...patch } });
+  return (
+    <div className="border rounded-md p-3 space-y-2">
+      <div className="text-xs font-semibold">결재란</div>
+      <div className="grid grid-cols-4 gap-2">
+        {INSP_APPROVAL_ROLES.map((role) => {
+          const slot = v[role] ?? { name: "", at: "" };
+          return (
+            <div key={role} className="space-y-1">
+              <Label className="text-[11px]">{role}</Label>
+              <Input className="h-8 text-xs" placeholder="성명" value={slot.name}
+                onChange={(e) => setRole(role, { name: e.target.value })} />
+              <div className="text-[10px] text-muted-foreground min-h-[14px]">{slot.at ? new Date(slot.at).toLocaleDateString("ko-KR") : "미결재"}</div>
+              <Button type="button" variant={slot.at ? "secondary" : "outline"} size="sm" className="w-full h-7 text-xs"
+                onClick={() => (slot.at ? setRole(role, { at: "" }) : slot.name ? setRole(role, { at: new Date().toISOString() }) : toast.error("성명을 먼저 입력하세요"))}>
+                {slot.at ? "결재취소" : "결재"}
+              </Button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// 인쇄용 결재란(우측 상단). PrintSheet의 headerRight로 넘긴다.
+export function InspectionApprovalBox({ approval }: { approval?: InspApproval }) {
+  const v = approval ?? {};
+  return (
+    <table className="ps-approval" style={{ width: "80mm" }}>
+      <tbody>
+        <tr>
+          <th rowSpan={2} style={{ width: "7mm", writingMode: "vertical-rl" as any }}>결재</th>
+          {INSP_APPROVAL_ROLES.map((r) => <th key={r}>{r}</th>)}
+        </tr>
+        <tr>
+          {INSP_APPROVAL_ROLES.map((r) => (
+            <td key={r}>
+              <div style={{ fontWeight: 700 }}>{v[r]?.name || ""}</div>
+              <div style={{ fontSize: "7pt", color: "#555", marginTop: "1mm" }}>{v[r]?.at ? new Date(v[r].at).toLocaleDateString("ko-KR") : ""}</div>
+            </td>
+          ))}
+        </tr>
+      </tbody>
+    </table>
+  );
+}

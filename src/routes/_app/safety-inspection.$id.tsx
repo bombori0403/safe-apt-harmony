@@ -14,6 +14,7 @@ import { uploadPhotos } from "@/lib/photo-upload";
 import { getCurrentUserContext } from "@/lib/user-context";
 import { nextScheduledDate, inspectionDocTitle } from "@/lib/inspection-presets";
 import { PrintSheet, printSheet } from "@/components/print-sheet";
+import { InspectionApprovalEditor, InspectionApprovalBox, type InspApproval } from "@/components/approval-line";
 
 export const Route = createFileRoute("/_app/safety-inspection/$id")({
   component: InspectionDetail,
@@ -31,6 +32,7 @@ function InspectionDetail() {
   const uploadTarget = useRef<number>(-1);
   const [row, setRow] = useState<any>(null);
   const [items, setItems] = useState<Item[]>([]);
+  const [approval, setApproval] = useState<InspApproval>({});
   const [userRowId, setUserRowId] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -46,6 +48,7 @@ function InspectionDetail() {
     const { data } = await (supabase as any).from("safety_inspections").select("*").eq("id", id).maybeSingle();
     setRow(data);
     setItems((data?.items ?? []) as Item[]);
+    setApproval((data?.approval ?? {}) as InspApproval);
     setLoading(false);
   }
 
@@ -71,7 +74,7 @@ function InspectionDetail() {
 
   async function save(extra: Record<string, any> = {}, silent = false) {
     setSaving(true);
-    const { data, error } = await (supabase as any).from("safety_inspections").update({ items, ...extra }).eq("id", id).select("id");
+    const { data, error } = await (supabase as any).from("safety_inspections").update({ items, approval, ...extra }).eq("id", id).select("id");
     setSaving(false);
     if (error) { toast.error(writeErrorMessage(error)); return false; }
     if (!data || data.length === 0) { toast.error("저장 권한이 없거나 체험 기간이 종료되어 저장되지 않았습니다"); return false; }
@@ -157,6 +160,8 @@ function InspectionDetail() {
           <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-danger" onClick={remove}><Trash2 className="h-4 w-4" /></Button>
         </div>
       </div>
+
+      <InspectionApprovalEditor value={approval} onChange={setApproval} />
 
       <div className="space-y-3">
         {items.map((it, i) => {
@@ -244,7 +249,7 @@ function InspectionDetail() {
         </div>
       </div>
 
-      <PrintSheet title={inspectionDocTitle(row.checklist_category)} subtitle={`${row.title ?? ""} · ${row.inspection_type} 점검`}>
+      <PrintSheet title={inspectionDocTitle(row.checklist_category)} subtitle={`${row.title ?? ""} · ${row.inspection_type} 점검`} headerRight={<InspectionApprovalBox approval={approval} />}>
         <table className="ps-table"><tbody>
           <tr><th className="ps-label" style={{ width: "24mm" }}>점검명</th><td>{row.title}</td><th className="ps-label" style={{ width: "24mm" }}>시설분류</th><td>{row.checklist_category || "-"}</td></tr>
           <tr><th className="ps-label">점검구분</th><td>{row.inspection_type}</td><th className="ps-label">예정일</th><td>{row.scheduled_date || "-"}</td></tr>

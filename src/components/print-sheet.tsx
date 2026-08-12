@@ -71,11 +71,12 @@ export async function printSheet(photoUrls: string[] = []) {
 }
 
 export function PrintSheet({
-  title, subtitle, approval, children,
+  title, subtitle, approval, headerRight, children,
 }: {
   title: string;
   subtitle?: string;
   approval?: Approval;
+  headerRight?: React.ReactNode; // 우측 상단에 넣을 커스텀(예: 안전점검 4단계 결재란)
   children: React.ReactNode;
 }) {
   // body 직속으로 포탈해야 인쇄 시 앱(#root)을 통째로 숨겨도 시트는 남는다(빈 페이지 방지).
@@ -90,7 +91,8 @@ export function PrintSheet({
           <h1 className="ps-title">{title}</h1>
           {subtitle && <p className="ps-sub">{subtitle}</p>}
         </div>
-        {approval && (
+        {headerRight}
+        {!headerRight && approval && (
           <table className="ps-approval">
             <tbody>
               <tr>
