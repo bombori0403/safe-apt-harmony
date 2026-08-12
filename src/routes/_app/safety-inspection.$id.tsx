@@ -161,7 +161,7 @@ function InspectionDetail() {
         </div>
       </div>
 
-      <InspectionApprovalEditor value={approval} onChange={setApproval} />
+      <InspectionApprovalEditor value={approval} onChange={setApproval} title={row.title} />
 
       <div className="space-y-3">
         {items.map((it, i) => {

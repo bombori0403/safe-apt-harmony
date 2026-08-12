@@ -90,20 +90,37 @@ export function ApprovalLineView({ approval }: { approval?: Approval }) {
 export const INSP_APPROVAL_ROLES = ["담당", "과장", "팀장", "소장"] as const;
 export type InspApproval = Record<string, { name: string; at: string }>;
 
-export function InspectionApprovalEditor({ value, onChange }: { value?: InspApproval; onChange: (a: InspApproval) => void }) {
+export function InspectionApprovalEditor({ value, onChange, title }: { value?: InspApproval; onChange: (a: InspApproval) => void; title?: string }) {
   const v = value ?? {};
   const setRole = (role: string, patch: Partial<{ name: string; at: string }>) =>
     onChange({ ...v, [role]: { name: v[role]?.name ?? "", at: v[role]?.at ?? "", ...patch } });
   // 순서(담당→과장→팀장→소장)상 아직 결재 안 한 첫 역할 = 지금 차례
   const nextRole = INSP_APPROVAL_ROLES.find((r) => !v[r]?.at) ?? null;
+  async function copyRequest() {
+    const url = typeof window !== "undefined" ? window.location.href : "";
+    const msg = `[리스크로그] "${title || "안전점검"}" ${nextRole} 결재를 부탁드립니다.\n${url}`;
+    try {
+      await navigator.clipboard.writeText(msg);
+      toast.success(`${nextRole} 결재 요청 링크를 복사했습니다. 카톡 등에 붙여넣어 전달하세요.`);
+    } catch {
+      window.prompt("아래 내용을 복사해 전달하세요", msg);
+    }
+  }
   return (
     <div className="border rounded-md p-3 space-y-2">
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="text-xs font-semibold">결재란 <span className="text-muted-foreground font-normal">(담당 → 과장 → 팀장 → 소장)</span></div>
-        <div className="text-[11px] font-medium">
-          {nextRole
-            ? <span className="text-primary">▶ 다음 결재: <b>{nextRole}</b></span>
-            : <span className="text-success">✓ 결재 완료</span>}
+        <div className="flex items-center gap-2">
+          <div className="text-[11px] font-medium">
+            {nextRole
+              ? <span className="text-primary">▶ 다음 결재: <b>{nextRole}</b></span>
+              : <span className="text-success">✓ 결재 완료</span>}
+          </div>
+          {nextRole && (
+            <Button type="button" variant="outline" size="sm" className="h-7 text-[11px] gap-1" onClick={copyRequest}>
+              결재 요청 링크 복사
+            </Button>
+          )}
         </div>
       </div>
       <div className="grid grid-cols-4 gap-2">
