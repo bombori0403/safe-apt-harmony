@@ -94,21 +94,36 @@ export function InspectionApprovalEditor({ value, onChange }: { value?: InspAppr
   const v = value ?? {};
   const setRole = (role: string, patch: Partial<{ name: string; at: string }>) =>
     onChange({ ...v, [role]: { name: v[role]?.name ?? "", at: v[role]?.at ?? "", ...patch } });
+  // 순서(담당→과장→팀장→소장)상 아직 결재 안 한 첫 역할 = 지금 차례
+  const nextRole = INSP_APPROVAL_ROLES.find((r) => !v[r]?.at) ?? null;
   return (
     <div className="border rounded-md p-3 space-y-2">
-      <div className="text-xs font-semibold">결재란</div>
+      <div className="flex items-center justify-between gap-2">
+        <div className="text-xs font-semibold">결재란 <span className="text-muted-foreground font-normal">(담당 → 과장 → 팀장 → 소장)</span></div>
+        <div className="text-[11px] font-medium">
+          {nextRole
+            ? <span className="text-primary">▶ 다음 결재: <b>{nextRole}</b></span>
+            : <span className="text-success">✓ 결재 완료</span>}
+        </div>
+      </div>
       <div className="grid grid-cols-4 gap-2">
         {INSP_APPROVAL_ROLES.map((role) => {
           const slot = v[role] ?? { name: "", at: "" };
+          const signed = !!slot.at;
+          const isNext = role === nextRole;
           return (
-            <div key={role} className="space-y-1">
-              <Label className="text-[11px]">{role}</Label>
+            <div key={role} className={`space-y-1 rounded-md p-1.5 transition-colors ${isNext ? "ring-2 ring-primary bg-primary/5" : signed ? "bg-success/5" : ""}`}>
+              <Label className="text-[11px] flex items-center gap-1">
+                {role}
+                {isNext && <span className="text-[9px] leading-none px-1 py-0.5 rounded bg-primary text-white">지금 차례</span>}
+                {signed && <span className="text-success text-[11px]">✓</span>}
+              </Label>
               <Input className="h-8 text-xs" placeholder="성명" value={slot.name}
                 onChange={(e) => setRole(role, { name: e.target.value })} />
-              <div className="text-[10px] text-muted-foreground min-h-[14px]">{slot.at ? new Date(slot.at).toLocaleDateString("ko-KR") : "미결재"}</div>
-              <Button type="button" variant={slot.at ? "secondary" : "outline"} size="sm" className="w-full h-7 text-xs"
-                onClick={() => (slot.at ? setRole(role, { at: "" }) : slot.name ? setRole(role, { at: new Date().toISOString() }) : toast.error("성명을 먼저 입력하세요"))}>
-                {slot.at ? "결재취소" : "결재"}
+              <div className={`text-[10px] min-h-[14px] ${signed ? "text-success" : "text-muted-foreground"}`}>{signed ? new Date(slot.at).toLocaleDateString("ko-KR") + " 결재" : "미결재"}</div>
+              <Button type="button" variant={signed ? "secondary" : isNext ? "default" : "outline"} size="sm" className="w-full h-7 text-xs"
+                onClick={() => (signed ? setRole(role, { at: "" }) : slot.name ? setRole(role, { at: new Date().toISOString() }) : toast.error("성명을 먼저 입력하세요"))}>
+                {signed ? "결재취소" : "결재"}
               </Button>
             </div>
           );
