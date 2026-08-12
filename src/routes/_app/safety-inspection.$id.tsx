@@ -14,7 +14,7 @@ import { uploadPhotos } from "@/lib/photo-upload";
 import { getCurrentUserContext } from "@/lib/user-context";
 import { nextScheduledDate, inspectionDocTitle } from "@/lib/inspection-presets";
 import { PrintSheet, printSheet } from "@/components/print-sheet";
-import { InspectionApprovalEditor, InspectionApprovalBox, type InspApproval } from "@/components/approval-line";
+import { InspectionApprovalEditor, InspectionApprovalBox, normalizeApproval, type InspApproval } from "@/components/approval-line";
 
 export const Route = createFileRoute("/_app/safety-inspection/$id")({
   component: InspectionDetail,
@@ -32,7 +32,7 @@ function InspectionDetail() {
   const uploadTarget = useRef<number>(-1);
   const [row, setRow] = useState<any>(null);
   const [items, setItems] = useState<Item[]>([]);
-  const [approval, setApproval] = useState<InspApproval>({});
+  const [approval, setApproval] = useState<InspApproval>([]);
   const [userRowId, setUserRowId] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -48,7 +48,7 @@ function InspectionDetail() {
     const { data } = await (supabase as any).from("safety_inspections").select("*").eq("id", id).maybeSingle();
     setRow(data);
     setItems((data?.items ?? []) as Item[]);
-    setApproval((data?.approval ?? {}) as InspApproval);
+    setApproval(normalizeApproval(data?.approval));
     setLoading(false);
   }
 

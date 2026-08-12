@@ -1,6 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { X, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 // 앱 공통 결재라인(담당·검토·승인). 직원참여(청취조사)와 동일한 형식으로
@@ -85,23 +86,34 @@ export function ApprovalLineView({ approval }: { approval?: Approval }) {
   );
 }
 
-// ── 안전점검 전용 결재란(담당/과장/팀장/소장 4단계) ──
-// 공용 결재(담당/검토/승인)와 별개. jsonb approval 컬럼에 { 역할: {name, at} } 로 저장.
-export const INSP_APPROVAL_ROLES = ["담당", "과장", "팀장", "소장"] as const;
-export type InspApproval = Record<string, { name: string; at: string }>;
+// ── 안전점검 전용 결재란(인원·직책·이름 편집 가능) ──
+// 공용 결재(담당/검토/승인)와 별개. jsonb approval 컬럼에 [{role,name,at}, ...] 배열로 저장.
+// 단지마다 결재자 수가 달라 추가/삭제 가능. 구버전 Record 형태도 자동 변환.
+export const INSP_DEFAULT_ROLES = ["담당", "과장", "팀장", "소장"];
+export type ApprovalRow = { role: string; name: string; at: string };
+export type InspApproval = ApprovalRow[];
+
+export function normalizeApproval(v: any): ApprovalRow[] {
+  if (Array.isArray(v)) return v.map((r) => ({ role: r?.role ?? "", name: r?.name ?? "", at: r?.at ?? "" }));
+  if (v && typeof v === "object" && Object.keys(v).length) {
+    return Object.entries(v).map(([role, s]: any) => ({ role, name: s?.name ?? "", at: s?.at ?? "" }));
+  }
+  return INSP_DEFAULT_ROLES.map((role) => ({ role, name: "", at: "" }));
+}
 
 export function InspectionApprovalEditor({ value, onChange, title }: { value?: InspApproval; onChange: (a: InspApproval) => void; title?: string }) {
-  const v = value ?? {};
-  const setRole = (role: string, patch: Partial<{ name: string; at: string }>) =>
-    onChange({ ...v, [role]: { name: v[role]?.name ?? "", at: v[role]?.at ?? "", ...patch } });
-  // 순서(담당→과장→팀장→소장)상 아직 결재 안 한 첫 역할 = 지금 차례
-  const nextRole = INSP_APPROVAL_ROLES.find((r) => !v[r]?.at) ?? null;
+  const rows = normalizeApproval(value);
+  const set = (r: ApprovalRow[]) => onChange(r);
+  const patch = (i: number, p: Partial<ApprovalRow>) => set(rows.map((r, j) => (j === i ? { ...r, ...p } : r)));
+  const nextIdx = rows.findIndex((r) => !r.at); // 순서상 아직 결재 안 한 첫 칸 = 지금 차례
+  const nextRow = nextIdx >= 0 ? rows[nextIdx] : null;
   async function copyRequest() {
     const url = typeof window !== "undefined" ? window.location.href : "";
-    const msg = `[리스크로그] "${title || "안전점검"}" ${nextRole} 결재를 부탁드립니다.\n${url}`;
+    const who = nextRow?.role || "다음 결재자";
+    const msg = `[리스크로그] "${title || "안전점검"}" ${who} 결재를 부탁드립니다.\n${url}`;
     try {
       await navigator.clipboard.writeText(msg);
-      toast.success(`${nextRole} 결재 요청 링크를 복사했습니다. 카톡 등에 붙여넣어 전달하세요.`);
+      toast.success(`${who} 결재 요청 링크를 복사했습니다. 카톡 등에 붙여넣어 전달하세요.`);
     } catch {
       window.prompt("아래 내용을 복사해 전달하세요", msg);
     }
@@ -109,42 +121,50 @@ export function InspectionApprovalEditor({ value, onChange, title }: { value?: I
   return (
     <div className="border rounded-md p-3 space-y-2">
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <div className="text-xs font-semibold">결재란 <span className="text-muted-foreground font-normal">(담당 → 과장 → 팀장 → 소장)</span></div>
+        <div className="text-xs font-semibold">결재란 <span className="text-muted-foreground font-normal">(직책·이름 수정, 결재자 추가·삭제 가능)</span></div>
         <div className="flex items-center gap-2">
           <div className="text-[11px] font-medium">
-            {nextRole
-              ? <span className="text-primary">▶ 다음 결재: <b>{nextRole}</b></span>
+            {nextRow
+              ? <span className="text-primary">▶ 다음 결재: <b>{nextRow.role || "(직책)"}</b></span>
               : <span className="text-success">✓ 결재 완료</span>}
           </div>
-          {nextRole && (
+          {nextRow && (
             <Button type="button" variant="outline" size="sm" className="h-7 text-[11px] gap-1" onClick={copyRequest}>
               결재 요청 링크 복사
             </Button>
           )}
         </div>
       </div>
-      <div className="grid grid-cols-4 gap-2">
-        {INSP_APPROVAL_ROLES.map((role) => {
-          const slot = v[role] ?? { name: "", at: "" };
-          const signed = !!slot.at;
-          const isNext = role === nextRole;
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+        {rows.map((r, i) => {
+          const signed = !!r.at;
+          const isNext = i === nextIdx;
           return (
-            <div key={role} className={`space-y-1 rounded-md p-1.5 transition-colors ${isNext ? "ring-2 ring-primary bg-primary/5" : signed ? "bg-success/5" : ""}`}>
-              <Label className="text-[11px] flex items-center gap-1">
-                {role}
-                {isNext && <span className="text-[9px] leading-none px-1 py-0.5 rounded bg-primary text-white">지금 차례</span>}
-                {signed && <span className="text-success text-[11px]">✓</span>}
-              </Label>
-              <Input className="h-8 text-xs" placeholder="성명" value={slot.name}
-                onChange={(e) => setRole(role, { name: e.target.value })} />
-              <div className={`text-[10px] min-h-[14px] ${signed ? "text-success" : "text-muted-foreground"}`}>{signed ? new Date(slot.at).toLocaleDateString("ko-KR") + " 결재" : "미결재"}</div>
+            <div key={i} className={`space-y-1 rounded-md p-1.5 border transition-colors ${isNext ? "ring-2 ring-primary bg-primary/5" : signed ? "bg-success/5" : ""}`}>
+              <div className="flex items-center gap-1">
+                <Input className="h-7 text-[11px] font-semibold px-1.5" placeholder="직책" value={r.role}
+                  onChange={(e) => patch(i, { role: e.target.value })} />
+                {rows.length > 1 && (
+                  <button type="button" onClick={() => set(rows.filter((_, j) => j !== i))} className="text-muted-foreground hover:text-danger shrink-0" title="삭제"><X className="h-3.5 w-3.5" /></button>
+                )}
+              </div>
+              <div className="flex items-center gap-1">
+                {isNext && <span className="text-[9px] leading-none px-1 py-0.5 rounded bg-primary text-white shrink-0">지금</span>}
+                {signed && <span className="text-success text-[11px] shrink-0">✓</span>}
+                <Input className="h-8 text-xs" placeholder="성명" value={r.name} onChange={(e) => patch(i, { name: e.target.value })} />
+              </div>
+              <div className={`text-[10px] min-h-[14px] ${signed ? "text-success" : "text-muted-foreground"}`}>{signed ? new Date(r.at).toLocaleDateString("ko-KR") + " 결재" : "미결재"}</div>
               <Button type="button" variant={signed ? "secondary" : isNext ? "default" : "outline"} size="sm" className="w-full h-7 text-xs"
-                onClick={() => (signed ? setRole(role, { at: "" }) : slot.name ? setRole(role, { at: new Date().toISOString() }) : toast.error("성명을 먼저 입력하세요"))}>
+                onClick={() => (signed ? patch(i, { at: "" }) : r.name ? patch(i, { at: new Date().toISOString() }) : toast.error("성명을 먼저 입력하세요"))}>
                 {signed ? "결재취소" : "결재"}
               </Button>
             </div>
           );
         })}
+        <button type="button" onClick={() => set([...rows, { role: "", name: "", at: "" }])}
+          className="min-h-[92px] rounded-md border-2 border-dashed flex flex-col items-center justify-center gap-1 text-muted-foreground hover:border-primary hover:text-primary text-xs">
+          <Plus className="h-4 w-4" />결재자 추가
+        </button>
       </div>
     </div>
   );
@@ -152,19 +172,21 @@ export function InspectionApprovalEditor({ value, onChange, title }: { value?: I
 
 // 인쇄용 결재란(우측 상단). PrintSheet의 headerRight로 넘긴다.
 export function InspectionApprovalBox({ approval }: { approval?: InspApproval }) {
-  const v = approval ?? {};
+  const rows = normalizeApproval(approval).filter((r) => r.role || r.name);
+  if (rows.length === 0) return null;
+  const width = Math.min(22 + rows.length * 16, 130);
   return (
-    <table className="ps-approval" style={{ width: "80mm" }}>
+    <table className="ps-approval" style={{ width: `${width}mm` }}>
       <tbody>
         <tr>
           <th rowSpan={2} style={{ width: "7mm", writingMode: "vertical-rl" as any }}>결재</th>
-          {INSP_APPROVAL_ROLES.map((r) => <th key={r}>{r}</th>)}
+          {rows.map((r, i) => <th key={i}>{r.role}</th>)}
         </tr>
         <tr>
-          {INSP_APPROVAL_ROLES.map((r) => (
-            <td key={r}>
-              <div style={{ fontWeight: 700 }}>{v[r]?.name || ""}</div>
-              <div style={{ fontSize: "7pt", color: "#555", marginTop: "1mm" }}>{v[r]?.at ? new Date(v[r].at).toLocaleDateString("ko-KR") : ""}</div>
+          {rows.map((r, i) => (
+            <td key={i}>
+              <div style={{ fontWeight: 700 }}>{r.name || ""}</div>
+              <div style={{ fontSize: "7pt", color: "#555", marginTop: "1mm" }}>{r.at ? new Date(r.at).toLocaleDateString("ko-KR") : ""}</div>
             </td>
           ))}
         </tr>
