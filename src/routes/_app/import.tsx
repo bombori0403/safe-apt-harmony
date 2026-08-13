@@ -29,6 +29,7 @@ function ImportPage() {
   const [pick, setPick] = useState(0);
   const [workName, setWorkName] = useState("");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [origin, setOrigin] = useState<"carryover" | "new">("carryover");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -97,6 +98,7 @@ function ImportPage() {
 
       const hazardRows = sheet.rows.map((r) => ({
         assessment_id: a.id,
+        origin,   // 가져온 기존 자료 = 보통 '과년도 재검토'
         description: r.description,
         likelihood: r.likelihood ?? null,
         severity: r.severity ?? null,
@@ -202,6 +204,18 @@ function ImportPage() {
                 <Label>평가일</Label>
                 <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-10 mt-1" />
               </div>
+            </div>
+
+            <div>
+              <Label>구분</Label>
+              <select value={origin} onChange={(e) => setOrigin(e.target.value as "carryover" | "new")}
+                className="w-full h-10 px-3 rounded-md border bg-background text-sm mt-1">
+                <option value="carryover">과년도 재검토 — 기존에 해오던 위험성평가 이력</option>
+                <option value="new">신규 — 올해 새로 발굴한 위험성</option>
+              </select>
+              <p className="text-[11px] text-muted-foreground mt-1">
+                기존 엑셀·한글로 관리하던 위험성평가 자료를 가져오는 거라면 <b>과년도 재검토</b>로 두세요. 표준서식 출력의 재검토(1-1·2-1) 시트에 들어갑니다.
+              </p>
             </div>
           </>
         )}
