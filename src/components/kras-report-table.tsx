@@ -36,6 +36,7 @@ export function KrasReportTable({ workName, hazards, method }: { workName: strin
           <th rowSpan={2} className="border p-1 w-8">No.</th>
           <th rowSpan={2} className="border p-1 w-20">공정명</th>
           <th rowSpan={2} className="border p-1">위험발생상황 및 결과<br />(유해위험요인 파악)</th>
+          <th rowSpan={2} className="border p-1">현재 안전보건조치</th>
           <th colSpan={3} className="border p-1">현재위험성</th>
           <th rowSpan={2} className="border p-1">위험성 감소대책</th>
           <th colSpan={3} className="border p-1">감소대책 실행</th>
@@ -58,7 +59,7 @@ export function KrasReportTable({ workName, hazards, method }: { workName: strin
       </thead>
       <tbody>
         {hazards.length === 0 && (
-          <tr><td colSpan={15} className="border p-3 text-center text-muted-foreground">등록된 유해·위험요인이 없습니다.</td></tr>
+          <tr><td colSpan={16} className="border p-3 text-center text-muted-foreground">등록된 유해·위험요인이 없습니다.</td></tr>
         )}
         {hazards.map((h, i) => {
           const rowMethod = h._method ?? method ?? "빈도강도법";
@@ -80,6 +81,7 @@ export function KrasReportTable({ workName, hazards, method }: { workName: strin
               <td className="border p-1 text-center">{i + 1}</td>
               <td className="border p-1">{h.work_name ?? workName}</td>
               <td className="border p-1">{h.description}</td>
+              <td className="border p-1">{h.current_control || "-"}</td>
               <td className="border p-1 text-center">{isFreq ? (h.likelihood ?? "-") : "-"}</td>
               <td className="border p-1 text-center">{isFreq ? (h.severity ?? "-") : "-"}</td>
               <td className="border p-1 text-center">
