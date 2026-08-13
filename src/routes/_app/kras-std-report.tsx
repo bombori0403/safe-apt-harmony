@@ -130,31 +130,32 @@ function KrasStdReport() {
         <Button onClick={() => window.print()} size="sm" className="gap-1.5" disabled={loading || rows.length === 0}>
           <Printer className="h-4 w-4" />PDF / 인쇄
         </Button>
+        {/* 인쇄 줄 맨 오른쪽 끝 '시트 이동' 드롭다운 — 우하단 문의/마스코트와 겹치지 않음 */}
+        {!loading && rows.length > 0 && (
+          <div className="relative ml-auto">
+            <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setNavOpen((v) => !v)}>
+              <List className="h-4 w-4" />시트 이동
+            </Button>
+            {navOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setNavOpen(false)} />
+                <div className="absolute right-0 top-full mt-1 w-56 rounded-xl border bg-white shadow-xl overflow-hidden z-50">
+                  <div className="px-3 py-2 text-xs font-semibold border-b bg-muted/60 flex items-center justify-between">
+                    <span>보고 싶은 시트로 이동</span>
+                    <button onClick={() => setNavOpen(false)}><X className="h-3.5 w-3.5" /></button>
+                  </div>
+                  {nav.map((s) => (
+                    <button key={s.id} onClick={() => { jump(s.id); setNavOpen(false); }}
+                      className="w-full text-left px-3 py-2.5 text-sm hover:bg-muted flex justify-between items-center border-b last:border-b-0">
+                      <span>{s.label}</span><span className="text-xs text-muted-foreground">{s.n}건</span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
       </div>
-
-      {/* 우측 고정 '시트 이동' 버튼 — 문의 버튼(fab)과 그 위 마스코트(모바일 bottom 9.5rem/데스크톱 5.25rem) 위로 올려 겹침 방지 */}
-      {!loading && rows.length > 0 && (
-        <div className="print:hidden fixed right-4 bottom-60 md:right-6 md:bottom-44 z-50 flex flex-col items-end gap-2">
-          {navOpen && (
-            <div className="w-56 rounded-xl border bg-white shadow-xl overflow-hidden">
-              <div className="px-3 py-2 text-xs font-semibold border-b bg-muted/60 flex items-center justify-between">
-                <span>보고 싶은 시트로 이동</span>
-                <button onClick={() => setNavOpen(false)}><X className="h-3.5 w-3.5" /></button>
-              </div>
-              {nav.map((s) => (
-                <button key={s.id} onClick={() => { jump(s.id); setNavOpen(false); }}
-                  className="w-full text-left px-3 py-2.5 text-sm hover:bg-muted flex justify-between items-center border-b last:border-b-0">
-                  <span>{s.label}</span><span className="text-xs text-muted-foreground">{s.n}건</span>
-                </button>
-              ))}
-            </div>
-          )}
-          <button onClick={() => setNavOpen((v) => !v)}
-            className="flex items-center gap-1.5 rounded-full bg-primary text-primary-foreground shadow-xl px-4 py-3 text-sm font-semibold hover:opacity-90">
-            <List className="h-4 w-4" />{navOpen ? "닫기" : "시트 이동"}
-          </button>
-        </div>
-      )}
 
       <div className="max-w-5xl mx-auto p-6 print:p-0 print:max-w-none space-y-8">
         {loading ? (
