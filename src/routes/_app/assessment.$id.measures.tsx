@@ -158,11 +158,11 @@ function Measures() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <div className="text-[11px] font-medium text-muted-foreground mb-1">변경 전 (현장)</div>
-                    <PhotoUpload assessmentId={id} hazardId={h.id} photos={h.photos ?? []} onChange={(photos) => updateHazardPhotos(h.id, { photos })} />
+                    <PhotoUpload max={2} assessmentId={id} hazardId={h.id} photos={h.photos ?? []} onChange={(photos) => updateHazardPhotos(h.id, { photos })} />
                   </div>
                   <div>
                     <div className="text-[11px] font-medium text-muted-foreground mb-1">변경 후 (이행)</div>
-                    <PhotoUpload assessmentId={id} hazardId={h.id} photos={h.after_photos ?? []} onChange={(after_photos) => updateHazardPhotos(h.id, { after_photos })} />
+                    <PhotoUpload max={2} assessmentId={id} hazardId={h.id} photos={h.after_photos ?? []} onChange={(after_photos) => updateHazardPhotos(h.id, { after_photos })} />
                   </div>
                 </div>
               </div>

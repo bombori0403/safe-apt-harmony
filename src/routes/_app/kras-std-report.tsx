@@ -339,17 +339,13 @@ function PhotoSheet({ title, label, hazards, onPhotos }: {
               <div className="grid grid-cols-2">
                 <div className="border-r p-2">
                   <div className="text-[10px] font-medium text-center mb-1">변경 전</div>
-                  <div className="flex justify-center">
-                    <PhotoUpload assessmentId={h.assessment_id} hazardId={h.id} photos={before}
-                      onChange={(photos) => onPhotos(h.id, { photos })} />
-                  </div>
+                  <PhotoUpload variant="sheet" max={2} assessmentId={h.assessment_id} hazardId={h.id} photos={before}
+                    onChange={(photos) => onPhotos(h.id, { photos })} />
                 </div>
                 <div className="p-2">
                   <div className="text-[10px] font-medium text-center mb-1">변경 후</div>
-                  <div className="flex justify-center">
-                    <PhotoUpload assessmentId={h.assessment_id} hazardId={h.id} photos={after}
-                      onChange={(after_photos) => onPhotos(h.id, { after_photos })} />
-                  </div>
+                  <PhotoUpload variant="sheet" max={2} assessmentId={h.assessment_id} hazardId={h.id} photos={after}
+                    onChange={(after_photos) => onPhotos(h.id, { after_photos })} />
                 </div>
               </div>
             </div>
