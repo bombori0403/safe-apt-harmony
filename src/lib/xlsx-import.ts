@@ -1,5 +1,5 @@
 import * as XLSX from "xlsx";
-import { scoreToRiskLevel, type RiskLevel } from "@/lib/types";
+import { scoreToRiskLevel, RISK_LEVELS, type RiskLevel } from "@/lib/types";
 
 export interface ImportRow {
   description: string;
@@ -297,6 +297,130 @@ export function parseStandardForm(buf: ArrayBuffer): StdFormResult | null {
     measures: mcount,
   };
 }
+
+// ─────────────────────────────────────────────────────────────────────────
+// 직접 열 매핑(임의 서식 대응)
+// 표준서식이 아니어도, 어떤 엑셀이든 열 목록을 뽑아 사용자가 항목↔열을 짝짓게 한다.
+// ─────────────────────────────────────────────────────────────────────────
+
+export interface MapColumn { index: number; label: string; samples: string[]; }
+export interface MapSheet { sheetName: string; headerRow: number; columns: MapColumn[]; rows: any[][]; }
+
+// 매핑 대상 항목(앱 필드). description만 필수.
+export const MAP_FIELDS: { key: string; label: string; required?: boolean }[] = [
+  { key: "description", label: "위험발생상황 (유해·위험요인)", required: true },
+  { key: "proc", label: "작업공정명" },
+  { key: "legalBasis", label: "관련근거 (법적기준)" },
+  { key: "current_control", label: "현재의 안전보건조치" },
+  { key: "level", label: "현재 위험성 (상/중/하)" },
+  { key: "measure", label: "위험성 감소대책" },
+  { key: "dueDate", label: "개선 예정일" },
+  { key: "responsible", label: "담당자" },
+];
+
+function colLetter(n: number): string {
+  let s = "";
+  n += 1;
+  while (n > 0) { const r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = Math.floor((n - 1) / 26); }
+  return s;
+}
+
+// 아무 엑셀이나 시트별로 헤더행(비어있지 않은 셀이 가장 많은 행)을 추정해 열/샘플/데이터를 뽑는다.
+export function readWorkbookForMapping(buf: ArrayBuffer): { sheetNames: string[]; sheets: MapSheet[] } {
+  const wb = XLSX.read(buf, { type: "array", cellDates: true });
+  const sheets: MapSheet[] = [];
+  for (const name of wb.SheetNames) {
+    const aoa: any[][] = XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, defval: null, blankrows: false });
+    if (!aoa.length) continue;
+    let hr = 0, best = -1;
+    for (let r = 0; r < Math.min(aoa.length, 12); r++) {
+      const cnt = (aoa[r] || []).filter((c) => c != null && String(c).trim() !== "").length;
+      if (cnt > best) { best = cnt; hr = r; }
+    }
+    const ncol = Math.max(...aoa.map((r) => (r ? r.length : 0)));
+    const columns: MapColumn[] = [];
+    for (let c = 0; c < ncol; c++) {
+      const label = txt(aoa[hr]?.[c]) || `열 ${colLetter(c)}`;
+      const samples: string[] = [];
+      for (let r = hr + 1; r < aoa.length && samples.length < 3; r++) {
+        const v = txt(aoa[r]?.[c]);
+        if (v) samples.push(v.length > 24 ? v.slice(0, 24) + "…" : v);
+      }
+      columns.push({ index: c, label: label.length > 30 ? label.slice(0, 30) + "…" : label, samples });
+    }
+    const rows = aoa.slice(hr + 1);
+    if (rows.length) sheets.push({ sheetName: name, headerRow: hr, columns, rows });
+  }
+  return { sheetNames: wb.SheetNames, sheets };
+}
+
+// 열 제목 키워드로 항목별 열을 자동 추측(사용자가 확인·수정). 한 열은 한 항목에만.
+const MAP_GUESS: Record<string, string[]> = {
+  description: ["위험발생", "유해위험요인", "유해·위험요인", "위험요인", "작업내용", "위험내용"],
+  proc: ["작업공정", "공정명", "작업명"],
+  legalBasis: ["관련근거", "법적", "법규", "근거"],
+  current_control: ["현재의안전보건조치", "현재조치", "안전보건조치", "조치사항", "기존조치"],
+  level: ["현재위험성", "위험성", "위험도", "등급"],
+  measure: ["위험성감소대책", "감소대책", "개선대책", "대책", "조치계획"],
+  dueDate: ["개선예정", "예정일", "완료예정", "개선일", "조치일", "이행일"],
+  responsible: ["담당자", "책임자", "조치자", "담당"],
+};
+
+export function guessMapping(columns: MapColumn[]): Record<string, number> {
+  const used = new Set<number>();
+  const out: Record<string, number> = {};
+  for (const [field, kws] of Object.entries(MAP_GUESS)) {
+    let found = -1;
+    for (const col of columns) {
+      if (used.has(col.index)) continue;
+      if (inc(norm(col.label), kws)) { found = col.index; break; }
+    }
+    out[field] = found;
+    if (found >= 0) used.add(found);
+  }
+  for (const f of MAP_FIELDS) if (!(f.key in out)) out[f.key] = -1;
+  return out;
+}
+
+// 셀 값 → 위험성 등급(상/중/하, 등급 텍스트, 적정/보완, 1~25 점수 모두 대응).
+export function levelFromCell(v: any): RiskLevel | undefined {
+  const s = txt(v);
+  if (!s) return undefined;
+  const l3 = levelFrom상중하(s); if (l3) return l3;
+  if ((RISK_LEVELS as string[]).includes(s)) return s as RiskLevel;
+  if (s.includes("적정")) return "낮음";
+  if (s.includes("보완")) return "높음";
+  const n = Number(s.replace(/[^0-9.]/g, ""));
+  if (Number.isFinite(n) && n > 0 && n <= 25) return scoreToRiskLevel(n);
+  return undefined;
+}
+
+// 매핑에 따라 시트 데이터를 위험요인(+감소대책) 목록으로 변환.
+export function rowsFromMapping(ms: MapSheet, mapping: Record<string, number>, origin: "carryover" | "new"): StdHazardRow[] {
+  const g = (r: any[], k: string) => { const i = mapping[k]; return i != null && i >= 0 ? txt(r[i]) : ""; };
+  const out: StdHazardRow[] = [];
+  for (const r of ms.rows) {
+    const desc = g(r, "description");
+    if (!desc || desc.length < 2 || skipHeaderText(desc)) continue;
+    const content = g(r, "measure");
+    const dueIdx = mapping.dueDate;
+    out.push({
+      origin,
+      description: desc,
+      currentControl: g(r, "current_control") || undefined,
+      legalBasis: g(r, "legalBasis") || undefined,
+      level: mapping.level != null && mapping.level >= 0 ? levelFromCell(r[mapping.level]) : undefined,
+      measures: content ? [{
+        content,
+        dueDate: dueIdx != null && dueIdx >= 0 ? toDate(r[dueIdx]) : undefined,
+        responsible: g(r, "responsible") || undefined,
+      }] : [],
+    });
+  }
+  return out;
+}
+
+const skipHeaderText = (d: string) => inc(norm(d), ["위험발생상황", "유해위험요인", "유해·위험요인"]);
 
 // 파일 전체를 읽어 파싱 가능한 시트 목록을 돌려준다.
 export async function parseWorkbook(buf: ArrayBuffer): Promise<{ all: string[]; parsed: ParsedSheet[] }> {
