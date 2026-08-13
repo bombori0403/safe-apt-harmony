@@ -111,14 +111,36 @@ function KrasStdReport() {
     setRows((rs) => rs.map((r) => (r.id === hazardId ? { ...r, ...patch } : r)));
   }
 
+  const nav = [
+    { id: "s11", label: "1-1 재검토", n: carryover.length },
+    { id: "s12", label: "1-2 신규", n: news.length },
+    { id: "s21", label: "2-1 대책(재검토)", n: carryoverM.length },
+    { id: "s22", label: "2-2 대책(신규)", n: newsM.length },
+    { id: "s31", label: "3-1 이행확인", n: allM.length },
+    { id: "s32", label: "3-2 사진대지", n: allM.length },
+  ];
+  const jump = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+
   return (
     <div className="bg-white text-foreground">
       {sub.isTrial && <TrialWatermark expired={sub.isExpired} />}
-      <div className="print:hidden p-4 max-w-5xl mx-auto flex justify-between items-center border-b">
-        <Link to="/history"><Button variant="outline" size="sm" className="gap-1"><ArrowLeft className="h-4 w-4" />평가 이력으로</Button></Link>
-        <Button onClick={() => window.print()} className="gap-2" disabled={loading || rows.length === 0}>
-          <Printer className="h-4 w-4" />PDF 저장 / 인쇄
-        </Button>
+      <div className="print:hidden sticky top-0 z-20 bg-white/95 backdrop-blur border-b">
+        <div className="p-3 max-w-5xl mx-auto flex flex-wrap items-center gap-2">
+          <Link to="/history"><Button variant="outline" size="sm" className="gap-1"><ArrowLeft className="h-4 w-4" />이력</Button></Link>
+          <Button onClick={() => window.print()} size="sm" className="gap-1.5" disabled={loading || rows.length === 0}>
+            <Printer className="h-4 w-4" />PDF / 인쇄
+          </Button>
+          {!loading && rows.length > 0 && (
+            <div className="flex flex-wrap gap-1 ml-auto">
+              {nav.map((s) => (
+                <button key={s.id} onClick={() => jump(s.id)}
+                  className="px-2 py-1 rounded-md border text-xs hover:bg-muted hover:border-primary transition-colors">
+                  {s.label} <span className="text-muted-foreground">{s.n}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="max-w-5xl mx-auto p-6 print:p-0 print:max-w-none space-y-8">
@@ -128,12 +150,12 @@ function KrasStdReport() {
           <p className="text-muted-foreground">출력할 위험성평가 데이터가 없습니다.</p>
         ) : (
           <>
-            <DecisionSheet title="1-1. 위험성평가 재검토(과년도)" label={label} hazards={carryover} withMeasureSeq />
-            <DecisionSheet title="1-2. 위험성결정(신규)" label={label} hazards={news} withMeasureSeq />
-            <MeasureSheet title="2-1. 감소대책 수립(과년도 재검토)" label={label} hazards={carryoverM} />
-            <MeasureSheet title="2-2. 감소대책 수립(신규)" label={label} hazards={newsM} />
-            <ConfirmSheet title="3-1. 감소대책 이행 확인" label={label} hazards={allM} />
-            <PhotoSheet title="3-2. 감소대책 이행 사진 대지" label={label} hazards={allM} onPhotos={updatePhotos} />
+            <div id="s11" className="scroll-mt-24"><DecisionSheet title="1-1. 위험성평가 재검토(과년도)" label={label} hazards={carryover} withMeasureSeq /></div>
+            <div id="s12" className="scroll-mt-24"><DecisionSheet title="1-2. 위험성결정(신규)" label={label} hazards={news} withMeasureSeq /></div>
+            <div id="s21" className="scroll-mt-24"><MeasureSheet title="2-1. 감소대책 수립(과년도 재검토)" label={label} hazards={carryoverM} /></div>
+            <div id="s22" className="scroll-mt-24"><MeasureSheet title="2-2. 감소대책 수립(신규)" label={label} hazards={newsM} /></div>
+            <div id="s31" className="scroll-mt-24"><ConfirmSheet title="3-1. 감소대책 이행 확인" label={label} hazards={allM} /></div>
+            <div id="s32" className="scroll-mt-24"><PhotoSheet title="3-2. 감소대책 이행 사진 대지" label={label} hazards={allM} onPhotos={updatePhotos} /></div>
           </>
         )}
       </div>
