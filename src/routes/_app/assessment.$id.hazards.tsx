@@ -9,7 +9,7 @@ import { WORK_CATEGORIES, CATEGORY_LABEL, scoreToRiskLevel, type WorkCategory, t
 import { suggestLegalBasis } from "@/lib/legal-basis-keywords";
 import { toast } from "sonner";
 import { writeErrorMessage } from "@/lib/write-error";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Search } from "lucide-react";
 
 export const Route = createFileRoute("/_app/assessment/$id/hazards")({
   component: Hazards,
@@ -22,6 +22,8 @@ function Hazards() {
   const [category, setCategory] = useState<WorkCategory>("승강기_점검정비");
   const [customCategory, setCustomCategory] = useState("");
   const [library, setLibrary] = useState<any[]>([]);
+  const [allLib, setAllLib] = useState<any[]>([]);
+  const [libQuery, setLibQuery] = useState("");
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [custom, setCustom] = useState<string[]>([]);
   const [newCustom, setNewCustom] = useState("");
@@ -48,6 +50,13 @@ function Hazards() {
       });
   }, [category]);
 
+  // 검색용: 전체 라이브러리를 한 번 불러온다(카테고리 무관 키워드 검색).
+  useEffect(() => {
+    supabase.from("hazard_library")
+      .select("id,description,default_likelihood,default_severity,suggested_measures,category")
+      .order("sort_order").then(({ data }) => setAllLib(data ?? []));
+  }, []);
+
   // 라이브러리 기본 빈도·강도(빈도강도법 기준)를 평가방법에 맞는 위험성으로 환산해 미리 채운다.
   function prefillRisk(method: string, l?: number | null, s?: number | null): Record<string, any> {
     if (!l || !s) return {};
@@ -63,7 +72,9 @@ function Hazards() {
 
   async function submit() {
     setSaving(true);
-    const libSel = library.filter(l => selected[l.id]);
+    // 선택 항목은 카테고리 목록·검색결과 어디서 골랐든 전체 라이브러리(allLib)에서 조회.
+    const src = allLib.length ? allLib : library;
+    const libSel = src.filter(l => selected[l.id]);
     const rows = [
       ...libSel.map(l => ({
         assessment_id: id, description: l.description, library_item_id: l.id,
@@ -137,16 +148,47 @@ function Hazards() {
           <p className="text-xs text-muted-foreground mt-1 mb-2">
             해당하는 항목을 선택하세요 (다중 선택). 선택 시 <b>위험성(빈도·강도)과 대표 감소대책, 법적기준</b>이 자동으로 채워집니다 — 다음 단계에서 수정할 수 있어요.
           </p>
-          <div className="space-y-1.5">
-            {library.map(l => (
-              <label key={l.id} className="flex items-start gap-2 p-2.5 rounded-md hover:bg-muted/40 cursor-pointer text-sm">
-                <input type="checkbox" className="mt-0.5"
-                  checked={!!selected[l.id]}
-                  onChange={e => setSelected({ ...selected, [l.id]: e.target.checked })} />
-                <span>{l.description}</span>
-              </label>
-            ))}
+
+          {/* 키워드 검색 — 입력하면 전체 분류에서 찾고, 비우면 위에서 고른 분류 목록을 보여줌 */}
+          <div className="relative mb-2">
+            <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Input value={libQuery} onChange={e => setLibQuery(e.target.value)}
+              placeholder="키워드 검색 (예: 감전, 사다리, 미끄럼) — 전체 분류에서 찾기" className="pl-9" />
           </div>
+
+          {(() => {
+            const nq = libQuery.replace(/\s/g, "");
+            const searching = nq.length > 0;
+            const matched = searching
+              ? allLib.filter(l => l.description?.replace(/\s/g, "").includes(nq))
+              : library;
+            const shown = matched.slice(0, 80);
+            if (searching && matched.length === 0) {
+              return <div className="text-sm text-muted-foreground py-4 text-center">‘{libQuery}’에 맞는 항목이 없어요. 아래 <b>직접 입력</b>으로 추가하세요.</div>;
+            }
+            return (
+              <>
+                {searching && (
+                  <div className="text-xs text-muted-foreground mb-1.5">전체 분류에서 {matched.length}건 찾음{matched.length > 80 ? " (상위 80건 표시 — 더 구체적으로 검색)" : ""}</div>
+                )}
+                <div className="space-y-1.5 max-h-[420px] overflow-y-auto">
+                  {shown.map(l => (
+                    <label key={l.id} className="flex items-start gap-2 p-2.5 rounded-md hover:bg-muted/40 cursor-pointer text-sm">
+                      <input type="checkbox" className="mt-0.5"
+                        checked={!!selected[l.id]}
+                        onChange={e => setSelected({ ...selected, [l.id]: e.target.checked })} />
+                      <span className="flex-1">
+                        {l.description}
+                        {searching && l.category && (
+                          <span className="ml-1.5 text-[11px] text-muted-foreground">· {CATEGORY_LABEL[l.category as WorkCategory] ?? l.category}</span>
+                        )}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </>
+            );
+          })()}
         </div>
 
         <div>

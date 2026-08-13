@@ -122,7 +122,7 @@ function History() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:items-end">
+      <div className="sticky top-0 md:top-12 z-20 -mx-4 px-4 md:-mx-8 md:px-8 py-3 border-b bg-background/95 backdrop-blur grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:items-end">
         <div className="sm:min-w-[180px]">
           <Label className="text-xs">단지</Label>
           <select
