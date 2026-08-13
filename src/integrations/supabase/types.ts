@@ -557,6 +557,7 @@ export type Database = {
           evidence: Json | null
           hazard_id: string
           id: string
+          residual_action: string | null
           residual_level: Database["public"]["Enums"]["risk_level"] | null
           responsible_name: string | null
           responsible_user_id: string | null
@@ -572,6 +573,7 @@ export type Database = {
           evidence?: Json | null
           hazard_id: string
           id?: string
+          residual_action?: string | null
           residual_level?: Database["public"]["Enums"]["risk_level"] | null
           responsible_name?: string | null
           responsible_user_id?: string | null
@@ -587,6 +589,7 @@ export type Database = {
           evidence?: Json | null
           hazard_id?: string
           id?: string
+          residual_action?: string | null
           residual_level?: Database["public"]["Enums"]["risk_level"] | null
           responsible_name?: string | null
           responsible_user_id?: string | null

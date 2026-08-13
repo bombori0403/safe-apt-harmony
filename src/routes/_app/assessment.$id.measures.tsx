@@ -290,6 +290,24 @@ function MeasureRow({ m, onUpdate, onDelete }: { m: any; onUpdate: (p: any) => v
           <Button size="sm" variant="ghost" className="h-7 px-2 text-destructive hover:text-destructive" onClick={onDelete}><Trash2 className="h-3.5 w-3.5" /></Button>
         </div>
         {m.responsible_name && <div className="text-xs text-muted-foreground mt-0.5">책임자: {m.responsible_name} · {m.due_date ?? "-"}</div>}
+        {m.status !== "완료" && (
+          <div className="mt-1">
+            <textarea
+              key={m.id}
+              defaultValue={m.residual_action ?? ""}
+              onBlur={(e) => {
+                const val = e.target.value.trim();
+                if (val !== (m.residual_action ?? "")) onUpdate({ residual_action: val || null });
+              }}
+              placeholder="잔여 감소대책 (미완료 시 남은 조치 — 예: 자재 입고 후 난간 설치 예정)"
+              rows={1}
+              className="w-full px-2 py-1 rounded border bg-background text-xs resize-y"
+            />
+          </div>
+        )}
+        {m.status === "완료" && m.residual_action && (
+          <div className="text-xs text-muted-foreground mt-0.5 line-through">잔여 대책: {m.residual_action}</div>
+        )}
       </div>
     );
   }

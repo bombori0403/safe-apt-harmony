@@ -198,7 +198,7 @@ function NewAssessment() {
       let copied = 0;
       if (sourceId) {
         const { data: src } = await supabase.from("hazards")
-          .select("description, current_control, likelihood, severity, level, level_standardized, legal_basis_override, library_item_id, post_likelihood, post_severity, post_level, checklist_result, ops_data, measures(content, type, due_date, status, completed_at, responsible_name)")
+          .select("description, current_control, likelihood, severity, level, level_standardized, legal_basis_override, library_item_id, post_likelihood, post_severity, post_level, checklist_result, ops_data, measures(content, type, due_date, status, completed_at, responsible_name, residual_action)")
           .eq("assessment_id", sourceId)
           .order("created_at", { ascending: true });
         if (src && src.length) {
@@ -216,7 +216,7 @@ function NewAssessment() {
           const mIns: any[] = [];
           (newHz ?? []).forEach((nh: any, i: number) => {
             for (const m of (src[i]?.measures ?? [])) {
-              mIns.push({ hazard_id: nh.id, content: m.content, type: m.type, due_date: m.due_date, status: m.status, completed_at: m.completed_at, responsible_name: m.responsible_name });
+              mIns.push({ hazard_id: nh.id, content: m.content, type: m.type, due_date: m.due_date, status: m.status, completed_at: m.completed_at, responsible_name: m.responsible_name, residual_action: m.residual_action });
             }
           });
           if (mIns.length) await supabase.from("measures").insert(mIns).then(() => {}, () => {});
