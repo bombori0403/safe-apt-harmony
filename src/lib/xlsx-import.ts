@@ -32,7 +32,13 @@ function toNum(v: any): number | undefined {
 
 function toDate(v: any): string | undefined {
   if (v == null || v === "") return undefined;
-  if (v instanceof Date) return v.toISOString().slice(0, 10);
+  if (v instanceof Date) {
+    // 로컬 날짜 구성요소로 포맷 — toISOString(UTC 변환)은 KST에서 하루 당겨지는 버그.
+    const y = v.getFullYear();
+    const m = String(v.getMonth() + 1).padStart(2, "0");
+    const d = String(v.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }
   const s = String(v);
   const m = s.match(/(\d{4})[.\-/]\s*(\d{1,2})[.\-/]\s*(\d{1,2})/);
   if (m) return `${m[1]}-${m[2].padStart(2, "0")}-${m[3].padStart(2, "0")}`;
