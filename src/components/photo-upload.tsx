@@ -54,13 +54,13 @@ export function PhotoUpload({ assessmentId, hazardId, photos, onChange }: Props)
           <div key={i} className="relative w-20 h-20 rounded-md overflow-hidden border bg-muted">
             <SignedImg src={url} alt="" className="w-full h-full object-cover" />
             <button onClick={() => remove(i)} type="button"
-              className="absolute top-0.5 right-0.5 bg-black/60 text-white rounded-full p-0.5">
+              className="absolute top-0.5 right-0.5 bg-black/60 text-white rounded-full p-0.5 print:hidden">
               <X className="h-3 w-3" />
             </button>
           </div>
         ))}
         <button type="button" onClick={() => fileRef.current?.click()} disabled={busy}
-          className="w-20 h-20 rounded-md border-2 border-dashed border-border flex flex-col items-center justify-center text-muted-foreground hover:border-primary hover:text-primary text-[10px] gap-1">
+          className="w-20 h-20 rounded-md border-2 border-dashed border-border flex flex-col items-center justify-center text-muted-foreground hover:border-primary hover:text-primary text-[10px] gap-1 print:hidden">
           {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <Camera className="h-5 w-5" />}
           {busy ? "업로드 중" : "사진 추가"}
         </button>

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Printer, ArrowLeft } from "lucide-react";
-import { SignedImg } from "@/components/signed-img";
+import { PhotoUpload } from "@/components/photo-upload";
 import { RISK_ORDER, riskLevelClass, type RiskLevel } from "@/lib/types";
 import { suggestLegalBasis } from "@/lib/legal-basis-keywords";
 import { TrialWatermark, TrialExpiredBlock } from "@/components/trial-watermark";
@@ -104,6 +104,13 @@ function KrasStdReport() {
 
   const label = complexName ? `[ ${complexName} ]` : "[ 전체 단지 ]";
 
+  // 사진 대지 편집: 변경 전(photos)/후(after_photos)를 hazards에 저장하고 화면 상태 갱신.
+  async function updatePhotos(hazardId: string, patch: { photos?: string[]; after_photos?: string[] }) {
+    const { error } = await supabase.from("hazards").update(patch).eq("id", hazardId);
+    if (error) return;
+    setRows((rs) => rs.map((r) => (r.id === hazardId ? { ...r, ...patch } : r)));
+  }
+
   return (
     <div className="bg-white text-foreground">
       {sub.isTrial && <TrialWatermark expired={sub.isExpired} />}
@@ -126,7 +133,7 @@ function KrasStdReport() {
             <MeasureSheet title="2-1. 감소대책 수립(과년도 재검토)" label={label} hazards={carryoverM} />
             <MeasureSheet title="2-2. 감소대책 수립(신규)" label={label} hazards={newsM} />
             <ConfirmSheet title="3-1. 감소대책 이행 확인" label={label} hazards={allM} />
-            <PhotoSheet title="3-2. 감소대책 이행 사진 대지" label={label} hazards={allM} />
+            <PhotoSheet title="3-2. 감소대책 이행 사진 대지" label={label} hazards={allM} onPhotos={updatePhotos} />
           </>
         )}
       </div>
@@ -303,11 +310,15 @@ function ConfirmSheet({ title, label, hazards }: { title: string; label: string;
   );
 }
 
-// 3-2 — 감소대책 이행 사진 대지(변경 전/후).
-function PhotoSheet({ title, label, hazards }: { title: string; label: string; hazards: any[] }) {
+// 3-2 — 감소대책 이행 사진 대지(변경 전/후). 화면에서 사진 업로드 가능(인쇄 시 버튼 숨김).
+function PhotoSheet({ title, label, hazards, onPhotos }: {
+  title: string; label: string; hazards: any[];
+  onPhotos: (hazardId: string, patch: { photos?: string[]; after_photos?: string[] }) => void;
+}) {
   return (
     <section className="std-sheet">
       <SheetHead title={title} label={label} />
+      <p className="text-[10px] text-muted-foreground mb-2 print:hidden">※ 각 항목의 변경 전/후 칸을 눌러 사진을 올리세요. 인쇄물에는 사진만 나옵니다.</p>
       <div className="space-y-3">
         {hazards.length === 0 && (
           <div className="border p-3 text-center text-[10px] text-muted-foreground">사진 대지 대상 항목이 없습니다.</div>
@@ -328,20 +339,16 @@ function PhotoSheet({ title, label, hazards }: { title: string; label: string; h
               <div className="grid grid-cols-2">
                 <div className="border-r p-2">
                   <div className="text-[10px] font-medium text-center mb-1">변경 전</div>
-                  <div className="flex flex-wrap gap-1 justify-center">
-                    {before.length === 0 ? <span className="text-[10px] text-muted-foreground">사진 없음</span>
-                      : before.map((url, i) => (
-                        <SignedImg key={i} src={url} alt="" className="w-28 h-28 object-cover border rounded" />
-                      ))}
+                  <div className="flex justify-center">
+                    <PhotoUpload assessmentId={h.assessment_id} hazardId={h.id} photos={before}
+                      onChange={(photos) => onPhotos(h.id, { photos })} />
                   </div>
                 </div>
                 <div className="p-2">
                   <div className="text-[10px] font-medium text-center mb-1">변경 후</div>
-                  <div className="flex flex-wrap gap-1 justify-center">
-                    {after.length === 0 ? <span className="text-[10px] text-muted-foreground">사진 없음</span>
-                      : after.map((url, i) => (
-                        <SignedImg key={i} src={url} alt="" className="w-28 h-28 object-cover border rounded" />
-                      ))}
+                  <div className="flex justify-center">
+                    <PhotoUpload assessmentId={h.assessment_id} hazardId={h.id} photos={after}
+                      onChange={(after_photos) => onPhotos(h.id, { after_photos })} />
                   </div>
                 </div>
               </div>
