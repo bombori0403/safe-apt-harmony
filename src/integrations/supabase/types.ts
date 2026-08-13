@@ -412,6 +412,7 @@ export type Database = {
           ops_data: Json | null
           photos: Json | null
           post_level: Database["public"]["Enums"]["risk_level"] | null
+          process_name: string | null
           post_likelihood: number | null
           post_severity: number | null
           severity: number | null
@@ -438,6 +439,7 @@ export type Database = {
           post_level?: Database["public"]["Enums"]["risk_level"] | null
           post_likelihood?: number | null
           post_severity?: number | null
+          process_name?: string | null
           severity?: number | null
           updated_at?: string | null
         }
@@ -462,6 +464,7 @@ export type Database = {
           post_level?: Database["public"]["Enums"]["risk_level"] | null
           post_likelihood?: number | null
           post_severity?: number | null
+          process_name?: string | null
           severity?: number | null
           updated_at?: string | null
         }

@@ -169,6 +169,7 @@ export interface StdMeasureRow { content: string; dueDate?: string; responsible?
 export interface StdHazardRow {
   origin: "carryover" | "new";
   description: string;
+  processName?: string;        // 작업공정명(대분류)
   currentControl?: string;
   legalBasis?: string;
   level?: RiskLevel;           // 현재 위험성(상/중/하 → 매핑)
@@ -267,6 +268,7 @@ export function parseStandardForm(buf: ArrayBuffer): StdFormResult | null {
     const A = analyzeStdSheet(wb.Sheets[n]); if (!A) continue;
     let descCol = A.find(["위험발생"], ["위험분류"]);
     if (descCol < 0) descCol = A.find(["유해위험요인", "유해·위험요인"], ["위험분류"]);
+    const procCol = A.find(["작업공정", "대분류"]);
     const legalCol = A.find(["관련근거", "법적"]);
     const ctrlCol = A.find(["현재의안전보건조치"]);
     const riskCol = A.find(["현재위험성"]);
@@ -278,6 +280,7 @@ export function parseStandardForm(buf: ArrayBuffer): StdFormResult | null {
       const h: StdHazardRow = {
         origin: role!.origin,
         description: desc,
+        processName: procCol >= 0 ? txt(row[procCol]) || undefined : undefined,
         currentControl: ctrlCol >= 0 ? txt(row[ctrlCol]) || undefined : undefined,
         legalBasis: legalCol >= 0 ? txt(row[legalCol]) || undefined : undefined,
         level: riskCol >= 0 ? levelFrom상중하(txt(row[riskCol])) : undefined,
@@ -469,6 +472,7 @@ export function rowsFromMapping(ms: MapSheet, mapping: Record<string, number>, o
     out.push({
       origin,
       description: desc,
+      processName: g(r, "proc") || undefined,
       currentControl: g(r, "current_control") || undefined,
       legalBasis: g(r, "legalBasis") || undefined,
       level: mapping.level != null && mapping.level >= 0 ? levelFromCell(r[mapping.level]) : undefined,

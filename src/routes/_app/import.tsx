@@ -119,6 +119,7 @@ function ImportPage() {
         assessment_id: a.id,
         origin: h.origin,
         description: h.description,
+        process_name: h.processName ?? null,
         current_control: h.currentControl ?? null,
         level: h.level ?? null,
         level_standardized: h.level ?? null,

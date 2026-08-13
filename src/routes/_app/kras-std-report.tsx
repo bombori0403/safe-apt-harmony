@@ -178,7 +178,7 @@ function DecisionSheet({ title, label, hazards, withMeasureSeq }: { title: strin
             return (
               <tr key={h.id} className="align-top">
                 <td className="border p-1 text-center whitespace-nowrap">{h._seq}</td>
-                <td className="border p-1">{h.work_name ?? "-"}</td>
+                <td className="border p-1">{h.process_name || h.work_name || "-"}</td>
                 <td className="border p-1">{h.description}</td>
                 <td className="border p-1">{legalOf(h)}</td>
                 <td className="border p-1">{h.current_control || "-"}</td>
@@ -221,7 +221,7 @@ function MeasureSheet({ title, label, hazards }: { title: string; label: string;
             return (
               <tr key={h.id} className="align-top">
                 <td className="border p-1 text-center whitespace-nowrap">{h._seq}</td>
-                <td className="border p-1">{h.work_name ?? "-"}</td>
+                <td className="border p-1">{h.process_name || h.work_name || "-"}</td>
                 <td className="border p-1">{h.description}</td>
                 <td className="border p-1 text-center">
                   <span className={`px-1 py-0.5 rounded ${riskLevelClass(h.level)}`}>{displayLevel(h.level, h._method)}</span>
