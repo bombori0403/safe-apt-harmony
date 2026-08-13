@@ -28,6 +28,7 @@ import { Route as AppRegulationRouteImport } from './routes/_app/regulation'
 import { Route as AppPrintAllRouteImport } from './routes/_app/print-all'
 import { Route as AppPlatformAdminRouteImport } from './routes/_app/platform-admin'
 import { Route as AppNearMissRouteImport } from './routes/_app/near-miss'
+import { Route as AppKrasStdReportRouteImport } from './routes/_app/kras-std-report'
 import { Route as AppKrasReportAllRouteImport } from './routes/_app/kras-report-all'
 import { Route as AppImportRouteImport } from './routes/_app/import'
 import { Route as AppHistoryRouteImport } from './routes/_app/history'
@@ -155,6 +156,11 @@ const AppPlatformAdminRoute = AppPlatformAdminRouteImport.update({
 const AppNearMissRoute = AppNearMissRouteImport.update({
   id: '/near-miss',
   path: '/near-miss',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppKrasStdReportRoute = AppKrasStdReportRouteImport.update({
+  id: '/kras-std-report',
+  path: '/kras-std-report',
   getParentRoute: () => AppRoute,
 } as any)
 const AppKrasReportAllRoute = AppKrasReportAllRouteImport.update({
@@ -349,6 +355,7 @@ export interface FileRoutesByFullPath {
   '/history': typeof AppHistoryRoute
   '/import': typeof AppImportRoute
   '/kras-report-all': typeof AppKrasReportAllRoute
+  '/kras-std-report': typeof AppKrasStdReportRoute
   '/near-miss': typeof AppNearMissRouteWithChildren
   '/platform-admin': typeof AppPlatformAdminRoute
   '/print-all': typeof AppPrintAllRoute
@@ -403,6 +410,7 @@ export interface FileRoutesByTo {
   '/history': typeof AppHistoryRoute
   '/import': typeof AppImportRoute
   '/kras-report-all': typeof AppKrasReportAllRoute
+  '/kras-std-report': typeof AppKrasStdReportRoute
   '/near-miss': typeof AppNearMissRouteWithChildren
   '/platform-admin': typeof AppPlatformAdminRoute
   '/print-all': typeof AppPrintAllRoute
@@ -459,6 +467,7 @@ export interface FileRoutesById {
   '/_app/history': typeof AppHistoryRoute
   '/_app/import': typeof AppImportRoute
   '/_app/kras-report-all': typeof AppKrasReportAllRoute
+  '/_app/kras-std-report': typeof AppKrasStdReportRoute
   '/_app/near-miss': typeof AppNearMissRouteWithChildren
   '/_app/platform-admin': typeof AppPlatformAdminRoute
   '/_app/print-all': typeof AppPrintAllRoute
@@ -515,6 +524,7 @@ export interface FileRouteTypes {
     | '/history'
     | '/import'
     | '/kras-report-all'
+    | '/kras-std-report'
     | '/near-miss'
     | '/platform-admin'
     | '/print-all'
@@ -569,6 +579,7 @@ export interface FileRouteTypes {
     | '/history'
     | '/import'
     | '/kras-report-all'
+    | '/kras-std-report'
     | '/near-miss'
     | '/platform-admin'
     | '/print-all'
@@ -624,6 +635,7 @@ export interface FileRouteTypes {
     | '/_app/history'
     | '/_app/import'
     | '/_app/kras-report-all'
+    | '/_app/kras-std-report'
     | '/_app/near-miss'
     | '/_app/platform-admin'
     | '/_app/print-all'
@@ -805,6 +817,13 @@ declare module '@tanstack/react-router' {
       path: '/near-miss'
       fullPath: '/near-miss'
       preLoaderRoute: typeof AppNearMissRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/kras-std-report': {
+      id: '/_app/kras-std-report'
+      path: '/kras-std-report'
+      fullPath: '/kras-std-report'
+      preLoaderRoute: typeof AppKrasStdReportRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/kras-report-all': {
@@ -1129,6 +1148,7 @@ interface AppRouteChildren {
   AppHistoryRoute: typeof AppHistoryRoute
   AppImportRoute: typeof AppImportRoute
   AppKrasReportAllRoute: typeof AppKrasReportAllRoute
+  AppKrasStdReportRoute: typeof AppKrasStdReportRoute
   AppNearMissRoute: typeof AppNearMissRouteWithChildren
   AppPlatformAdminRoute: typeof AppPlatformAdminRoute
   AppPrintAllRoute: typeof AppPrintAllRoute
@@ -1167,6 +1187,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppHistoryRoute: AppHistoryRoute,
   AppImportRoute: AppImportRoute,
   AppKrasReportAllRoute: AppKrasReportAllRoute,
+  AppKrasStdReportRoute: AppKrasStdReportRoute,
   AppNearMissRoute: AppNearMissRouteWithChildren,
   AppPlatformAdminRoute: AppPlatformAdminRoute,
   AppPrintAllRoute: AppPrintAllRoute,

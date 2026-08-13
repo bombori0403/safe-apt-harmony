@@ -121,6 +121,16 @@ function History() {
           >
             <Button variant="outline" className="gap-2"><FileText className="h-4 w-4" />전체 KRAS 양식 출력</Button>
           </Link>
+          <Link
+            to="/kras-std-report"
+            search={{
+              complexId: complexId || undefined,
+              type: typeFilter || undefined,
+              q: q || undefined,
+            }}
+          >
+            <Button variant="outline" className="gap-2"><FileText className="h-4 w-4" />표준서식(6종) 출력</Button>
+          </Link>
         </div>
       </div>
 
