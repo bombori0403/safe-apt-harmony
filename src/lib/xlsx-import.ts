@@ -213,6 +213,27 @@ function analyzeStdSheet(ws: XLSX.WorkSheet) {
   return { aoa, headerRow, find };
 }
 
+// 위험요인 목록에서 origin+위험발생상황으로 매칭. 정확 매칭 실패 시 부분일치(문구 편집·표기차 허용).
+function findHazardByDesc(
+  hazards: StdHazardRow[], byDesc: Map<string, StdHazardRow>,
+  origin: "carryover" | "new", desc: string,
+): StdHazardRow | null {
+  const nd = norm(desc);
+  const exact = byDesc.get(origin + " " + nd);
+  if (exact) return exact;
+  if (nd.length < 8) return null;
+  const pre = nd.slice(0, 14);
+  for (const c of hazards) {
+    if (c.origin !== origin) continue;
+    const cn = norm(c.description);
+    if (cn.length < 8) continue;
+    const ratio = Math.min(cn.length, nd.length) / Math.max(cn.length, nd.length);
+    if (cn.slice(0, 14) === pre && ratio >= 0.55) return c;             // 앞부분 일치(끝부분 편집 허용)
+    if (ratio >= 0.7 && (cn.includes(nd) || nd.includes(cn))) return c; // 포함 관계
+  }
+  return null;
+}
+
 export function parseStandardForm(buf: ArrayBuffer): StdFormResult | null {
   const wb = XLSX.read(buf, { type: "array", cellDates: true });
   const roles = wb.SheetNames.map((n) => ({ n, role: stdRole(n) })).filter((x) => x.role);
@@ -260,30 +281,17 @@ export function parseStandardForm(buf: ArrayBuffer): StdFormResult | null {
     const measCol = A.find(["위험성감소대책"]);
     const dueCol = A.find(["개선예정", "예정일"]);
     const respCol = A.find(["담당자"]);
-    const ctrlCol = A.find(["현재의안전보건조치"]);
-    const riskCol = A.find(["현재위험성"]);
     if (measCol < 0 || descCol < 0) continue;
     for (let r = A.headerRow + 2; r < A.aoa.length; r++) {
       const row = A.aoa[r]; if (!row) continue;
       const content = txt(row[measCol]);
       const desc = txt(row[descCol]);
       if (!content || !desc || desc.length < 4 || skipHeader(desc)) continue;
-      // origin(재검토/신규)까지 맞춰 이어붙인다 — 같은 위험발생상황이 양쪽에 있어도
-      // 신규 대책이 재검토 항목에 잘못 붙지 않도록.
-      const k = role!.origin + " " + norm(desc);
-      let h = byDesc.get(k);
-      if (!h) {
-        // 위험요인 시트에 없던 항목이면 대책 시트 정보로 새로 만든다.
-        h = {
-          origin: role!.origin, description: desc,
-          currentControl: ctrlCol >= 0 ? txt(row[ctrlCol]) || undefined : undefined,
-          legalBasis: undefined,
-          level: riskCol >= 0 ? levelFrom상중하(txt(row[riskCol])) : undefined,
-          measures: [],
-        };
-        hazards.push(h);
-        byDesc.set(k, h);
-      }
+      // 위험요인 시트(1-1/1-2)에 이미 있는 항목에만 대책을 이어붙인다. 새 위험요인은 만들지 않는다
+      // — 감소대책 시트의 위험발생상황 문구가 조금 달라도 중복(신규 건수 부풀림)이 생기지 않게.
+      // origin(재검토/신규)까지 맞춰 정확 매칭 → 실패 시 유사(부분일치) 매칭.
+      const h = findHazardByDesc(hazards, byDesc, role!.origin, desc);
+      if (!h) continue;   // 매칭되는 위험요인이 없으면 건너뜀(중복 위험요인 생성 방지)
       h.measures.push({
         content,
         dueDate: dueCol >= 0 ? toDate(row[dueCol]) : undefined,
