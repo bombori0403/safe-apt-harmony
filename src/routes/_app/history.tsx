@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import { MessageCircle, Search, Pencil, FileText, Upload } from "lucide-react";
 import { toast } from "sonner";
-import { riskLevelClass, type RiskLevel } from "@/lib/types";
+import { riskLevelClass, METHOD_LABEL, type RiskLevel } from "@/lib/types";
 import { updateAssessment } from "@/lib/assessment.functions";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -100,42 +100,30 @@ function History() {
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-5">
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
           <h1 className="text-2xl font-bold">평가 이력</h1>
           <p className="text-sm text-muted-foreground mt-1">
             위험성평가 결과는 법정 3년 이상 보존해야 하며(산업안전보건법 시행규칙 제37조), 리스크로그는 자체 규정에 따라 5년간 보관합니다.
           </p>
         </div>
-        <div className="flex gap-2 shrink-0">
+        <div className="grid grid-cols-2 gap-2 md:flex md:flex-wrap md:shrink-0">
           <Link to="/import">
-            <Button variant="outline" className="gap-2"><Upload className="h-4 w-4" />엑셀 가져오기</Button>
+            <Button variant="outline" size="sm" className="w-full md:w-auto gap-1.5"><Upload className="h-4 w-4" />엑셀 가져오기</Button>
           </Link>
-          <Link
-            to="/kras-report-all"
-            search={{
-              complexId: complexId || undefined,
-              type: typeFilter || undefined,
-              q: q || undefined,
-            }}
-          >
-            <Button variant="outline" className="gap-2"><FileText className="h-4 w-4" />전체 KRAS 양식 출력</Button>
+          <Link to="/kras-report-all"
+            search={{ complexId: complexId || undefined, type: typeFilter || undefined, q: q || undefined }}>
+            <Button variant="outline" size="sm" className="w-full md:w-auto gap-1.5"><FileText className="h-4 w-4" />전체 KRAS 출력</Button>
           </Link>
-          <Link
-            to="/kras-std-report"
-            search={{
-              complexId: complexId || undefined,
-              type: typeFilter || undefined,
-              q: q || undefined,
-            }}
-          >
-            <Button variant="outline" className="gap-2"><FileText className="h-4 w-4" />표준서식(6종) 출력</Button>
+          <Link to="/kras-std-report" className="col-span-2 md:col-span-1"
+            search={{ complexId: complexId || undefined, type: typeFilter || undefined, q: q || undefined }}>
+            <Button size="sm" className="w-full md:w-auto gap-1.5"><FileText className="h-4 w-4" />표준서식(6종) 출력</Button>
           </Link>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-end gap-3">
-        <div className="min-w-[200px]">
+      <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:items-end">
+        <div className="sm:min-w-[180px]">
           <Label className="text-xs">단지</Label>
           <select
             value={complexId}
@@ -146,7 +134,7 @@ function History() {
             {complexes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </div>
-        <div className="min-w-[140px]">
+        <div className="sm:min-w-[130px]">
           <Label className="text-xs">평가종류</Label>
           <select
             value={typeFilter}
@@ -159,14 +147,14 @@ function History() {
             <option value="수시평가">수시평가</option>
           </select>
         </div>
-        <div className="relative flex-1 min-w-[200px] max-w-md">
+        <div className="col-span-2 relative sm:flex-1 sm:min-w-[200px] sm:max-w-md">
           <Label className="text-xs">검색</Label>
           <div className="relative mt-1">
             <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input value={q} onChange={e=>setQ(e.target.value)} placeholder="작업명 검색..." className="pl-9" />
           </div>
         </div>
-        <div className="text-xs text-muted-foreground ml-auto">총 {filtered.length}건</div>
+        <div className="col-span-2 text-xs text-muted-foreground sm:ml-auto sm:self-center">총 {filtered.length}건</div>
       </div>
 
       <Card>
@@ -176,31 +164,36 @@ function History() {
               <div className="p-8 text-center text-sm text-muted-foreground">기록이 없습니다.</div>
             )}
             {filtered.map(a => (
-              <div key={a.id} className="flex flex-wrap items-center gap-3 p-4 hover:bg-muted/40 transition-colors">
-                <Link to="/assessment/$id" params={{ id: a.id }} className="flex-1 min-w-0">
-                  <div className="font-medium truncate">{a.work_name}</div>
-                  <div className="text-xs text-muted-foreground mt-0.5">
-                    {complexName.get(a.complex_id) ?? "-"} · {a.assessment_date} · {a.method} · {a.work_category ?? "-"}
-                  </div>
-                </Link>
-                <Badge variant={a.assessment_type === "수시평가" ? "default" : "secondary"}>{a.assessment_type ?? "-"}</Badge>
-                <Badge variant="outline">{a.status}</Badge>
-                {a.allowable_level && (
-                  <span className={`px-2 py-1 rounded-md text-xs font-medium ${riskLevelClass(a.allowable_level as RiskLevel)}`}>
-                    허용 {a.allowable_level}
-                  </span>
-                )}
-                {canManage && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => openEdit(a)}
-                    className="gap-1.5 h-8 text-xs"
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                    수정
-                  </Button>
-                )}
+              <div key={a.id} className="p-4 hover:bg-muted/40 transition-colors">
+                <div className="flex items-start gap-3">
+                  <Link to="/assessment/$id" params={{ id: a.id }} className="flex-1 min-w-0">
+                    <div className="font-medium truncate">{a.work_name}</div>
+                    <div className="text-xs text-muted-foreground mt-0.5 truncate">
+                      {complexName.get(a.complex_id) ?? "-"} · {a.assessment_date} · {METHOD_LABEL[a.method as keyof typeof METHOD_LABEL] ?? a.method}
+                      {a.work_category ? ` · ${a.work_category}` : ""}
+                    </div>
+                  </Link>
+                  {canManage && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openEdit(a)}
+                      className="gap-1 h-8 text-xs shrink-0"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                      <span className="hidden sm:inline">수정</span>
+                    </Button>
+                  )}
+                </div>
+                <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                  <Badge variant={a.assessment_type === "수시평가" ? "default" : "secondary"}>{a.assessment_type ?? "-"}</Badge>
+                  <Badge variant="outline">{a.status}</Badge>
+                  {a.allowable_level && (
+                    <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${riskLevelClass(a.allowable_level as RiskLevel)}`}>
+                      허용 {a.allowable_level}
+                    </span>
+                  )}
+                </div>
               </div>
             ))}
           </div>
