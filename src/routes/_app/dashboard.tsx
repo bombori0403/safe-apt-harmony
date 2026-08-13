@@ -195,6 +195,7 @@ function Dashboard() {
             .from("hazards")
             .select(highCols)
             .or("level.in.(높음,매우높음),level_standardized.in.(높음,매우높음)")
+            .or("post_level.is.null,post_level.not.in.(낮음,매우낮음)")
             .in("assessment_id", ids);
           applyHigh(hi ?? []);
         }
@@ -202,7 +203,8 @@ function Dashboard() {
         const { data: hi } = await supabase
           .from("hazards")
           .select(highCols)
-          .or("level.in.(높음,매우높음),level_standardized.in.(높음,매우높음)");
+          .or("level.in.(높음,매우높음),level_standardized.in.(높음,매우높음)")
+          .or("post_level.is.null,post_level.not.in.(낮음,매우낮음)");
         applyHigh(hi ?? []);
       }
     })();
@@ -512,7 +514,7 @@ function Dashboard() {
           <Dialog open={highOpen} onOpenChange={setHighOpen}>
             <DialogTrigger asChild>
               <button type="button" className="block w-full text-left">
-                <KpiCard title="높음·매우높음 항목" value={unresolvedHigh} icon={AlertTriangle} danger sub="· 눌러서 목록 보기" />
+                <KpiCard title="높음·매우높음 미해결" value={unresolvedHigh} icon={AlertTriangle} danger sub="· 눌러서 목록 보기" />
               </button>
             </DialogTrigger>
             <DialogContent>
@@ -534,7 +536,7 @@ function Dashboard() {
             </DialogContent>
           </Dialog>
         ) : (
-          <KpiCard title="높음·매우높음 항목" value={unresolvedHigh} icon={AlertTriangle} danger />
+          <KpiCard title="높음·매우높음 미해결" value={unresolvedHigh} icon={AlertTriangle} danger />
         )}
         <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
           <PopoverTrigger asChild>
