@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Plus, AlertTriangle, Calendar, Users, TrendingUp, Building2, MessageCircle, CalendarClock, Download, Printer, CreditCard, ClipboardCheck, FileCheck2, GraduationCap } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { riskLevelClass } from "@/lib/types";
 import JSZip from "jszip";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -69,7 +70,8 @@ function Dashboard() {
   const [permits, setPermits] = useState<any[]>([]);
   const [safetyStats, setSafetyStats] = useState({ scheduledInspections: 0, openImprovements: 0, tbmThisMonth: 0, permitsInProgress: 0, eduThisYear: 0 });
   const [unresolvedHigh, setUnresolvedHigh] = useState(0);
-  const [highAssessmentIds, setHighAssessmentIds] = useState<string[]>([]);
+  const [highHazards, setHighHazards] = useState<any[]>([]);
+  const [highOpen, setHighOpen] = useState(false);
   const [monthCount, setMonthCount] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -178,9 +180,10 @@ function Dashboard() {
       setTotalCount(tc ?? 0);
 
       // 고위험(높음·매우높음) 위험요인 + 그것이 속한 평가 id(클릭 이동용)
+      const highCols = "id, description, level, level_standardized, process_name, assessment_id, assessments(work_name)";
       const applyHigh = (hi: any[]) => {
         setUnresolvedHigh(hi.length);
-        setHighAssessmentIds([...new Set(hi.map((x: any) => x.assessment_id))]);
+        setHighHazards(hi);
       };
       if (scoped) {
         const { data: aids } = await supabase.from("assessments").select("id").eq("complex_id", selectedComplexId);
@@ -190,7 +193,7 @@ function Dashboard() {
         } else {
           const { data: hi } = await supabase
             .from("hazards")
-            .select("assessment_id")
+            .select(highCols)
             .or("level.in.(높음,매우높음),level_standardized.in.(높음,매우높음)")
             .in("assessment_id", ids);
           applyHigh(hi ?? []);
@@ -198,7 +201,7 @@ function Dashboard() {
       } else {
         const { data: hi } = await supabase
           .from("hazards")
-          .select("assessment_id")
+          .select(highCols)
           .or("level.in.(높음,매우높음),level_standardized.in.(높음,매우높음)");
         applyHigh(hi ?? []);
       }
@@ -505,12 +508,33 @@ function Dashboard() {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <KpiCard title="전체 평가" value={totalCount} sub={`건 · 이번 달 ${monthCount}건`} icon={TrendingUp} />
-        {unresolvedHigh > 0 && highAssessmentIds[0] ? (
-          <Link to="/assessment/$id/results" params={{ id: highAssessmentIds[0] }} className="block">
-            <KpiCard title="높음·매우높음 미해결" value={unresolvedHigh} icon={AlertTriangle} danger sub="· 눌러서 확인" />
-          </Link>
+        {unresolvedHigh > 0 ? (
+          <Dialog open={highOpen} onOpenChange={setHighOpen}>
+            <DialogTrigger asChild>
+              <button type="button" className="block w-full text-left">
+                <KpiCard title="높음·매우높음 항목" value={unresolvedHigh} icon={AlertTriangle} danger sub="· 눌러서 목록 보기" />
+              </button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader><DialogTitle>높음·매우높음 위험요인 {unresolvedHigh}건</DialogTitle></DialogHeader>
+              <p className="text-xs text-muted-foreground">항목을 누르면 그 위험요인의 감소대책 화면으로 이동합니다.</p>
+              <div className="max-h-[60vh] overflow-y-auto divide-y -mx-2">
+                {highHazards.map((h) => (
+                  <Link key={h.id} to="/assessment/$id/measures" params={{ id: h.assessment_id }} search={{ hazard: h.id }}
+                    onClick={() => setHighOpen(false)}
+                    className="flex items-start gap-2 px-2 py-2.5 hover:bg-muted/50 rounded-md">
+                    <span className={`shrink-0 px-1.5 py-0.5 rounded text-[11px] font-medium ${riskLevelClass(h.level)}`}>{h.level}</span>
+                    <span className="flex-1 min-w-0">
+                      <span className="block text-sm leading-snug">{h.description}</span>
+                      <span className="block text-xs text-muted-foreground mt-0.5">{h.process_name || h.assessments?.work_name || "-"}</span>
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </DialogContent>
+          </Dialog>
         ) : (
-          <KpiCard title="높음·매우높음 미해결" value={unresolvedHigh} icon={AlertTriangle} danger />
+          <KpiCard title="높음·매우높음 항목" value={unresolvedHigh} icon={AlertTriangle} danger />
         )}
         <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
           <PopoverTrigger asChild>
