@@ -131,6 +131,19 @@ function Detail() {
 
   return (
     <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-5">
+      {/* 모바일 전용 압축 고정 바 — 목록이 길어져도 제목·핵심수치·출력이 항상 보임 */}
+      <div className="md:hidden sticky top-0 z-20 -mx-4 px-4 py-2 border-b bg-background/95 backdrop-blur flex items-center gap-2">
+        <div className="flex-1 min-w-0">
+          <div className="font-semibold text-sm truncate">{a.work_name}</div>
+          <div className="text-[11px] text-muted-foreground truncate">유해요인 {hazards.length} · 대책 {hazards.reduce((s, h) => s + (h.measures?.length ?? 0), 0)} · {a.status}</div>
+        </div>
+        <Link to="/kras-std-report" search={{ assessmentId: id }}>
+          <Button size="sm" variant="outline" className="h-8 gap-1 shrink-0"><FileText className="h-3.5 w-3.5" />출력</Button>
+        </Link>
+      </div>
+
+      {/* 데스크톱: 요약(제목·버튼·진행단계·수치) 전체 고정 / 모바일: 일반 흐름 */}
+      <div className="space-y-4 md:sticky md:top-12 md:z-20 md:-mx-8 md:px-8 md:py-3 md:border-b md:bg-background/95 md:backdrop-blur">
       <div className="flex flex-wrap justify-between gap-3">
         <div>
           <div className="flex items-center gap-2 text-sm">
@@ -195,6 +208,7 @@ function Detail() {
         <Stat icon={ShieldCheck} title="감소대책 수립" value={hazards.reduce((s, h) => s + (h.measures?.length ?? 0), 0)} />
         <Stat icon={Users} title="참여자" value={parts.length} />
         <Stat icon={FileText} title="확인 서명" value={`${sigCount}/${parts.length}`} />
+      </div>
       </div>
 
       <Card><CardContent className="p-0">
