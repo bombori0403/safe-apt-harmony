@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Upload, Loader2, FileSpreadsheet, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
-import type { ParsedSheet } from "@/lib/xlsx-import";
+import type { ParsedSheet, StdFormResult } from "@/lib/xlsx-import";
 import { riskLevelClass, type RiskLevel } from "@/lib/types";
 
 export const Route = createFileRoute("/_app/import")({ component: ImportPage });
@@ -25,6 +25,7 @@ function ImportPage() {
   const [complexId, setComplexId] = useState("");
   const [parsing, setParsing] = useState(false);
   const [sheets, setSheets] = useState<ParsedSheet[]>([]);
+  const [stdForm, setStdForm] = useState<StdFormResult | null>(null);
   const [allSheetNames, setAllSheetNames] = useState<string[]>([]);
   const [pick, setPick] = useState(0);
   const [workName, setWorkName] = useState("");
@@ -53,16 +54,19 @@ function ImportPage() {
   async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    setParsing(true); setSheets([]);
+    setParsing(true); setSheets([]); setStdForm(null);
     try {
       const buf = await file.arrayBuffer();
-      const { parseWorkbook } = await import("@/lib/xlsx-import");
-      const { all, parsed } = await parseWorkbook(buf);
+      const mod = await import("@/lib/xlsx-import");
+      const { all, parsed } = await mod.parseWorkbook(buf);
+      const std = mod.parseStandardForm(buf);
       setAllSheetNames(all);
       setSheets(parsed);
+      setStdForm(std);
       setPick(0);
-      if (parsed[0]) setWorkName(file.name.replace(/\.(xlsx|xls|csv)$/i, "") + " 위험성평가");
-      if (!parsed.length) toast.error("표준서식 형식의 위험성평가 시트를 찾지 못했습니다.");
+      if (parsed[0] || std) setWorkName(file.name.replace(/\.(xlsx|xls|csv)$/i, "") + " 위험성평가");
+      if (std) toast.success(`표준서식 6종 인식 — 재검토 ${std.carryover} · 신규 ${std.neu} · 감소대책 ${std.measures}건`);
+      else if (!parsed.length) toast.error("표준서식 형식의 위험성평가 시트를 찾지 못했습니다.");
       else toast.success(`${parsed.length}개 시트에서 위험요인을 인식했습니다.`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "파일을 읽지 못했습니다.");
@@ -73,6 +77,67 @@ function ImportPage() {
   }
 
   const sheet = sheets[pick];
+
+  // 표준서식 6종 전체 가져오기 — 재검토/신규 위험요인 + 감소대책(담당자·예정일)을 한 평가로.
+  async function doFullImport() {
+    if (!stdForm) return;
+    if (!complexId) { toast.error("단지를 선택하세요"); return; }
+    if (!workName.trim()) { toast.error("평가명을 입력하세요"); return; }
+    if (sub.isTrial) {
+      const { count } = await supabase.from("assessments").select("id", { count: "exact", head: true });
+      if ((count ?? 0) >= 10) { toast.error("체험판은 평가 10건까지 작성할 수 있습니다. 정식 전환 후 계속하세요."); return; }
+    }
+    setSaving(true);
+    try {
+      const { data: a, error } = await supabase.from("assessments").insert({
+        complex_id: complexId,
+        created_by: userRowId || null,
+        assessment_type: "정기평가",
+        work_name: workName.trim(),
+        method: "3단계_판단법",
+        assessment_date: date,
+        allowable_level: "낮음",
+        status: "작성중",
+      }).select().single();
+      if (error) throw error;
+
+      const hazardRows = stdForm.hazards.map((h) => ({
+        assessment_id: a.id,
+        origin: h.origin,
+        description: h.description,
+        current_control: h.currentControl ?? null,
+        level: h.level ?? null,
+        level_standardized: h.level ?? null,
+        legal_basis_override: h.legalBasis ?? null,
+      }));
+      const { data: hz, error: he } = await supabase.from("hazards").insert(hazardRows).select("id");
+      if (he) throw he;
+
+      // INSERT ... RETURNING은 삽입 순서대로 돌아오므로 인덱스로 대책을 매칭한다(기존 가져오기와 동일 가정).
+      const measureRows: any[] = [];
+      (hz ?? []).forEach((row, i) => {
+        for (const m of stdForm.hazards[i]?.measures ?? []) {
+          measureRows.push({
+            hazard_id: row.id, content: m.content, type: "관리적_대책", status: "대기",
+            due_date: m.dueDate ?? null, responsible_name: m.responsible ?? null,
+          });
+        }
+      });
+      let measuresOk = 0;
+      if (measureRows.length) {
+        const { error: me } = await supabase.from("measures").insert(measureRows);
+        if (me) console.error("measures insert 실패:", me);
+        else measuresOk = measureRows.length;
+      }
+
+      toast.success(`표준서식 전체 가져오기 완료 — 위험요인 ${hazardRows.length}건(재검토 ${stdForm.carryover}·신규 ${stdForm.neu}), 감소대책 ${measuresOk}건`);
+      navigate({ to: "/assessment/$id", params: { id: a.id } });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "가져오기 중 오류가 발생했습니다.");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   async function doImport() {
     if (!sheet) return;
@@ -160,10 +225,35 @@ function ImportPage() {
           </div>
         </div>
 
-        {sheets.length > 0 && (
+        {(sheets.length > 0 || stdForm) && (
           <>
+            {stdForm && (
+              <div className="rounded-lg border-2 border-primary/40 bg-primary/[0.04] p-4">
+                <div className="flex items-start gap-2">
+                  <div className="p-1.5 rounded-md bg-primary/15 text-primary shrink-0"><FileSpreadsheet className="h-5 w-5" /></div>
+                  <div className="flex-1">
+                    <div className="font-semibold">표준서식(6종) 전체 가져오기 <Badge className="ml-1">권장</Badge></div>
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      재검토(과년도) <b className="text-foreground">{stdForm.carryover}건</b> · 신규 <b className="text-foreground">{stdForm.neu}건</b> · 감소대책 <b className="text-foreground">{stdForm.measures}건</b>을
+                      한 번에 불러옵니다. <b>현재조치·담당자·개선예정일</b>까지 포함되어 손으로 다시 적을 필요가 없어요.
+                    </p>
+                    <div className="mt-2">
+                      <Button onClick={doFullImport} disabled={saving} className="gap-2">
+                        {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                        {saving ? "가져오는 중..." : "표준서식 전체 가져오기"}
+                      </Button>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground mt-2">
+                      ※ 사진(변경 전/후)은 엑셀에서 자동으로 가져올 수 없어, 앱의 감소대책 화면에서 따로 올려주세요.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {sheets.length > 0 && (
             <div>
-              <Label>가져올 시트</Label>
+              <Label>{stdForm ? "시트별 개별 가져오기 (선택)" : "가져올 시트"}</Label>
               <div className="mt-1.5 space-y-1.5">
                 {sheets.map((s, i) => (
                   <label key={i} className="flex items-center gap-2.5 p-2.5 rounded-md border cursor-pointer hover:bg-muted/40 text-sm">
@@ -181,6 +271,7 @@ function ImportPage() {
                 </p>
               )}
             </div>
+            )}
 
             {sheet && sheet.rows.length > 100 && (
               <div className="flex items-start gap-2 text-xs text-warning-foreground bg-warning/10 rounded-md p-2.5">

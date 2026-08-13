@@ -152,6 +152,152 @@ export function parseStandardSheet(ws: XLSX.WorkSheet, sheetName: string): Parse
   return { sheetName, method, rows };
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// 표준서식(e-KRAS 6시트) 전체 가져오기
+// 1-1 재검토 · 1-2 위험성결정(신규) = 위험요인 시트, 2-1/2-2 감소대책 = 대책 시트.
+// 대책 시트의 '위험발생 상황 및 결과' 텍스트로 위험요인 시트와 이어붙여
+// 현재조치·현재위험성·감소대책·개선예정일·담당자까지 한 번에 복원한다.
+// ─────────────────────────────────────────────────────────────────────────
+
+export interface StdMeasureRow { content: string; dueDate?: string; responsible?: string; }
+export interface StdHazardRow {
+  origin: "carryover" | "new";
+  description: string;
+  currentControl?: string;
+  legalBasis?: string;
+  level?: RiskLevel;           // 현재 위험성(상/중/하 → 매핑)
+  measures: StdMeasureRow[];
+}
+export interface StdFormResult {
+  hazards: StdHazardRow[];
+  carryover: number;           // 재검토(과년도) 건수
+  neu: number;                 // 신규 건수
+  measures: number;            // 감소대책 건수
+}
+
+const inc = (s: string, kws: string[]) => kws.some((k) => s.includes(k));
+
+// 시트명으로 역할 판별: 감소대책 포함=대책시트, 재검토/신규(결정)=위험요인 시트.
+function stdRole(name: string): { kind: "hazard" | "measure"; origin: "carryover" | "new" } | null {
+  const n = name.replace(/\s/g, "");
+  const isMeasure = n.includes("감소대책");
+  const carry = n.includes("재검토");
+  const neu = n.includes("신규");
+  if (isMeasure && (carry || neu)) return { kind: "measure", origin: carry ? "carryover" : "new" };
+  if (!isMeasure && (carry || (neu && n.includes("결정")))) return { kind: "hazard", origin: carry ? "carryover" : "new" };
+  return null;
+}
+
+// 헤더행 탐지 + 열 시그니처 계산(표준서식은 다줄 헤더라 headerRow±2를 합침).
+function analyzeStdSheet(ws: XLSX.WorkSheet) {
+  const aoa: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null, blankrows: false });
+  if (!aoa.length) return null;
+  const anchors = ["위험발생", "유해위험요인", "유해·위험요인", "관련근거", "현재위험성", "위험성감소대책"];
+  let headerRow = -1, best = 0;
+  for (let r = 0; r < Math.min(aoa.length, 16); r++) {
+    const sig = (aoa[r] || []).map(norm).join("|");
+    let score = 0;
+    for (const a of anchors) if (sig.includes(a)) score++;
+    if (score > best) { best = score; headerRow = r; }
+  }
+  if (headerRow < 0 || best < 2) return null;
+  const ncol = Math.max(...aoa.slice(headerRow, headerRow + 2).map((r) => (r ? r.length : 0)));
+  const colSig: string[] = [];
+  for (let c = 0; c < ncol; c++) {
+    let s = "";
+    for (let r = headerRow - 1; r <= headerRow + 2; r++) if (aoa[r]) s += norm(aoa[r][c]);
+    colSig[c] = s;
+  }
+  const find = (kws: string[], exc: string[] = []) =>
+    colSig.findIndex((s) => inc(s, kws) && !exc.some((e) => s.includes(e)));
+  return { aoa, headerRow, find };
+}
+
+export function parseStandardForm(buf: ArrayBuffer): StdFormResult | null {
+  const wb = XLSX.read(buf, { type: "array", cellDates: true });
+  const roles = wb.SheetNames.map((n) => ({ n, role: stdRole(n) })).filter((x) => x.role);
+  if (!roles.length) return null;
+
+  const hazards: StdHazardRow[] = [];
+  const byDesc = new Map<string, StdHazardRow>();
+  const skipHeader = (d: string) => inc(norm(d), ["위험발생상황", "유해위험요인", "유해·위험요인"]);
+
+  // 1) 위험요인 시트(1-1 재검토 / 1-2 신규)
+  for (const { n, role } of roles) {
+    if (role!.kind !== "hazard") continue;
+    const A = analyzeStdSheet(wb.Sheets[n]); if (!A) continue;
+    let descCol = A.find(["위험발생"], ["위험분류"]);
+    if (descCol < 0) descCol = A.find(["유해위험요인", "유해·위험요인"], ["위험분류"]);
+    const legalCol = A.find(["관련근거", "법적"]);
+    const ctrlCol = A.find(["현재의안전보건조치"]);
+    const riskCol = A.find(["현재위험성"]);
+    if (descCol < 0) continue;
+    for (let r = A.headerRow + 2; r < A.aoa.length; r++) {
+      const row = A.aoa[r]; if (!row) continue;
+      const desc = txt(row[descCol]);
+      if (!desc || desc.length < 4 || skipHeader(desc)) continue;
+      const h: StdHazardRow = {
+        origin: role!.origin,
+        description: desc,
+        currentControl: ctrlCol >= 0 ? txt(row[ctrlCol]) || undefined : undefined,
+        legalBasis: legalCol >= 0 ? txt(row[legalCol]) || undefined : undefined,
+        level: riskCol >= 0 ? levelFrom상중하(txt(row[riskCol])) : undefined,
+        measures: [],
+      };
+      hazards.push(h);
+      if (!byDesc.has(norm(desc))) byDesc.set(norm(desc), h);
+    }
+  }
+
+  // 2) 감소대책 시트(2-1 재검토 / 2-2 신규) — 위험발생상황 텍스트로 위험요인에 이어붙임
+  let mcount = 0;
+  for (const { n, role } of roles) {
+    if (role!.kind !== "measure") continue;
+    const A = analyzeStdSheet(wb.Sheets[n]); if (!A) continue;
+    let descCol = A.find(["위험발생"], ["위험분류"]);
+    if (descCol < 0) descCol = A.find(["유해위험요인", "유해·위험요인"], ["위험분류"]);
+    const measCol = A.find(["위험성감소대책"]);
+    const dueCol = A.find(["개선예정", "예정일"]);
+    const respCol = A.find(["담당자"]);
+    const ctrlCol = A.find(["현재의안전보건조치"]);
+    const riskCol = A.find(["현재위험성"]);
+    if (measCol < 0 || descCol < 0) continue;
+    for (let r = A.headerRow + 2; r < A.aoa.length; r++) {
+      const row = A.aoa[r]; if (!row) continue;
+      const content = txt(row[measCol]);
+      const desc = txt(row[descCol]);
+      if (!content || !desc || desc.length < 4 || skipHeader(desc)) continue;
+      let h = byDesc.get(norm(desc));
+      if (!h) {
+        // 위험요인 시트에 없던 항목이면 대책 시트 정보로 새로 만든다.
+        h = {
+          origin: role!.origin, description: desc,
+          currentControl: ctrlCol >= 0 ? txt(row[ctrlCol]) || undefined : undefined,
+          legalBasis: undefined,
+          level: riskCol >= 0 ? levelFrom상중하(txt(row[riskCol])) : undefined,
+          measures: [],
+        };
+        hazards.push(h);
+        byDesc.set(norm(desc), h);
+      }
+      h.measures.push({
+        content,
+        dueDate: dueCol >= 0 ? toDate(row[dueCol]) : undefined,
+        responsible: respCol >= 0 ? txt(row[respCol]) || undefined : undefined,
+      });
+      mcount++;
+    }
+  }
+
+  if (!hazards.length) return null;
+  return {
+    hazards,
+    carryover: hazards.filter((h) => h.origin === "carryover").length,
+    neu: hazards.filter((h) => h.origin === "new").length,
+    measures: mcount,
+  };
+}
+
 // 파일 전체를 읽어 파싱 가능한 시트 목록을 돌려준다.
 export async function parseWorkbook(buf: ArrayBuffer): Promise<{ all: string[]; parsed: ParsedSheet[] }> {
   const wb = XLSX.read(buf, { type: "array", cellDates: true });
