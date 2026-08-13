@@ -79,7 +79,7 @@ export function KrasReportTable({ workName, hazards, method }: { workName: strin
           return (
             <tr key={h.id} className="align-top">
               <td className="border p-1 text-center">{i + 1}</td>
-              <td className="border p-1">{h.work_name ?? workName}</td>
+              <td className="border p-1">{h.process_name || h.work_name || workName}</td>
               <td className="border p-1">{h.description}</td>
               <td className="border p-1">{h.current_control || "-"}</td>
               <td className="border p-1 text-center">{isFreq ? (h.likelihood ?? "-") : "-"}</td>
