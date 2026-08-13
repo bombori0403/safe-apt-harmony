@@ -61,7 +61,7 @@ function Report() {
     );
   }
   if (!a) return <div className="p-8 text-muted-foreground">불러오는 중...</div>;
-  if (sub.isExpired) return <TrialExpiredBlock what="결과서 출력" />;
+  if (sub.isExpired) return <TrialExpiredBlock what="결과서 출력" paid={sub.isPaid} />;
 
   return (
     <div className="bg-white text-foreground">

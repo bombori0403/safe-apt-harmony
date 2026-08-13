@@ -74,6 +74,44 @@ const confirmSchema = z.object({
   amount: z.number().int().positive(),
 });
 
+// 토스 승인(멱등) → 원자적 활성화(apply_paid_activation)를 재구동한다.
+// 이 경로는 ready에서 처음 진입하든, confirming에 갇힌 주문을 복구하든 안전하게 동작한다:
+// 토스 confirm은 같은 paymentKey/orderId에 대해 중복 청구 없이 같은 결과를 돌려주고,
+// 활성화는 payments의 confirming→paid 전이를 가드로 삼아 정확히 1회만 만료를 연장한다.
+async function driveConfirm(orderId: string, paymentKey: string, amount: number, secret: string) {
+  const res = await fetch("https://api.tosspayments.com/v1/payments/confirm", {
+    method: "POST",
+    headers: {
+      Authorization: `Basic ${btoa(secret + ":")}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ paymentKey, orderId, amount }),
+  });
+  const body = (await res.json()) as {
+    message?: string;
+    method?: string;
+    receipt?: { url?: string };
+  };
+  if (!res.ok) {
+    // 우리가 선점한(confirming) 주문만 failed로 표시 — 이미 paid인 행을 덮어쓰지 않음.
+    await supabaseAdmin.from("payments").update({ status: "failed" }).eq("order_id", orderId).eq("status", "confirming");
+    throw new Error(body?.message ?? "결제 승인에 실패했습니다.");
+  }
+
+  // 승인 성공 표시 + 조직 활성화를 한 함수에서 원자적으로 처리(멱등).
+  const { error: actErr } = await supabaseAdmin.rpc("apply_paid_activation", {
+    p_order_id: orderId,
+    p_payment_key: paymentKey,
+    p_method: body?.method ?? null,
+    p_receipt_url: body?.receipt?.url ?? null,
+  });
+  if (actErr) {
+    // 토스 결제는 이미 승인된 상태 — 주문은 confirming에 남고 이 경로가 다음 재시도에서 재구동해 복구한다.
+    throw new Error("결제는 승인됐지만 활성화 처리에 실패했습니다. 결제 결과 페이지를 새로고침하면 자동으로 다시 시도됩니다. 계속되면 카카오톡 채널로 문의해 주세요. (" + actErr.message + ")");
+  }
+  return { ok: true as const };
+}
+
 // 결제 승인 + 조직 활성화: successUrl 콜백값을 서버에서 토스로 최종 승인한다.
 export const confirmPaymentAndActivate = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -97,62 +135,21 @@ export const confirmPaymentAndActivate = createServerFn({ method: "POST" })
       throw new Error("결제 설정이 완료되지 않았습니다(TOSS_SECRET_KEY). 관리자에게 문의하세요.");
     }
 
-    // 동시 요청·successUrl 재실행으로 인한 중복 활성화(만료 2배 연장)를 막기 위해
-    // ready 주문을 원자적으로 선점한다. 이미 선점/완료됐으면 승인·활성화를 재실행하지 않는다.
+    // 미결(ready)이거나 이전 시도에서 confirming에 갇힌 주문을 confirming으로 선점/재선점한다.
+    // 활성화가 payments 전이로 멱등화돼 있어, 재구동(confirming 재진입)이나 동시 요청도 안전하다.
     const { data: claim } = await supabaseAdmin
       .from("payments")
       .update({ status: "confirming" })
       .eq("order_id", data.orderId)
-      .eq("status", "ready")
+      .in("status", ["ready", "confirming"])
       .select("id");
     if (!claim?.length) {
+      // ready/confirming이 아님 → paid(완료) 또는 failed(토스 거절).
       const { data: cur } = await supabaseAdmin
         .from("payments").select("status").eq("order_id", data.orderId).maybeSingle();
       if (cur?.status === "paid") return { ok: true as const, already: true };
-      throw new Error("이미 처리 중인 결제입니다. 잠시 후 대시보드에서 상태를 확인해 주세요.");
+      throw new Error("결제를 처리할 수 없는 상태입니다(" + (cur?.status ?? "unknown") + "). 결제를 다시 시도하거나 카카오톡 채널로 문의해 주세요.");
     }
 
-    const res = await fetch("https://api.tosspayments.com/v1/payments/confirm", {
-      method: "POST",
-      headers: {
-        Authorization: `Basic ${btoa(secret + ":")}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        paymentKey: data.paymentKey,
-        orderId: data.orderId,
-        amount: data.amount,
-      }),
-    });
-    const body = (await res.json()) as {
-      message?: string;
-      method?: string;
-      receipt?: { url?: string };
-    };
-    if (!res.ok) {
-      // 우리가 선점한(confirming) 주문만 failed로 표시 — 이미 paid인 행을 덮어쓰지 않음.
-      await supabaseAdmin.from("payments").update({ status: "failed" }).eq("order_id", data.orderId).eq("status", "confirming");
-      throw new Error(body?.message ?? "결제 승인에 실패했습니다.");
-    }
-
-    // 조직 활성화 (SECURITY DEFINER 함수로 가드 트리거 안전 통과).
-    const months = order.billing_cycle === "monthly" ? 1 : 12;
-    const { error: actErr } = await supabaseAdmin.rpc("apply_paid_activation", {
-      p_org_id: order.organization_id,
-      p_months: months,
-    });
-    if (actErr) throw new Error("활성화 처리 실패: " + actErr.message);
-
-    await supabaseAdmin
-      .from("payments")
-      .update({
-        status: "paid",
-        payment_key: data.paymentKey,
-        method: body?.method ?? null,
-        receipt_url: body?.receipt?.url ?? null,
-        paid_at: new Date().toISOString(),
-      })
-      .eq("order_id", data.orderId);
-
-    return { ok: true as const };
+    return await driveConfirm(data.orderId, data.paymentKey, data.amount, secret);
   });

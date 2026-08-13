@@ -367,7 +367,7 @@ function Dashboard() {
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
-      {sub.isTrial && (
+      {(sub.isTrial || sub.isExpired) && (
         <div className={cn(
           "rounded-lg border px-4 py-3 flex flex-wrap items-center justify-between gap-2 text-sm",
           sub.isExpired ? "border-danger/40 bg-danger/10 text-danger" : "border-primary/30 bg-primary/5 text-foreground"
@@ -375,7 +375,11 @@ function Dashboard() {
           <div className="flex items-center gap-2">
             <CalendarClock className="h-4 w-4 shrink-0" />
             {sub.isExpired ? (
-              <span><strong>체험 기간이 종료되었습니다.</strong> 출력물에 체험판 표시가 적용됩니다. 계속 이용하려면 정식 전환이 필요합니다.</span>
+              sub.isPaid ? (
+                <span><strong>구독 기간이 만료되었습니다.</strong> 계속 이용하려면 갱신(재결제)이 필요합니다. 갱신 전에는 새 작성·출력이 잠깁니다.</span>
+              ) : (
+                <span><strong>체험 기간이 종료되었습니다.</strong> 출력물에 체험판 표시가 적용됩니다. 계속 이용하려면 정식 전환이 필요합니다.</span>
+              )
             ) : (
               <span>무료 체험 중 · <strong>{sub.daysLeft}일</strong> 남았습니다. 체험 기간에는 출력물에 체험판 표시가 적용됩니다.</span>
             )}
@@ -383,7 +387,7 @@ function Dashboard() {
           {isAdmin && (PAYMENTS_PUBLIC || userRow?.is_platform_admin) && (
             <Link to="/billing">
               <Button size="sm" variant={sub.isExpired ? "default" : "outline"} className="gap-1.5 shrink-0">
-                <CreditCard className="h-4 w-4" />결제하고 전환
+                <CreditCard className="h-4 w-4" />{sub.isPaid ? "갱신하기" : "결제하고 전환"}
               </Button>
             </Link>
           )}

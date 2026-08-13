@@ -2,21 +2,29 @@ import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Lock } from "lucide-react";
 
-// Hard-lock screen shown when the trial has expired: blocks creating new
-// assessments and printing reports, while existing data stays viewable elsewhere.
-export function TrialExpiredBlock({ what = "이 기능" }: { what?: string }) {
+// Hard-lock screen shown when the trial OR a paid subscription has expired:
+// blocks creating new assessments and printing reports, while existing data
+// stays viewable elsewhere. `paid` switches the copy/CTA between a lapsed paid
+// subscription (renew) and an ended free trial (register).
+export function TrialExpiredBlock({ what = "이 기능", paid = false }: { what?: string; paid?: boolean }) {
   return (
     <div className="p-10 max-w-md mx-auto text-center space-y-4">
       <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-danger/10 text-danger">
         <Lock className="h-7 w-7" />
       </div>
-      <h1 className="text-xl font-bold">체험 기간이 종료되었습니다</h1>
+      <h1 className="text-xl font-bold">{paid ? "구독 기간이 만료되었습니다" : "체험 기간이 종료되었습니다"}</h1>
       <p className="text-sm text-muted-foreground leading-relaxed">
-        14일 무료 체험이 끝나 {what}은(는) 잠겼습니다. 정식 등록 후 승인되면 제한 없이 이용할 수 있어요.
-        기존에 작성한 데이터는 계속 조회할 수 있습니다.
+        {paid
+          ? `구독 기간이 만료되어 ${what}은(는) 잠겼습니다. 갱신(재결제) 후 제한 없이 이용할 수 있어요.`
+          : `14일 무료 체험이 끝나 ${what}은(는) 잠겼습니다. 정식 등록 후 승인되면 제한 없이 이용할 수 있어요.`}
+        {" "}기존에 작성한 데이터는 계속 조회할 수 있습니다.
       </p>
       <div className="flex flex-col sm:flex-row gap-2 justify-center pt-1">
-        <Link to="/activate"><Button className="w-full sm:w-auto">정식 등록하고 계속 사용하기</Button></Link>
+        {paid ? (
+          <Link to="/billing"><Button className="w-full sm:w-auto">갱신하고 계속 사용하기</Button></Link>
+        ) : (
+          <Link to="/activate"><Button className="w-full sm:w-auto">정식 등록하고 계속 사용하기</Button></Link>
+        )}
         <Link to="/dashboard"><Button variant="outline" className="w-full sm:w-auto">대시보드로 돌아가기</Button></Link>
       </div>
     </div>

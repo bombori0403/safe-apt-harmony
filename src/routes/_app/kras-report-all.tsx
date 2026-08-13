@@ -54,7 +54,7 @@ function KrasReportAll() {
     (hazardsByAssessment[a.id] ?? []).map((h) => ({ ...h, work_name: a.work_name, _method: a.method }))
   );
 
-  if (sub.isExpired) return <TrialExpiredBlock what="KRAS 양식 출력" />;
+  if (sub.isExpired) return <TrialExpiredBlock what="KRAS 양식 출력" paid={sub.isPaid} />;
 
   return (
     <div className="bg-white text-foreground">

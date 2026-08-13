@@ -213,7 +213,7 @@ function PrintAll() {
     return <div className="p-8 flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />전체 자료를 불러오는 중...</div>;
   }
   if (error) return <div className="p-8 text-red-600 text-sm">{error}</div>;
-  if (sub.isExpired) return <TrialExpiredBlock what="전체 자료 출력" />;
+  if (sub.isExpired) return <TrialExpiredBlock what="전체 자료 출력" paid={sub.isPaid} />;
 
   const totals = Object.values(dataByComplex).reduce((acc, d) => ({
     a: acc.a + d.assessments.length, n: acc.n + d.nearMiss.length,
