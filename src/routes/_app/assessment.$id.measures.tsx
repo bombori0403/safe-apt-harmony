@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { RISK_ORDER, riskLevelClass, scoreToRiskLevel, type RiskLevel } from "@/lib/types";
 import { toast } from "sonner";
 import { writeErrorMessage } from "@/lib/write-error";
+import { PhotoUpload } from "@/components/photo-upload";
 import { Pencil, Trash2, Check, X, Printer } from "lucide-react";
 
 const MEASURE_TYPES = ["본질적_대책", "공학적_대책", "관리적_대책", "개인보호구"] as const;
@@ -81,6 +82,12 @@ function Measures() {
     load();
   }
 
+  async function updateHazardPhotos(hid: string, patch: { photos?: string[]; after_photos?: string[] }) {
+    const { error } = await supabase.from("hazards").update(patch).eq("id", hid);
+    if (error) { toast.error(writeErrorMessage(error)); return; }
+    load();
+  }
+
   async function deleteMeasure(mid: string) {
     if (!confirm("이 감소대책을 삭제하시겠습니까?")) return;
     const { data, error } = await supabase.from("measures").delete().eq("id", mid).select();
@@ -144,6 +151,21 @@ function Measures() {
             )}
             {h.measures?.length > 0 && (
               <PostRiskEditor hazard={h} method={a.method} onChange={(p) => updatePostRisk(h.id, p)} />
+            )}
+            {h.measures?.length > 0 && (
+              <div className="border-t pt-3 mt-1">
+                <div className="text-xs font-medium text-muted-foreground mb-2">이행 사진 대지 (변경 전 / 변경 후)</div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <div className="text-[11px] font-medium text-muted-foreground mb-1">변경 전 (현장)</div>
+                    <PhotoUpload assessmentId={id} hazardId={h.id} photos={h.photos ?? []} onChange={(photos) => updateHazardPhotos(h.id, { photos })} />
+                  </div>
+                  <div>
+                    <div className="text-[11px] font-medium text-muted-foreground mb-1">변경 후 (이행)</div>
+                    <PhotoUpload assessmentId={id} hazardId={h.id} photos={h.after_photos ?? []} onChange={(after_photos) => updateHazardPhotos(h.id, { after_photos })} />
+                  </div>
+                </div>
+              </div>
             )}
           </CardContent></Card>
         ));

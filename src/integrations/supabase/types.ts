@@ -394,6 +394,7 @@ export type Database = {
       }
       hazards: {
         Row: {
+          after_photos: Json | null
           assessment_id: string
           checklist_result: string | null
           created_at: string | null
@@ -417,6 +418,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          after_photos?: Json | null
           assessment_id: string
           checklist_result?: string | null
           created_at?: string | null
@@ -440,6 +442,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          after_photos?: Json | null
           assessment_id?: string
           checklist_result?: string | null
           created_at?: string | null
