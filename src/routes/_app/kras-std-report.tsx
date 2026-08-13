@@ -14,6 +14,7 @@ import { useSubscription } from "@/hooks/use-subscription";
 
 export const Route = createFileRoute("/_app/kras-std-report")({
   validateSearch: (s: Record<string, unknown>) => ({
+    assessmentId: typeof s.assessmentId === "string" ? s.assessmentId : undefined,
     complexId: typeof s.complexId === "string" ? s.complexId : undefined,
     type: typeof s.type === "string" ? s.type : undefined,
     q: typeof s.q === "string" ? s.q : undefined,
@@ -41,7 +42,7 @@ function legalOf(h: any): string {
 }
 
 function KrasStdReport() {
-  const { complexId, type, q } = Route.useSearch();
+  const { assessmentId, complexId, type, q } = Route.useSearch();
   const sub = useSubscription();
   const [complexName, setComplexName] = useState("");
   const [rows, setRows] = useState<any[]>([]);
@@ -49,16 +50,22 @@ function KrasStdReport() {
 
   useEffect(() => {
     (async () => {
-      if (complexId) {
-        const { data: c } = await supabase.from("complexes").select("name").eq("id", complexId).maybeSingle();
-        setComplexName(c?.name ?? "");
-      }
+      // 평가 하나(=연도) 단위 출력이 기본. assessmentId가 없으면 단지 전체(여러 해 합산)로 폴백.
       let query = supabase.from("assessments").select("*").order("assessment_date", { ascending: true });
-      if (complexId) query = query.eq("complex_id", complexId);
-      if (type) query = query.eq("assessment_type", type);
+      if (assessmentId) query = query.eq("id", assessmentId);
+      else {
+        if (complexId) query = query.eq("complex_id", complexId);
+        if (type) query = query.eq("assessment_type", type);
+      }
       const { data: ass } = await query;
       let list = ass ?? [];
-      if (q) list = list.filter((a) => a.work_name?.includes(q));
+      if (!assessmentId && q) list = list.filter((a) => a.work_name?.includes(q));
+
+      const cxId = assessmentId ? list[0]?.complex_id : complexId;
+      if (cxId) {
+        const { data: c } = await supabase.from("complexes").select("name").eq("id", cxId).maybeSingle();
+        setComplexName(c?.name ?? "");
+      }
 
       if (list.length > 0) {
         const ids = list.map((a) => a.id);
@@ -77,7 +84,7 @@ function KrasStdReport() {
       }
       setLoading(false);
     })();
-  }, [complexId, type, q]);
+  }, [assessmentId, complexId, type, q]);
 
   if (sub.isExpired) return <TrialExpiredBlock what="표준서식 출력" paid={sub.isPaid} />;
 
@@ -87,9 +94,9 @@ function KrasStdReport() {
   carryover.forEach((h, i) => (h._seq = `재검토-${i + 1}`));
   news.forEach((h, i) => (h._seq = `신규-${i + 1}`));
 
+  // 감소대책 대상 = 현재 위험성이 허용수준 초과(=3단계 중·상). '하'는 재검토에서 종결되어 제외.
   const needsMeasure = (h: any) =>
-    (h.measures?.length ?? 0) > 0 ||
-    (h.level && RISK_ORDER[h.level as RiskLevel] > RISK_ORDER[(h._allow ?? "낮음") as RiskLevel]);
+    h.level != null && RISK_ORDER[h.level as RiskLevel] > RISK_ORDER[(h._allow ?? "낮음") as RiskLevel];
 
   const carryoverM = carryover.filter(needsMeasure);
   const newsM = news.filter(needsMeasure);
@@ -171,7 +178,7 @@ function DecisionSheet({ title, label, hazards, withMeasureSeq }: { title: strin
                 <td className="border p-1 text-center">
                   <span className={`px-1 py-0.5 rounded ${riskLevelClass(h.level)}`}>{displayLevel(h.level, h._method)}</span>
                 </td>
-                {withMeasureSeq && <td className="border p-1 text-center whitespace-nowrap">{over || (h.measures?.length ?? 0) > 0 ? h._seq : "-"}</td>}
+                {withMeasureSeq && <td className="border p-1 text-center whitespace-nowrap">{over ? h._seq : "-"}</td>}
               </tr>
             );
           })}

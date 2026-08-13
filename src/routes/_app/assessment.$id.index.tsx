@@ -146,6 +146,9 @@ function Detail() {
             <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="gap-1"><Pencil className="h-4 w-4" />수정</Button>
           )}
           <Link to="/assessment/$id/inputs" params={{ id }}><Button variant="outline" size="sm">직원 참여</Button></Link>
+          <Link to="/kras-std-report" search={{ assessmentId: id }}>
+            <Button variant="outline" size="sm" className="gap-1"><FileText className="h-4 w-4" />표준서식(6종) 출력</Button>
+          </Link>
           {canManage && (
             <Button variant="outline" size="sm" onClick={() => setDelOpen(true)} className="gap-1 text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" />삭제</Button>
           )}

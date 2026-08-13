@@ -245,7 +245,8 @@ export function parseStandardForm(buf: ArrayBuffer): StdFormResult | null {
         measures: [],
       };
       hazards.push(h);
-      if (!byDesc.has(norm(desc))) byDesc.set(norm(desc), h);
+      const k = role!.origin + " " + norm(desc);
+      if (!byDesc.has(k)) byDesc.set(k, h);
     }
   }
 
@@ -267,7 +268,10 @@ export function parseStandardForm(buf: ArrayBuffer): StdFormResult | null {
       const content = txt(row[measCol]);
       const desc = txt(row[descCol]);
       if (!content || !desc || desc.length < 4 || skipHeader(desc)) continue;
-      let h = byDesc.get(norm(desc));
+      // origin(재검토/신규)까지 맞춰 이어붙인다 — 같은 위험발생상황이 양쪽에 있어도
+      // 신규 대책이 재검토 항목에 잘못 붙지 않도록.
+      const k = role!.origin + " " + norm(desc);
+      let h = byDesc.get(k);
       if (!h) {
         // 위험요인 시트에 없던 항목이면 대책 시트 정보로 새로 만든다.
         h = {
@@ -278,7 +282,7 @@ export function parseStandardForm(buf: ArrayBuffer): StdFormResult | null {
           measures: [],
         };
         hazards.push(h);
-        byDesc.set(norm(desc), h);
+        byDesc.set(k, h);
       }
       h.measures.push({
         content,
