@@ -159,13 +159,14 @@ export function parseStandardSheet(ws: XLSX.WorkSheet, sheetName: string): Parse
 // 현재조치·현재위험성·감소대책·개선예정일·담당자까지 한 번에 복원한다.
 // ─────────────────────────────────────────────────────────────────────────
 
-export interface StdMeasureRow { content: string; dueDate?: string; responsible?: string; }
+export interface StdMeasureRow { content: string; dueDate?: string; responsible?: string; done?: boolean; }
 export interface StdHazardRow {
   origin: "carryover" | "new";
   description: string;
   currentControl?: string;
   legalBasis?: string;
   level?: RiskLevel;           // 현재 위험성(상/중/하 → 매핑)
+  postLevel?: RiskLevel;       // 대책 후 위험성(3-1 이행확인)
   measures: StdMeasureRow[];
 }
 export interface StdFormResult {
@@ -177,9 +178,10 @@ export interface StdFormResult {
 
 const inc = (s: string, kws: string[]) => kws.some((k) => s.includes(k));
 
-// 시트명으로 역할 판별: 감소대책 포함=대책시트, 재검토/신규(결정)=위험요인 시트.
-function stdRole(name: string): { kind: "hazard" | "measure"; origin: "carryover" | "new" } | null {
+// 시트명으로 역할 판별: 이행확인=이행결과 시트, 감소대책=대책시트, 재검토/신규(결정)=위험요인 시트.
+function stdRole(name: string): { kind: "hazard" | "measure" | "confirm"; origin: "carryover" | "new" } | null {
   const n = name.replace(/\s/g, "");
+  if (n.includes("이행") && !n.includes("사진")) return { kind: "confirm", origin: "new" }; // 3-1(사진대지 3-2 제외)
   const isMeasure = n.includes("감소대책");
   const carry = n.includes("재검토");
   const neu = n.includes("신규");
@@ -241,7 +243,17 @@ export function parseStandardForm(buf: ArrayBuffer): StdFormResult | null {
 
   const hazards: StdHazardRow[] = [];
   const byDesc = new Map<string, StdHazardRow>();
-  const skipHeader = (d: string) => inc(norm(d), ["위험발생상황", "유해위험요인", "유해·위험요인"]);
+  // 다줄 헤더(주제목행/부제목행)에서 데이터 시작을 headerRow+1로 잡되, 남은 헤더/부제목 셀은 걸러낸다.
+  // 짧은 라벨은 정확일치, 긴 헤더 문구는 앞부분 일치로만(실제 위험요인 문장이 잘못 걸리지 않게).
+  const HEADER_CELLS = new Set([
+    "위험분류", "현재위험성", "대책전위험성", "위험성", "위험성감소대책", "감소대책연번",
+    "안전보건조치", "현재의안전보건조치", "과년도", "관련근거", "관련근거법적근거", "법적근거",
+    "담당자", "개선예정일", "작업공정명", "세부작업내용", "연번", "구분", "완료여부", "현재",
+  ]);
+  const skipHeader = (d: string) => {
+    const nd = norm(d);
+    return HEADER_CELLS.has(nd) || nd.startsWith("위험발생상황") || nd.startsWith("유해위험요인") || nd.startsWith("유해·위험요인");
+  };
 
   // 1) 위험요인 시트(1-1 재검토 / 1-2 신규)
   for (const { n, role } of roles) {
@@ -253,7 +265,7 @@ export function parseStandardForm(buf: ArrayBuffer): StdFormResult | null {
     const ctrlCol = A.find(["현재의안전보건조치"]);
     const riskCol = A.find(["현재위험성"]);
     if (descCol < 0) continue;
-    for (let r = A.headerRow + 2; r < A.aoa.length; r++) {
+    for (let r = A.headerRow + 1; r < A.aoa.length; r++) {
       const row = A.aoa[r]; if (!row) continue;
       const desc = txt(row[descCol]);
       if (!desc || desc.length < 4 || skipHeader(desc)) continue;
@@ -266,7 +278,7 @@ export function parseStandardForm(buf: ArrayBuffer): StdFormResult | null {
         measures: [],
       };
       hazards.push(h);
-      const k = role!.origin + " " + norm(desc);
+      const k = role!.origin + " " + norm(desc);
       if (!byDesc.has(k)) byDesc.set(k, h);
     }
   }
@@ -282,7 +294,7 @@ export function parseStandardForm(buf: ArrayBuffer): StdFormResult | null {
     const dueCol = A.find(["개선예정", "예정일"]);
     const respCol = A.find(["담당자"]);
     if (measCol < 0 || descCol < 0) continue;
-    for (let r = A.headerRow + 2; r < A.aoa.length; r++) {
+    for (let r = A.headerRow + 1; r < A.aoa.length; r++) {
       const row = A.aoa[r]; if (!row) continue;
       const content = txt(row[measCol]);
       const desc = txt(row[descCol]);
@@ -298,6 +310,38 @@ export function parseStandardForm(buf: ArrayBuffer): StdFormResult | null {
         responsible: respCol >= 0 ? txt(row[respCol]) || undefined : undefined,
       });
       mcount++;
+    }
+  }
+
+  // 3) 이행확인 시트(3-1) — 대책 후 위험성·완료여부를 위험요인에 채운다(대책은 2-x에서 이미 붙음).
+  for (const { n, role } of roles) {
+    if (role!.kind !== "confirm") continue;
+    const A = analyzeStdSheet(wb.Sheets[n]); if (!A) continue;
+    let descCol = A.find(["위험발생"], ["위험분류"]);
+    if (descCol < 0) descCol = A.find(["유해위험요인", "유해·위험요인"], ["위험분류"]);
+    const postCol = A.find(["현재위험성"]);        // '감소대책 이행결과 > 현재 위험성' = 대책 후
+    // '완료 여부' 열 — '감소대책 이행결과'(대책 내용)와 겹치지 않게 제외.
+    const doneCol = A.find(["완료여부", "이행여부", "개선완료", "완료"], ["감소대책", "이행결과", "예정일"]);
+    const gubunCol = A.find(["구분"]);
+    if (descCol < 0 || (postCol < 0 && doneCol < 0)) continue;  // 3-2 사진대지 등은 여기서 걸러짐
+    for (let r = A.headerRow + 1; r < A.aoa.length; r++) {
+      const row = A.aoa[r]; if (!row) continue;
+      const desc = txt(row[descCol]);
+      if (!desc || desc.length < 4 || skipHeader(desc)) continue;
+      const gubun = gubunCol >= 0 ? txt(row[gubunCol]) : "";
+      const rowOrigin: "carryover" | "new" = gubun.includes("재검토") ? "carryover" : "new";
+      let h = findHazardByDesc(hazards, byDesc, rowOrigin, desc);
+      if (!h) h = findHazardByDesc(hazards, byDesc, rowOrigin === "carryover" ? "new" : "carryover", desc);
+      if (!h) continue;
+      if (postCol >= 0) {
+        const pl = levelFrom상중하(txt(row[postCol]));
+        if (pl) h.postLevel = pl;
+      }
+      if (doneCol >= 0) {
+        const dv = txt(row[doneCol]);
+        const done = !!dv && !dv.startsWith("미") && /완료|이행|^[oO○]$/.test(dv);
+        if (done) h.measures.forEach((m) => (m.done = true));
+      }
     }
   }
 

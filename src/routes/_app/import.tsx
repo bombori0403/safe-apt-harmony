@@ -122,6 +122,7 @@ function ImportPage() {
         current_control: h.currentControl ?? null,
         level: h.level ?? null,
         level_standardized: h.level ?? null,
+        post_level: h.postLevel ?? null,
         legal_basis_override: h.legalBasis ?? null,
       }));
       const { data: hz, error: he } = await supabase.from("hazards").insert(hazardRows).select("id");
@@ -131,7 +132,9 @@ function ImportPage() {
       (hz ?? []).forEach((row, i) => {
         for (const m of hazards[i]?.measures ?? []) {
           measureRows.push({
-            hazard_id: row.id, content: m.content, type: "관리적_대책", status: "대기",
+            hazard_id: row.id, content: m.content, type: "관리적_대책",
+            status: m.done ? "완료" : "대기",
+            completed_at: m.done ? date + "T00:00:00Z" : null,
             due_date: m.dueDate ?? null, responsible_name: m.responsible ?? null,
           });
         }
