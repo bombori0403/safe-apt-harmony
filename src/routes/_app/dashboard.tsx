@@ -521,17 +521,21 @@ function Dashboard() {
               <DialogHeader><DialogTitle>높음·매우높음 위험요인 {unresolvedHigh}건</DialogTitle></DialogHeader>
               <p className="text-xs text-muted-foreground">항목을 누르면 그 위험요인의 감소대책 화면으로 이동합니다.</p>
               <div className="max-h-[60vh] overflow-y-auto divide-y -mx-2">
-                {highHazards.map((h) => (
+                {highHazards.map((h) => {
+                  // 목록 포함 기준이 level 또는 level_standardized 이므로, 높은 쪽을 배지로 표시.
+                  const badgeLv = ["높음", "매우높음"].includes(h.level) ? h.level : (h.level_standardized || h.level);
+                  return (
                   <Link key={h.id} to="/assessment/$id/measures" params={{ id: h.assessment_id }} search={{ hazard: h.id }}
                     onClick={() => setHighOpen(false)}
                     className="flex items-start gap-2 px-2 py-2.5 hover:bg-muted/50 rounded-md">
-                    <span className={`shrink-0 px-1.5 py-0.5 rounded text-[11px] font-medium ${riskLevelClass(h.level)}`}>{h.level}</span>
+                    <span className={`shrink-0 px-1.5 py-0.5 rounded text-[11px] font-medium ${riskLevelClass(badgeLv)}`}>{badgeLv}</span>
                     <span className="flex-1 min-w-0">
                       <span className="block text-sm leading-snug">{h.description}</span>
                       <span className="block text-xs text-muted-foreground mt-0.5">{h.process_name || h.assessments?.work_name || "-"}</span>
                     </span>
                   </Link>
-                ))}
+                  );
+                })}
               </div>
             </DialogContent>
           </Dialog>

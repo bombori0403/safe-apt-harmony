@@ -89,11 +89,9 @@ function KrasStdReport() {
 
   if (sub.isExpired) return <TrialExpiredBlock what="표준서식 출력" paid={sub.isPaid} />;
 
-  // 재검토 / 신규로 분리하고 연번 부여
-  const carryover = rows.filter((h) => h.origin === "carryover");
-  const news = rows.filter((h) => h.origin !== "carryover");
-  carryover.forEach((h, i) => (h._seq = `재검토-${i + 1}`));
-  news.forEach((h, i) => (h._seq = `신규-${i + 1}`));
+  // 재검토 / 신규로 분리하고 연번 부여(상태 객체를 변형하지 않도록 새 객체로 복사).
+  const carryover = rows.filter((h) => h.origin === "carryover").map((h, i) => ({ ...h, _seq: `재검토-${i + 1}` }));
+  const news = rows.filter((h) => h.origin !== "carryover").map((h, i) => ({ ...h, _seq: `신규-${i + 1}` }));
 
   // 감소대책 대상 = 현재 위험성이 허용수준 초과(=3단계 중·상). '하'는 재검토에서 종결되어 제외.
   const needsMeasure = (h: any) =>

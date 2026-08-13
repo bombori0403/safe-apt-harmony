@@ -223,22 +223,27 @@ function analyzeStdSheet(ws: XLSX.WorkSheet) {
 }
 
 // 위험요인 목록에서 origin+위험발생상황으로 매칭. 정확 매칭 실패 시 부분일치(문구 편집·표기차 허용).
+// byDesc는 같은 문구의 위험요인을 여러 건 담는 큐(배열). preferEmpty=true면 대책이 아직 없는 항목부터 배정.
 function findHazardByDesc(
-  hazards: StdHazardRow[], byDesc: Map<string, StdHazardRow>,
-  origin: "carryover" | "new", desc: string,
+  hazards: StdHazardRow[], byDesc: Map<string, StdHazardRow[]>,
+  origin: "carryover" | "new", desc: string, preferEmpty = false,
 ): StdHazardRow | null {
   const nd = norm(desc);
   const exact = byDesc.get(origin + " " + nd);
-  if (exact) return exact;
+  if (exact && exact.length) {
+    // 위험발생상황이 완전히 같은 위험요인이 여러 건이면, 대책이 아직 없는 항목부터 배정(중복 쏠림 방지).
+    if (preferEmpty) return exact.find((h) => h.measures.length === 0) ?? exact[0];
+    return exact[0];
+  }
   if (nd.length < 8) return null;
-  const pre = nd.slice(0, 14);
+  // 유사 매칭: 한쪽이 다른 쪽을 포함하고 길이 차이가 작을 때만(끝부분 편집·표기차 허용).
+  // 접두부만 같은 규칙은 서로 다른 항목(…지하1층/…지하2층)을 오매칭하므로 제거.
   for (const c of hazards) {
     if (c.origin !== origin) continue;
     const cn = norm(c.description);
     if (cn.length < 8) continue;
     const ratio = Math.min(cn.length, nd.length) / Math.max(cn.length, nd.length);
-    if (cn.slice(0, 14) === pre && ratio >= 0.55) return c;             // 앞부분 일치(끝부분 편집 허용)
-    if (ratio >= 0.7 && (cn.includes(nd) || nd.includes(cn))) return c; // 포함 관계
+    if (ratio >= 0.85 && (cn.includes(nd) || nd.includes(cn))) return c;
   }
   return null;
 }
@@ -249,7 +254,7 @@ export function parseStandardForm(buf: ArrayBuffer): StdFormResult | null {
   if (!roles.length) return null;
 
   const hazards: StdHazardRow[] = [];
-  const byDesc = new Map<string, StdHazardRow>();
+  const byDesc = new Map<string, StdHazardRow[]>();   // 같은 문구 위험요인을 여러 건 담는 큐
   // 다줄 헤더(주제목행/부제목행)에서 데이터 시작을 headerRow+1로 잡되, 남은 헤더/부제목 셀은 걸러낸다.
   // 짧은 라벨은 정확일치, 긴 헤더 문구는 앞부분 일치로만(실제 위험요인 문장이 잘못 걸리지 않게).
   const HEADER_CELLS = new Set([
@@ -288,7 +293,8 @@ export function parseStandardForm(buf: ArrayBuffer): StdFormResult | null {
       };
       hazards.push(h);
       const k = role!.origin + " " + norm(desc);
-      if (!byDesc.has(k)) byDesc.set(k, h);
+      const arr = byDesc.get(k);
+      if (arr) arr.push(h); else byDesc.set(k, [h]);
     }
   }
 
@@ -311,7 +317,8 @@ export function parseStandardForm(buf: ArrayBuffer): StdFormResult | null {
       // 위험요인 시트(1-1/1-2)에 이미 있는 항목에만 대책을 이어붙인다. 새 위험요인은 만들지 않는다
       // — 감소대책 시트의 위험발생상황 문구가 조금 달라도 중복(신규 건수 부풀림)이 생기지 않게.
       // origin(재검토/신규)까지 맞춰 정확 매칭 → 실패 시 유사(부분일치) 매칭.
-      const h = findHazardByDesc(hazards, byDesc, role!.origin, desc);
+      // 같은 문구 위험요인이 여러 건이면 preferEmpty로 대책 없는 항목부터 채워 쏠림 방지.
+      const h = findHazardByDesc(hazards, byDesc, role!.origin, desc, true);
       if (!h) continue;   // 매칭되는 위험요인이 없으면 건너뜀(중복 위험요인 생성 방지)
       h.measures.push({
         content,

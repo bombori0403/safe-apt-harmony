@@ -115,7 +115,10 @@ function ImportPage() {
       }).select().single();
       if (error) throw error;
 
+      // hazard id를 클라이언트에서 미리 만들어 감소대책을 정확히 매칭한다
+      // (INSERT ... RETURNING 순서에 의존하지 않음 — 순서가 어긋나면 대책이 엉뚱한 위험요인에 붙을 수 있음).
       const hazardRows = hazards.map((h) => ({
+        id: crypto.randomUUID(),
         assessment_id: a.id,
         origin: h.origin,
         description: h.description,
@@ -126,14 +129,14 @@ function ImportPage() {
         post_level: h.postLevel ?? null,
         legal_basis_override: h.legalBasis ?? null,
       }));
-      const { data: hz, error: he } = await supabase.from("hazards").insert(hazardRows).select("id");
+      const { error: he } = await supabase.from("hazards").insert(hazardRows);
       if (he) throw he;
 
       const measureRows: any[] = [];
-      (hz ?? []).forEach((row, i) => {
-        for (const m of hazards[i]?.measures ?? []) {
+      hazards.forEach((h, i) => {
+        for (const m of h.measures ?? []) {
           measureRows.push({
-            hazard_id: row.id, content: m.content, type: "관리적_대책",
+            hazard_id: hazardRows[i].id, content: m.content, type: "관리적_대책",
             status: m.done ? "완료" : "대기",
             completed_at: m.done ? date + "T00:00:00Z" : null,
             due_date: m.dueDate ?? null, responsible_name: m.responsible ?? null,

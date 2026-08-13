@@ -198,25 +198,27 @@ function NewAssessment() {
       let copied = 0;
       if (sourceId) {
         const { data: src } = await supabase.from("hazards")
-          .select("description, current_control, likelihood, severity, level, level_standardized, legal_basis_override, library_item_id, post_likelihood, post_severity, post_level, checklist_result, ops_data, measures(content, type, due_date, status, completed_at, responsible_name, residual_action)")
+          .select("description, process_name, current_control, likelihood, severity, level, level_standardized, legal_basis_override, library_item_id, post_likelihood, post_severity, post_level, checklist_result, ops_data, measures(content, type, due_date, status, completed_at, responsible_name, residual_action)")
           .eq("assessment_id", sourceId)
           .order("created_at", { ascending: true });
         if (src && src.length) {
+          // hazard id를 미리 생성해 감소대책을 정확히 매칭(INSERT RETURNING 순서 비의존).
           const hzIns = src.map((h: any) => ({
+            id: crypto.randomUUID(),
             assessment_id: data.id,
             origin: "carryover",   // 이전 평가에서 불러온 = 과년도 재검토 출신
-            description: h.description, current_control: h.current_control,
+            description: h.description, process_name: h.process_name, current_control: h.current_control,
             likelihood: h.likelihood, severity: h.severity,
             level: h.level, level_standardized: h.level_standardized,
             legal_basis_override: h.legal_basis_override, library_item_id: h.library_item_id,
             post_likelihood: h.post_likelihood, post_severity: h.post_severity, post_level: h.post_level,
             checklist_result: h.checklist_result, ops_data: h.ops_data,
           }));
-          const { data: newHz } = await supabase.from("hazards").insert(hzIns).select("id");
+          const { error: hzErr } = await supabase.from("hazards").insert(hzIns);
           const mIns: any[] = [];
-          (newHz ?? []).forEach((nh: any, i: number) => {
-            for (const m of (src[i]?.measures ?? [])) {
-              mIns.push({ hazard_id: nh.id, content: m.content, type: m.type, due_date: m.due_date, status: m.status, completed_at: m.completed_at, responsible_name: m.responsible_name, residual_action: m.residual_action });
+          if (!hzErr) src.forEach((sh: any, i: number) => {
+            for (const m of (sh?.measures ?? [])) {
+              mIns.push({ hazard_id: hzIns[i].id, content: m.content, type: m.type, due_date: m.due_date, status: m.status, completed_at: m.completed_at, responsible_name: m.responsible_name, residual_action: m.residual_action });
             }
           });
           if (mIns.length) await supabase.from("measures").insert(mIns).then(() => {}, () => {});
