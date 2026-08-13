@@ -198,13 +198,15 @@ function NewAssessment() {
       let copied = 0;
       if (sourceId) {
         const { data: src } = await supabase.from("hazards")
-          .select("description, likelihood, severity, level, level_standardized, legal_basis_override, library_item_id, post_likelihood, post_severity, post_level, checklist_result, ops_data, measures(content, type, due_date, status, completed_at, responsible_name)")
+          .select("description, current_control, likelihood, severity, level, level_standardized, legal_basis_override, library_item_id, post_likelihood, post_severity, post_level, checklist_result, ops_data, measures(content, type, due_date, status, completed_at, responsible_name)")
           .eq("assessment_id", sourceId)
           .order("created_at", { ascending: true });
         if (src && src.length) {
           const hzIns = src.map((h: any) => ({
             assessment_id: data.id,
-            description: h.description, likelihood: h.likelihood, severity: h.severity,
+            origin: "carryover",   // 이전 평가에서 불러온 = 과년도 재검토 출신
+            description: h.description, current_control: h.current_control,
+            likelihood: h.likelihood, severity: h.severity,
             level: h.level, level_standardized: h.level_standardized,
             legal_basis_override: h.legal_basis_override, library_item_id: h.library_item_id,
             post_likelihood: h.post_likelihood, post_severity: h.post_severity, post_level: h.post_level,

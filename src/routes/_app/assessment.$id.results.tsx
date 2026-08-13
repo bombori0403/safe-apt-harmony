@@ -154,6 +154,11 @@ function Results() {
       <div className="space-y-3">
         {hazards.map(h => (
           <Card key={h.id}><CardContent className="p-4 space-y-3">
+            <div>
+              <Badge variant="outline" className={`text-[10px] font-medium ${h.origin === "carryover" ? "border-muted-foreground/40 text-muted-foreground" : "border-primary/50 text-primary"}`}>
+                {h.origin === "carryover" ? "재검토 (과년도)" : "신규"}
+              </Badge>
+            </div>
             <div className="flex items-start justify-between gap-2">
               {editingId === h.id ? (
                 <div className="flex-1 flex gap-2">
@@ -199,6 +204,22 @@ function Results() {
                   {effectiveLegal(h) || "자동 매칭 없음 — ‘수정’을 눌러 직접 입력하세요"}
                 </div>
               )}
+            </div>
+
+            {/* 현재의 안전보건조치 — 이미 시행 중인 조치(표준서식 '현재의 안전보건조치'). */}
+            <div>
+              <div className="text-xs font-semibold text-muted-foreground mb-1">현재의 안전보건조치 <span className="font-normal">(이미 시행 중인 조치)</span></div>
+              <textarea
+                key={h.id}
+                defaultValue={h.current_control ?? ""}
+                onBlur={(e) => {
+                  const val = e.target.value.trim();
+                  if (val !== (h.current_control ?? "")) updateHazard(h.id, { current_control: val || null });
+                }}
+                placeholder="예: 보호구 지급·착용 관리, 작업 전 안전교육 실시 등"
+                rows={2}
+                className="w-full px-3 py-2 rounded-md border bg-background text-sm resize-y"
+              />
             </div>
 
             {a.method === "3단계_판단법" && (
@@ -271,10 +292,14 @@ function Results() {
             {h.level && (
               <div className="flex items-center justify-between text-sm">
                 <span className={`px-2 py-1 rounded font-medium ${riskLevelClass(h.level)}`}>{h.level}</span>
-                {RISK_ORDER[h.level as RiskLevel] > RISK_ORDER[(a.allowable_level ?? "낮음") as RiskLevel] && (
+                {RISK_ORDER[h.level as RiskLevel] > RISK_ORDER[(a.allowable_level ?? "낮음") as RiskLevel] ? (
                   <Link to="/assessment/$id/measures" params={{ id }} search={{ hazard: h.id }}>
                     <Badge className="bg-danger text-danger-foreground cursor-pointer hover:opacity-90">감소대책 수립 필요 →</Badge>
                   </Link>
+                ) : (
+                  <Badge variant="outline" className="border-success/50 text-success gap-1">
+                    <Check className="h-3 w-3" />종결 · 감소대책 불필요
+                  </Badge>
                 )}
               </div>
             )}

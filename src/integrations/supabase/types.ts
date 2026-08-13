@@ -397,11 +397,13 @@ export type Database = {
           assessment_id: string
           checklist_result: string | null
           created_at: string | null
+          current_control: string | null
           description: string
           exposed_workers: Json | null
           id: string
           legal_basis_override: string | null
           level: Database["public"]["Enums"]["risk_level"] | null
+          origin: string
           level_standardized: Database["public"]["Enums"]["risk_level"] | null
           library_item_id: string | null
           likelihood: number | null
@@ -418,6 +420,7 @@ export type Database = {
           assessment_id: string
           checklist_result?: string | null
           created_at?: string | null
+          current_control?: string | null
           description: string
           exposed_workers?: Json | null
           id?: string
@@ -428,6 +431,7 @@ export type Database = {
           likelihood?: number | null
           location_detail?: string | null
           ops_data?: Json | null
+          origin?: string
           photos?: Json | null
           post_level?: Database["public"]["Enums"]["risk_level"] | null
           post_likelihood?: number | null
@@ -439,6 +443,7 @@ export type Database = {
           assessment_id?: string
           checklist_result?: string | null
           created_at?: string | null
+          current_control?: string | null
           description?: string
           exposed_workers?: Json | null
           id?: string
@@ -449,6 +454,7 @@ export type Database = {
           likelihood?: number | null
           location_detail?: string | null
           ops_data?: Json | null
+          origin?: string
           photos?: Json | null
           post_level?: Database["public"]["Enums"]["risk_level"] | null
           post_likelihood?: number | null
