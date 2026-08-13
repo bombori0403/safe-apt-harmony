@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Printer, ArrowLeft } from "lucide-react";
+import { Printer, ArrowLeft, List, X } from "lucide-react";
 import { PhotoUpload } from "@/components/photo-upload";
 import { RISK_ORDER, riskLevelClass, type RiskLevel } from "@/lib/types";
 import { suggestLegalBasis } from "@/lib/legal-basis-keywords";
@@ -47,6 +47,7 @@ function KrasStdReport() {
   const [complexName, setComplexName] = useState("");
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [navOpen, setNavOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -124,24 +125,36 @@ function KrasStdReport() {
   return (
     <div className="bg-white text-foreground">
       {sub.isTrial && <TrialWatermark expired={sub.isExpired} />}
-      <div className="print:hidden sticky top-0 z-20 bg-white/95 backdrop-blur border-b">
-        <div className="p-3 max-w-5xl mx-auto flex flex-wrap items-center gap-2">
-          <Link to="/history"><Button variant="outline" size="sm" className="gap-1"><ArrowLeft className="h-4 w-4" />이력</Button></Link>
-          <Button onClick={() => window.print()} size="sm" className="gap-1.5" disabled={loading || rows.length === 0}>
-            <Printer className="h-4 w-4" />PDF / 인쇄
-          </Button>
-          {!loading && rows.length > 0 && (
-            <div className="flex flex-wrap gap-1 ml-auto">
+      <div className="print:hidden p-3 max-w-5xl mx-auto flex items-center gap-2 border-b">
+        <Link to="/history"><Button variant="outline" size="sm" className="gap-1"><ArrowLeft className="h-4 w-4" />이력</Button></Link>
+        <Button onClick={() => window.print()} size="sm" className="gap-1.5" disabled={loading || rows.length === 0}>
+          <Printer className="h-4 w-4" />PDF / 인쇄
+        </Button>
+      </div>
+
+      {/* 오른쪽 아래 항상 떠 있는 '시트 이동' 버튼 — 스크롤해도 안 사라짐(상단 광고바와 겹치지 않게 하단 배치) */}
+      {!loading && rows.length > 0 && (
+        <div className="print:hidden fixed right-4 bottom-24 md:bottom-8 z-40 flex flex-col items-end gap-2">
+          {navOpen && (
+            <div className="w-56 rounded-xl border bg-white shadow-xl overflow-hidden">
+              <div className="px-3 py-2 text-xs font-semibold border-b bg-muted/60 flex items-center justify-between">
+                <span>보고 싶은 시트로 이동</span>
+                <button onClick={() => setNavOpen(false)}><X className="h-3.5 w-3.5" /></button>
+              </div>
               {nav.map((s) => (
-                <button key={s.id} onClick={() => jump(s.id)}
-                  className="px-2 py-1 rounded-md border text-xs hover:bg-muted hover:border-primary transition-colors">
-                  {s.label} <span className="text-muted-foreground">{s.n}</span>
+                <button key={s.id} onClick={() => { jump(s.id); setNavOpen(false); }}
+                  className="w-full text-left px-3 py-2.5 text-sm hover:bg-muted flex justify-between items-center border-b last:border-b-0">
+                  <span>{s.label}</span><span className="text-xs text-muted-foreground">{s.n}건</span>
                 </button>
               ))}
             </div>
           )}
+          <button onClick={() => setNavOpen((v) => !v)}
+            className="flex items-center gap-1.5 rounded-full bg-primary text-primary-foreground shadow-xl px-4 py-3 text-sm font-semibold hover:opacity-90">
+            <List className="h-4 w-4" />{navOpen ? "닫기" : "시트 이동"}
+          </button>
         </div>
-      </div>
+      )}
 
       <div className="max-w-5xl mx-auto p-6 print:p-0 print:max-w-none space-y-8">
         {loading ? (
