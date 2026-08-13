@@ -132,9 +132,9 @@ function KrasStdReport() {
         </Button>
       </div>
 
-      {/* 왼쪽 아래 항상 떠 있는 '시트 이동' 버튼 — 우하단 문의 버튼과 겹치지 않게 좌측 배치 */}
+      {/* 우측, 문의 버튼(우하단) 바로 위에 고정된 '시트 이동' 버튼 — 스크롤해도 안 사라짐 */}
       {!loading && rows.length > 0 && (
-        <div className="print:hidden fixed left-4 bottom-24 md:left-6 md:bottom-8 z-40 flex flex-col items-start gap-2">
+        <div className="print:hidden fixed right-4 bottom-40 md:right-6 md:bottom-24 z-40 flex flex-col items-end gap-2">
           {navOpen && (
             <div className="w-56 rounded-xl border bg-white shadow-xl overflow-hidden">
               <div className="px-3 py-2 text-xs font-semibold border-b bg-muted/60 flex items-center justify-between">
