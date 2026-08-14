@@ -831,9 +831,6 @@ function ProcedureGuide({ firstTime }: { firstTime: boolean }) {
           <Link to="/regulation">
             <Button variant="outline">① 실시규정 보기</Button>
           </Link>
-          <Link to="/assessment/new">
-            <Button className="gap-1.5"><Plus className="h-4 w-4" />② 새 평가 시작 (②~⑤ 차례 안내)</Button>
-          </Link>
         </div>
       </CardContent>
     </Card>
