@@ -106,6 +106,9 @@ function History() {
           <p className="text-sm text-muted-foreground mt-1">
             위험성평가 결과는 법정 3년 이상 보존해야 하며(산업안전보건법 시행규칙 제37조), 리스크로그는 자체 규정에 따라 5년간 보관합니다.
           </p>
+          <p className="text-sm mt-1.5">
+            📄 표준서식으로 시작하려면 <a href="/risk-assessment-template.xlsx" download="위험성평가 실시 결과표(표준서식).xlsx" className="text-primary underline underline-offset-2 font-medium">빈 양식 다운로드</a> 받아 채운 뒤, <b>엑셀 가져오기</b>로 올리세요.
+          </p>
         </div>
         <div className="grid grid-cols-2 gap-2 md:flex md:flex-wrap md:shrink-0">
           <Link to="/import">
