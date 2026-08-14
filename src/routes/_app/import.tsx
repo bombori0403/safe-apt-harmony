@@ -92,7 +92,55 @@ function ImportPage() {
     })();
   }, [ms, mapping, origin]);
 
-  // 공통 커밋: 위험요인(+감소대책) 목록을 한 평가로 생성.
+  // 위험요인(+감소대책) 목록을 새 평가 1개로 생성하고 결과를 돌려준다.
+  async function insertAssessment(hazards: StdHazardRow[], wn: string) {
+    const { data: a, error } = await supabase.from("assessments").insert({
+      complex_id: complexId,
+      created_by: userRowId || null,
+      assessment_type: "정기평가",
+      work_name: wn,
+      method: "3단계_판단법",
+      assessment_date: date,
+      allowable_level: "낮음",
+      status: "작성중",
+    }).select().single();
+    if (error) throw error;
+    // hazard id를 클라이언트에서 미리 만들어 감소대책을 정확히 매칭(INSERT RETURNING 순서 비의존).
+    const hazardRows = hazards.map((h) => ({
+      id: crypto.randomUUID(),
+      assessment_id: a.id,
+      origin: h.origin,
+      description: h.description,
+      process_name: h.processName ?? null,
+      current_control: h.currentControl ?? null,
+      level: h.level ?? null,
+      level_standardized: h.level ?? null,
+      post_level: h.postLevel ?? null,
+      legal_basis_override: h.legalBasis ?? null,
+    }));
+    const { error: he } = await supabase.from("hazards").insert(hazardRows);
+    if (he) throw he;
+    const measureRows: any[] = [];
+    hazards.forEach((h, i) => {
+      for (const m of h.measures ?? []) {
+        measureRows.push({
+          hazard_id: hazardRows[i].id, content: m.content, type: "관리적_대책",
+          status: m.done ? "완료" : "대기",
+          completed_at: m.done ? date + "T00:00:00Z" : null,
+          due_date: m.dueDate ?? null, responsible_name: m.responsible ?? null,
+        });
+      }
+    });
+    let measuresOk = 0;
+    if (measureRows.length) {
+      const { error: me } = await supabase.from("measures").insert(measureRows);
+      if (me) console.error("measures insert 실패:", me);
+      else measuresOk = measureRows.length;
+    }
+    return { id: a.id, hazards: hazardRows.length, measures: measuresOk };
+  }
+
+  // 직접 매핑 등 단일 평가 생성.
   async function commitImport(hazards: StdHazardRow[], summary: string) {
     if (!complexId) { toast.error("단지를 선택하세요"); return; }
     if (!workName.trim()) { toast.error("평가명을 입력하세요"); return; }
@@ -103,55 +151,9 @@ function ImportPage() {
     }
     setSaving(true);
     try {
-      const { data: a, error } = await supabase.from("assessments").insert({
-        complex_id: complexId,
-        created_by: userRowId || null,
-        assessment_type: "정기평가",
-        work_name: workName.trim(),
-        method: "3단계_판단법",
-        assessment_date: date,
-        allowable_level: "낮음",
-        status: "작성중",
-      }).select().single();
-      if (error) throw error;
-
-      // hazard id를 클라이언트에서 미리 만들어 감소대책을 정확히 매칭한다
-      // (INSERT ... RETURNING 순서에 의존하지 않음 — 순서가 어긋나면 대책이 엉뚱한 위험요인에 붙을 수 있음).
-      const hazardRows = hazards.map((h) => ({
-        id: crypto.randomUUID(),
-        assessment_id: a.id,
-        origin: h.origin,
-        description: h.description,
-        process_name: h.processName ?? null,
-        current_control: h.currentControl ?? null,
-        level: h.level ?? null,
-        level_standardized: h.level ?? null,
-        post_level: h.postLevel ?? null,
-        legal_basis_override: h.legalBasis ?? null,
-      }));
-      const { error: he } = await supabase.from("hazards").insert(hazardRows);
-      if (he) throw he;
-
-      const measureRows: any[] = [];
-      hazards.forEach((h, i) => {
-        for (const m of h.measures ?? []) {
-          measureRows.push({
-            hazard_id: hazardRows[i].id, content: m.content, type: "관리적_대책",
-            status: m.done ? "완료" : "대기",
-            completed_at: m.done ? date + "T00:00:00Z" : null,
-            due_date: m.dueDate ?? null, responsible_name: m.responsible ?? null,
-          });
-        }
-      });
-      let measuresOk = 0;
-      if (measureRows.length) {
-        const { error: me } = await supabase.from("measures").insert(measureRows);
-        if (me) console.error("measures insert 실패:", me);
-        else measuresOk = measureRows.length;
-      }
-
-      toast.success(`${summary} — 위험요인 ${hazardRows.length}건, 감소대책 ${measuresOk}건`);
-      navigate({ to: "/assessment/$id", params: { id: a.id } });
+      const r = await insertAssessment(hazards, workName.trim());
+      toast.success(`${summary} — 위험요인 ${r.hazards}건, 감소대책 ${r.measures}건`);
+      navigate({ to: "/assessment/$id", params: { id: r.id } });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "가져오기 중 오류가 발생했습니다.");
     } finally {
@@ -159,9 +161,29 @@ function ImportPage() {
     }
   }
 
+  // 표준서식 전체: 재검토(과년도)/신규를 원본 시트처럼 두 평가로 나눠 생성.
   async function doFullImport() {
     if (!stdForm) return;
-    await commitImport(stdForm.hazards, `표준서식 전체 가져오기(재검토 ${stdForm.carryover}·신규 ${stdForm.neu})`);
+    if (!complexId) { toast.error("단지를 선택하세요"); return; }
+    if (!workName.trim()) { toast.error("평가명을 입력하세요"); return; }
+    const carry = stdForm.hazards.filter((h) => h.origin === "carryover");
+    const neu = stdForm.hazards.filter((h) => h.origin !== "carryover");
+    const willCreate = (carry.length ? 1 : 0) + (neu.length ? 1 : 0);
+    if (sub.isTrial) {
+      const { count } = await supabase.from("assessments").select("id", { count: "exact", head: true });
+      if ((count ?? 0) + willCreate > 10) { toast.error("체험판은 평가 10건까지 작성할 수 있습니다. 정식 전환 후 계속하세요."); return; }
+    }
+    setSaving(true);
+    try {
+      if (carry.length) await insertAssessment(carry, workName.trim() + " — 위험성평가 재검토(과년도)");
+      if (neu.length) await insertAssessment(neu, workName.trim() + " — 위험성결정(신규)");
+      toast.success(`가져오기 완료 — 재검토 ${carry.length}건 · 신규 ${neu.length}건 (평가 ${willCreate}개로 분리)`);
+      navigate({ to: "/history" });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "가져오기 중 오류가 발생했습니다.");
+    } finally {
+      setSaving(false);
+    }
   }
   async function doMappedImport() {
     if (!ms) return;
