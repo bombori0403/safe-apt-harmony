@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Upload, Loader2, FileSpreadsheet } from "lucide-react";
+import { ArrowLeft, Upload, Loader2, FileSpreadsheet, Download } from "lucide-react";
 import { toast } from "sonner";
 import { MAP_FIELDS, type MapSheet, type StdFormResult, type StdHazardRow } from "@/lib/xlsx-import";
 import { riskLevelClass, type RiskLevel } from "@/lib/types";
@@ -180,6 +180,10 @@ function ImportPage() {
       </div>
 
       <Card><CardContent className="p-5 space-y-4">
+        <a href="/risk-assessment-template.xlsx" download="위험성평가 실시 결과표(표준서식).xlsx"
+          className="inline-flex items-center gap-1.5 text-sm text-primary underline underline-offset-2">
+          <Download className="h-4 w-4" />표준서식 양식 내려받기 (빈 양식)
+        </a>
         <div>
           <Label>엑셀 파일 (.xlsx / .csv)</Label>
           <div className="mt-2 flex items-center gap-3">
