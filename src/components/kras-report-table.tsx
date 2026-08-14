@@ -88,7 +88,7 @@ export function KrasReportTable({ workName, hazards, method }: { workName: strin
                 {curRiskDisplay ? <span className={`px-1 py-0.5 rounded ${riskLevelClass(h.level)}`}>{curRiskDisplay}</span> : "-"}
               </td>
               <td className="border p-1">
-                {measures.length === 0 ? "-" : measures.map((m: any, mi: number) => (
+                {measures.length === 0 ? (h.current_control || "-") : measures.map((m: any, mi: number) => (
                   <div key={m.id} className={mi > 0 ? "border-t mt-1 pt-1" : ""}>{m.content}</div>
                 ))}
               </td>
