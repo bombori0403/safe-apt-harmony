@@ -69,7 +69,7 @@ export function KrasReportTable({ workName, hazards, method }: { workName: strin
           // 빈도강도법: show 가능성/중대성 numbers + score. Other methods: 등급 only,
           // relabeled to the method's own scale (상/중/하, 적정/보완).
           const curRiskDisplay = isFreq ? (score ?? h.level) : displayLevel(h.level, rowMethod);
-          const postLevelResolved = h.post_level ?? (postScore ? scoreToRiskLevel(postScore) : null);
+          const postLevelResolved = h.post_level ?? (postScore ? scoreToRiskLevel(postScore) : null) ?? h.level;
           const postRiskDisplay = isFreq ? postScore : displayLevel(postLevelResolved, rowMethod);
           const postColorLevel = isFreq ? (postScore ? scoreToRiskLevel(postScore) : null) : postLevelResolved;
           const measures = h.measures ?? [];
