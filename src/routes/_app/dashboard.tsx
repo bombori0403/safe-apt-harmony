@@ -12,7 +12,8 @@ import { Calendar as CalendarComp } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, AlertTriangle, Calendar, Users, TrendingUp, Building2, MessageCircle, CalendarClock, Download, Printer, CreditCard, ClipboardCheck, FileCheck2, GraduationCap } from "lucide-react";
+import { Plus, AlertTriangle, Calendar, Users, TrendingUp, Building2, MessageCircle, CalendarClock, Download, Printer, CreditCard, ClipboardCheck, FileCheck2, GraduationCap, X } from "lucide-react";
+import { LAW_NOTICES } from "@/lib/law-notices";
 import { cn } from "@/lib/utils";
 import { riskLevelClass } from "@/lib/types";
 import JSZip from "jszip";
@@ -72,6 +73,14 @@ function Dashboard() {
   const [unresolvedHigh, setUnresolvedHigh] = useState(0);
   const [highHazards, setHighHazards] = useState<any[]>([]);
   const [highOpen, setHighOpen] = useState(false);
+  const [dismissedLaw, setDismissedLaw] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem("dismissedLaw") || "[]"); } catch { return []; }
+  });
+  const dismissLaw = (id: string) => setDismissedLaw((prev) => {
+    const next = [...prev, id];
+    try { localStorage.setItem("dismissedLaw", JSON.stringify(next)); } catch { /* ignore */ }
+    return next;
+  });
   const [monthCount, setMonthCount] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -372,6 +381,15 @@ function Dashboard() {
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
+      {LAW_NOTICES.filter((n) => !dismissedLaw.includes(n.id)).map((n) => (
+        <div key={n.id} className="rounded-lg border border-warning/40 bg-warning/10 px-4 py-3 text-sm flex items-start gap-2">
+          <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-warning" />
+          <div className="flex-1">
+            <b>법령 개정 안내</b> <span className="text-muted-foreground">({n.date})</span> — <b>{n.from}</b> → <b>{n.to}</b>{n.note ? ` · ${n.note}` : ""}
+          </div>
+          <button onClick={() => dismissLaw(n.id)} className="shrink-0 text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
+        </div>
+      ))}
       {(sub.isTrial || sub.isExpired) && (
         <div className={cn(
           "rounded-lg border px-4 py-3 flex flex-wrap items-center justify-between gap-2 text-sm",
