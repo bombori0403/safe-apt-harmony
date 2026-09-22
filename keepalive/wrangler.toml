@@ -1,0 +1,7 @@
+name = "riskeulog-keepalive"
+main = "src/index.js"
+compatibility_date = "2026-01-01"
+
+# 매일 KST 낮 12:17 (UTC 03:17) — Supabase 무료 프로젝트 미사용 일시정지 방지용 핑
+[triggers]
+crons = ["17 3 * * *"]
