@@ -19,12 +19,13 @@ import { useSubscription } from "@/hooks/use-subscription";
 import { TrialWatermark } from "@/components/trial-watermark";
 import { Trash2, MessageCircle, Mic, Camera, Loader2, X, Users, Pencil, Printer } from "lucide-react";
 import { compressImage } from "@/lib/image-compress";
+import { MemberOpinionForm, MemberOpinionList, OPINION_STATUS_LABEL, type OpinionReviewStatus } from "@/components/member-opinion-form";
 
 export const Route = createFileRoute("/_app/employee-inputs")({
   component: EmployeeInputs,
 });
 
-type InputType = "hearing" | "open_chat";
+type InputType = "hearing" | "open_chat" | "opinion";
 
 const EMPTY_APPROVAL = {
   drafter_name: "",
@@ -84,6 +85,8 @@ function EmployeeInputs() {
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState<any | null>(null);
   const [printItemId, setPrintItemId] = useState<string | null>(null);
+  const [opinions, setOpinions] = useState<any[]>([]);          // 직원이 앱에서 보낸 의견 (input_type = opinion)
+  const [opinionRefresh, setOpinionRefresh] = useState(0);      // 직원 화면: 제출 후 목록 새로고침
 
   const isAdmin = me?.org_role === "admin";
 
@@ -109,7 +112,8 @@ function EmployeeInputs() {
   }, [user]);
 
   async function load() {
-    if (!me) return;
+    // 직원(member)은 관리자용 목록 조회를 아예 보내지 않는다 — 타인의 의견이 네트워크 응답으로 새지 않게.
+    if (!me || me.org_role === "member") return;
     let q = supabase.from("employee_inputs")
       .select("*")
       .is("assessment_id", null)
@@ -117,6 +121,11 @@ function EmployeeInputs() {
     if (filterComplex !== "all") q = q.eq("complex_id", filterComplex);
     const { data } = await q;
     setItems(data ?? []);
+    // 직원 의견은 진행 중 평가에 연결(assessment_id 있음)될 수 있어 별도로 읽는다.
+    let oq = supabase.from("employee_inputs").select("*").eq("input_type", "opinion").order("occurred_at", { ascending: false }).limit(200);
+    if (filterComplex !== "all") oq = oq.eq("complex_id", filterComplex);
+    const { data: od } = await oq;
+    setOpinions(od ?? []);
   }
   useEffect(() => { load(); }, [me, filterComplex]);
 
@@ -223,6 +232,16 @@ function EmployeeInputs() {
     toast.success("삭제됨"); load();
   }
 
+  async function setOpinionStatus(it: any, review_status: OpinionReviewStatus) {
+    if (!me) return;
+    // 검토자·시각은 DB 트리거(guard_employee_input_review)가 서버 시각으로 채운다.
+    const meta = { ...(it.meta ?? {}), review_status };
+    const { data, error } = await supabase.from("employee_inputs").update({ meta } as any).eq("id", it.id).select("id");
+    if (error || !data?.length) { toast.error(writeErrorMessage(error, "권한이 없거나 체험 기간이 끝나 변경할 수 없습니다.")); return; }
+    toast.success(`'${OPINION_STATUS_LABEL[review_status]}'으로 표시했습니다`);
+    load();
+  }
+
   async function saveEdit() {
     if (!editing) return;
     setSaving(true);
@@ -281,6 +300,26 @@ function EmployeeInputs() {
   }
 
 
+  // 직원(member)은 공문서 폼(청취조사·오픈채팅·결재라인) 대신 "의견 남기기" 한 화면만 본다.
+  if (me?.org_role === "member") {
+    return (
+      <div className="p-4 md:p-8 max-w-2xl mx-auto space-y-6">
+        {sub.isTrial && <TrialWatermark expired={sub.isExpired} />}
+        <div>
+          <h1 className="text-2xl font-bold inline-flex items-center gap-2"><MessageCircle className="h-7 w-7 text-primary" />안전 의견 남기기</h1>
+          <p className="text-base text-muted-foreground mt-1">현장에서 위험하다고 느낀 것을 알려 주세요. 관리자가 확인해 위험성평가에 반영합니다.</p>
+        </div>
+        <Card><CardContent className="p-5 md:p-6">
+          <MemberOpinionForm onSubmitted={() => setOpinionRefresh((k) => k + 1)} />
+        </CardContent></Card>
+        <Card><CardContent className="p-5 md:p-6 space-y-2">
+          <h2 className="text-lg font-semibold">내가 남긴 의견</h2>
+          <MemberOpinionList refreshKey={opinionRefresh} />
+        </CardContent></Card>
+      </div>
+    );
+  }
+
   return (
     <div className={`employee-print-root p-4 md:p-8 max-w-5xl mx-auto space-y-5 ${printItemId ? "printing-single" : ""}`}>
       {sub.isTrial && <TrialWatermark expired={sub.isExpired} />}
@@ -330,12 +369,12 @@ function EmployeeInputs() {
       <div className="flex items-start justify-between gap-3 flex-wrap no-print">
         <div>
           <h1 className="text-2xl font-bold inline-flex items-center gap-2"><Users className="h-6 w-6 text-primary" />직원 참여</h1>
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             청취조사 응답과 단지 오픈채팅 이력을 단지 단위로 기록·조회·출력합니다.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Label className="text-xs whitespace-nowrap">단지 필터</Label>
+          <Label className="whitespace-nowrap">단지 필터</Label>
           <Select value={filterComplex} onValueChange={setFilterComplex}>
             <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -353,6 +392,7 @@ function EmployeeInputs() {
         <TabsList className="no-print">
           <TabsTrigger value="hearing" className="gap-1"><Mic className="h-4 w-4" />청취조사 ({hearings.length})</TabsTrigger>
           <TabsTrigger value="open_chat" className="gap-1"><MessageCircle className="h-4 w-4" />오픈채팅 이력 ({chats.length})</TabsTrigger>
+          <TabsTrigger value="opinion" className="gap-1"><Users className="h-4 w-4" />직원 의견 ({opinions.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="hearing" className="space-y-4 mt-4">
@@ -363,19 +403,19 @@ function EmployeeInputs() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               <div>
-                <Label className="text-xs">단지 *</Label>
+                <Label>단지 *</Label>
                 <Select value={formComplex} onValueChange={setFormComplex}>
                   <SelectTrigger><SelectValue placeholder="단지 선택" /></SelectTrigger>
                   <SelectContent>{complexes.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              <div><Label className="text-xs">수행 일시</Label>
+              <div><Label>수행 일시</Label>
                 <Input type="datetime-local" value={hearingAt} onChange={e=>setHearingAt(e.target.value)} /></div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              <div><Label className="text-xs">수행자 성명</Label>
+              <div><Label>수행자 성명</Label>
                 <Input value={hearing.conductor_name} onChange={e=>setHearing({...hearing, conductor_name: e.target.value})} placeholder="예: 문상식" /></div>
-              <div><Label className="text-xs">근로자 성명</Label>
+              <div><Label>근로자 성명</Label>
                 <Input value={hearing.worker_name} onChange={e=>setHearing({...hearing, worker_name: e.target.value})} placeholder="응답한 근로자" /></div>
             </div>
 
@@ -384,7 +424,7 @@ function EmployeeInputs() {
               const key = `experience_${n}` as "experience_1"|"experience_2"|"experience_3";
               return (
                 <div key={n}>
-                  <Label className="text-xs">경험담 {n}</Label>
+                  <Label>경험담 {n}</Label>
                   <Textarea rows={3} value={hearing[key]} onChange={e=>setHearing({...hearing, [key]: e.target.value})}
                     placeholder={n===1 ? "예) 지하주차장 청소 중 미끄러져 넘어질 뻔함…" : ""} />
                 </div>
@@ -392,11 +432,11 @@ function EmployeeInputs() {
             })}
 
             <div>
-              <Label className="text-xs">근로자 의견</Label>
+              <Label>근로자 의견</Label>
               <Textarea rows={3} value={hearing.worker_opinion} onChange={e=>setHearing({...hearing, worker_opinion: e.target.value})} />
             </div>
             <div>
-              <Label className="text-xs">수행자 의견</Label>
+              <Label>수행자 의견</Label>
               <Textarea rows={3} value={hearing.conductor_opinion} onChange={e=>setHearing({...hearing, conductor_opinion: e.target.value})} />
             </div>
 
@@ -418,23 +458,23 @@ function EmployeeInputs() {
             <div className="font-semibold">오픈채팅 이력 추가</div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
               <div>
-                <Label className="text-xs">단지 *</Label>
+                <Label>단지 *</Label>
                 <Select value={formComplex} onValueChange={setFormComplex}>
                   <SelectTrigger><SelectValue placeholder="단지 선택" /></SelectTrigger>
                   <SelectContent>{complexes.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              <div><Label className="text-xs">채팅방명</Label>
+              <div><Label>채팅방명</Label>
                 <Input value={chat.room_name} onChange={e=>setChat({...chat, room_name: e.target.value})} placeholder="단지 안전 오픈채팅" /></div>
-              <div><Label className="text-xs">일시</Label>
+              <div><Label>일시</Label>
                 <Input type="datetime-local" value={chatAt} onChange={e=>setChatAt(e.target.value)} /></div>
             </div>
             <div>
-              <Label className="text-xs">작성자</Label>
+              <Label>작성자</Label>
               <Input value={chat.author_name} onChange={e=>setChat({...chat, author_name: e.target.value})} placeholder="작성자명/직책" />
             </div>
             <div>
-              <Label className="text-xs">대화 내용 / 요약</Label>
+              <Label>대화 내용 / 요약</Label>
               <Textarea rows={4} value={chat.summary} onChange={e=>setChat({...chat, summary: e.target.value})}
                 placeholder="오픈채팅에서 공유된 안전 관련 대화 내용을 입력하거나 캡처를 첨부하세요" />
             </div>
@@ -447,6 +487,17 @@ function EmployeeInputs() {
           </CardContent></Card>
           <List items={chats} me={me} onDelete={del} onEdit={setEditing} onPrint={printOne} printItemId={printItemId} complexNameById={complexNameById} />
         </TabsContent>
+
+        <TabsContent value="opinion" className="space-y-4 mt-4">
+          <Card className="no-print"><CardContent className="p-5 space-y-2">
+            <div className="font-semibold">직원이 앱에서 보낸 안전 의견</div>
+            <p className="text-sm text-muted-foreground">
+              근로자 참여 방법 중 '의견 수렴'에 해당합니다. 사업장 순회점검은 별도로 실시해야 하며(산업안전보건법 시행규칙 제37조의2), 이 의견이 순회점검을 대체하지 않습니다.
+              읽은 의견은 <b>확인</b>, 위험요인·감소대책에 넣은 의견은 <b>반영</b>으로 표시하면 누가 언제 검토했는지 기록으로 남습니다.
+            </p>
+          </CardContent></Card>
+          <OpinionList items={opinions} complexNameById={complexNameById} onStatus={setOpinionStatus} />
+        </TabsContent>
       </Tabs>
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
@@ -458,14 +509,14 @@ function EmployeeInputs() {
             <div className="space-y-3">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 <div>
-                  <Label className="text-xs">단지</Label>
+                  <Label>단지</Label>
                   <Select value={editing.complex_id ?? ""} onValueChange={(v) => setEditing({ ...editing, complex_id: v })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>{complexes.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label className="text-xs">일시</Label>
+                  <Label>일시</Label>
                   <Input type="datetime-local" value={toLocalInput(editing.occurred_at)}
                     onChange={(e) => setEditing({ ...editing, occurred_at: new Date(e.target.value).toISOString() })} />
                 </div>
@@ -474,10 +525,10 @@ function EmployeeInputs() {
               {editing.input_type === "hearing" ? (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    <div><Label className="text-xs">수행자 성명</Label>
+                    <div><Label>수행자 성명</Label>
                       <Input value={editing.meta?.conductor_name ?? ""}
                         onChange={e => setEditing({ ...editing, meta: { ...editing.meta, conductor_name: e.target.value } })} /></div>
-                    <div><Label className="text-xs">근로자 성명</Label>
+                    <div><Label>근로자 성명</Label>
                       <Input value={editing.meta?.worker_name ?? ""}
                         onChange={e => setEditing({ ...editing, meta: { ...editing.meta, worker_name: e.target.value } })} /></div>
                   </div>
@@ -485,19 +536,19 @@ function EmployeeInputs() {
                     const key = `experience_${n}`;
                     return (
                       <div key={n}>
-                        <Label className="text-xs">경험담 {n}</Label>
+                        <Label>경험담 {n}</Label>
                         <Textarea rows={3} value={editing.meta?.[key] ?? ""}
                           onChange={e => setEditing({ ...editing, meta: { ...editing.meta, [key]: e.target.value } })} />
                       </div>
                     );
                   })}
                   <div>
-                    <Label className="text-xs">근로자 의견</Label>
+                    <Label>근로자 의견</Label>
                     <Textarea rows={3} value={editing.meta?.worker_opinion ?? ""}
                       onChange={e => setEditing({ ...editing, meta: { ...editing.meta, worker_opinion: e.target.value } })} />
                   </div>
                   <div>
-                    <Label className="text-xs">수행자 의견</Label>
+                    <Label>수행자 의견</Label>
                     <Textarea rows={3} value={editing.meta?.conductor_opinion ?? ""}
                       onChange={e => setEditing({ ...editing, meta: { ...editing.meta, conductor_opinion: e.target.value } })} />
                   </div>
@@ -505,15 +556,15 @@ function EmployeeInputs() {
               ) : (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    <div><Label className="text-xs">채팅방명</Label>
+                    <div><Label>채팅방명</Label>
                       <Input value={editing.meta?.room_name ?? ""}
                         onChange={e => setEditing({ ...editing, meta: { ...editing.meta, room_name: e.target.value } })} /></div>
-                    <div><Label className="text-xs">작성자</Label>
+                    <div><Label>작성자</Label>
                       <Input value={editing.meta?.author_name ?? ""}
                         onChange={e => setEditing({ ...editing, meta: { ...editing.meta, author_name: e.target.value } })} /></div>
                   </div>
                   <div>
-                    <Label className="text-xs">대화 내용 / 요약</Label>
+                    <Label>대화 내용 / 요약</Label>
                     <Textarea rows={5} value={editing.meta?.summary ?? ""}
                       onChange={e => setEditing({ ...editing, meta: { ...editing.meta, summary: e.target.value } })} />
                   </div>
@@ -546,10 +597,47 @@ function EmployeeInputs() {
   );
 }
 
+function OpinionList({ items, complexNameById, onStatus }: { items: any[]; complexNameById: Record<string, string>; onStatus: (it: any, s: OpinionReviewStatus) => void }) {
+  if (items.length === 0) return <div className="text-center text-muted-foreground py-8 text-base">아직 직원이 보낸 의견이 없습니다.</div>;
+  return (
+    <div className="space-y-3">
+      {items.map((it) => {
+        const st = ((it.meta as any)?.review_status ?? "new") as OpinionReviewStatus;
+        return (
+          <Card key={it.id} className="print-card"><CardContent className="p-4 md:p-5 space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant={st === "applied" ? "default" : st === "reviewed" ? "secondary" : "outline"}>{OPINION_STATUS_LABEL[st]}</Badge>
+                <span className="font-medium">{it.respondent_name || "직원"}</span>
+                {it.respondent_role && <span className="text-sm text-muted-foreground">{it.respondent_role}</span>}
+                <span className="text-sm text-muted-foreground">{complexNameById[it.complex_id] ?? ""}</span>
+              </div>
+              <span className="text-sm text-muted-foreground">{new Date(it.occurred_at).toLocaleString("ko-KR")}</span>
+            </div>
+            <p className="text-base whitespace-pre-wrap break-words">{it.content}</p>
+            {Array.isArray(it.attachments) && it.attachments.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {it.attachments.map((u: string, i: number) => (
+                  <SignedImg key={u + i} src={u} alt={`첨부 ${i + 1}`} className="w-24 h-24 object-cover rounded-md border" />
+                ))}
+              </div>
+            )}
+            {it.assessment_id && <p className="text-sm text-muted-foreground">진행 중 평가에 연결됨</p>}
+            <div className="flex flex-wrap gap-2 no-print">
+              <Button type="button" variant={st === "reviewed" ? "secondary" : "outline"} size="sm" onClick={() => onStatus(it, "reviewed")}>확인함</Button>
+              <Button type="button" variant={st === "applied" ? "default" : "outline"} size="sm" onClick={() => onStatus(it, "applied")}>평가에 반영함</Button>
+            </div>
+          </CardContent></Card>
+        );
+      })}
+    </div>
+  );
+}
+
 function AttachmentPicker({ files, setFiles, uploading, onPick }: any) {
   return (
     <div>
-      <Label className="text-xs">첨부 (사진/캡처)</Label>
+      <Label>첨부 (사진/캡처)</Label>
       <div className="flex flex-wrap gap-2 mt-1">
         {files.map((url: string, i: number) => (
           <div key={i} className="relative w-20 h-20 rounded-md overflow-hidden border bg-muted">
@@ -679,7 +767,7 @@ function ApprovalLineEditor({ value, onChange }: { value: Approval; onChange: (a
       <div className="grid grid-cols-3 gap-2">
         {APPROVAL_ROLES.map(({ key, nameKey, label }) => (
           <div key={label} className="space-y-1">
-            <Label className="text-xs">{label}</Label>
+            <Label>{label}</Label>
             <Input placeholder="성명" value={(v[nameKey] as string) || ""}
               onChange={e => setField(nameKey, e.target.value)} />
             <div className="text-xs text-muted-foreground min-h-[14px]">

@@ -5,10 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { UserPlus } from "lucide-react";
+import { Eye, EyeOff, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/invite/$token")({ component: Invite });
+
+// 초대 정보의 권한값(영문 enum)을 화면용 한글로. 모르는 값은 그대로 보여준다.
+const ROLE_LABEL: Record<string, string> = { admin: "관리자", manager: "매니저", member: "직원" };
 
 function Invite() {
   const { token } = Route.useParams();
@@ -16,6 +19,7 @@ function Invite() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -77,16 +81,16 @@ function Invite() {
             )}
             {info?.valid && (
               <form onSubmit={submit} className="space-y-3">
-                <div className="rounded-md bg-muted/50 p-3 text-sm space-y-1">
-                  <div><span className="text-muted-foreground">조직:</span> <span className="font-medium">{info.org}</span></div>
-                  <div><span className="text-muted-foreground">권한:</span> <span className="font-medium">{info.role}</span></div>
+                <div className="rounded-md bg-muted/50 p-3 text-base space-y-1">
+                  <div><span className="text-muted-foreground">소속:</span> <span className="font-medium">{info.org}</span></div>
+                  <div><span className="text-muted-foreground">역할:</span> <span className="font-medium">{ROLE_LABEL[info.role ?? ""] ?? info.role}</span></div>
                   {info.email && !info.isLink && (
                     <div><span className="text-muted-foreground">이메일:</span> <span className="font-medium">{info.email}</span></div>
                   )}
                 </div>
                 <div>
-                  <Label>이름</Label>
-                  <Input value={name} onChange={(e) => setName(e.target.value)} required maxLength={100} />
+                  <Label htmlFor="invite-name">이름 <span className="text-muted-foreground font-normal">(평가 참여 확인에 쓰이니 실명으로)</span></Label>
+                  <Input id="invite-name" value={name} onChange={(e) => setName(e.target.value)} required maxLength={100} autoComplete="name" />
                 </div>
                 {info.isLink && (
                   <div>
@@ -95,8 +99,17 @@ function Invite() {
                   </div>
                 )}
                 <div>
-                  <Label>비밀번호</Label>
-                  <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
+                  <Label htmlFor="invite-pw">비밀번호 <span className="text-muted-foreground font-normal">(6자 이상)</span></Label>
+                  <div className="relative">
+                    <Input id="invite-pw" type={showPw ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)}
+                      required minLength={6} autoComplete="new-password" className="pr-12" />
+                    {/* 고령 사용자는 가린 비밀번호를 틀리게 치는 일이 잦다 — 보기 토글 제공 */}
+                    <button type="button" onClick={() => setShowPw((v) => !v)}
+                      aria-label={showPw ? "비밀번호 숨기기" : "비밀번호 보기"} aria-pressed={showPw}
+                      className="absolute right-1 top-1/2 -translate-y-1/2 h-9 w-9 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground">
+                      {showPw ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                  </div>
                 </div>
                 <Button type="submit" disabled={loading} className="w-full h-11">
                   {loading ? "처리 중..." : "가입하기"}

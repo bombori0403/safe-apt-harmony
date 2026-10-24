@@ -70,5 +70,12 @@ export const submitParticipantConfirmation = createServerFn({ method: "POST" })
       user_agent: data.userAgent ?? null,
     });
     if (sErr) throw sErr;
+    // 서명이 저장되면 참여자 확인 상태도 함께 갱신한다 — 직원 홈의 "확인·서명할 평가" 목록이 이 값을 본다.
+    const { error: cErr } = await supabaseAdmin
+      .from("participants")
+      .update({ confirmed: true, confirmed_at: new Date().toISOString() })
+      .eq("id", participantId)
+      .eq("assessment_id", data.assessmentId);
+    if (cErr) throw cErr;
     return { ok: true };
   });

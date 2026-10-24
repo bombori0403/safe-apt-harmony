@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useSubscription } from "@/hooks/use-subscription";
 import { PAYMENTS_PUBLIC } from "@/lib/pricing";
 import { getCurrentUserContext } from "@/lib/user-context";
+import { MemberHome } from "@/components/member-home";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -115,6 +116,8 @@ function Dashboard() {
 
   useEffect(() => {
     if (!user) return;
+    // 역할을 알기 전이거나 직원(member)이면 관리자용 집계 조회를 보내지 않는다 (MemberHome 이 자기 것만 읽는다).
+    if (!userRow || userRow.org_role === "member") return;
     (async () => {
       const scoped = selectedComplexId !== "all";
 
@@ -217,7 +220,7 @@ function Dashboard() {
         applyHigh(hi ?? []);
       }
     })();
-  }, [user, selectedComplexId]);
+  }, [user, userRow, selectedComplexId]);
 
   const currentComplex = complexes.find((c) => c.id === selectedComplexId);
   const effNext = currentComplex ? effectiveNextDate(currentComplex) : null;
@@ -378,6 +381,9 @@ function Dashboard() {
       setExporting(false);
     }
   };
+
+  // 직원(member)은 KPI·이력·아차사고 대신 "할 일" 화면만 본다 (모든 훅 호출 뒤에 분기).
+  if (isMember) return <MemberHome userRow={userRow} />;
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">

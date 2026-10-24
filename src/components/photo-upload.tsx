@@ -53,7 +53,7 @@ export function PhotoUpload({ assessmentId, hazardId, photos, onChange, max, var
 
   const inputEl = (
     <input ref={fileRef} type="file" accept="image/*" capture="environment" multiple={max == null || max - photos.length > 1}
-      className="hidden" onChange={e => e.target.files && upload(e.target.files)} />
+      className="sr-only" onChange={e => e.target.files && upload(e.target.files)} />
   );
 
   // 사진 대지용: 크게, 갯수에 따라 크기 자동(1장=칸 전체, 2장=반반).

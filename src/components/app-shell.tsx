@@ -94,7 +94,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   };
   const visibleNav = NAV.filter(canSee);
   // 하단 탭바는 4개까지. 5번째 칸은 나머지 메뉴를 전부 담은 '전체' 버튼이 쓴다.
-  const mobileTabs = visibleNav.filter((n: any) => n.mobileTab).slice(0, 4);
+  // 직원은 탭 3개(대시보드·직원 참여·전체): 평가 이력은 '전체' 서랍에만 두어 탭 글자를 키울 공간을 확보한다.
+  const isMemberUser = !isAdmin && !isManager;
+  const mobileTabs = visibleNav.filter((n: any) => n.mobileTab && !(isMemberUser && n.to === "/history")).slice(0, 4);
   const [menuOpen, setMenuOpen] = useState(false);
   // 메뉴에서 이동하면 서랍을 닫는다.
   useEffect(() => { setMenuOpen(false); }, [path]);
