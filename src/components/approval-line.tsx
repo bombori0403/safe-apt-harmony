@@ -43,13 +43,13 @@ export function ApprovalLineEditor({ value, onChange }: { value?: Approval; onCh
       <div className="grid grid-cols-3 gap-2">
         {APPROVAL_ROLES.map(({ key, nameKey, label }) => (
           <div key={label} className="space-y-1">
-            <Label className="text-[11px]">{label}</Label>
-            <Input className="h-8 text-xs" placeholder="성명" value={(v[nameKey] as string) || ""}
+            <Label className="text-xs">{label}</Label>
+            <Input placeholder="성명" value={(v[nameKey] as string) || ""}
               onChange={(e) => setField(nameKey, e.target.value)} />
-            <div className="text-[10px] text-muted-foreground min-h-[14px]">
+            <div className="text-xs text-muted-foreground min-h-[14px]">
               {v[key] ? new Date(v[key] as string).toLocaleString("ko-KR") : "미결재"}
             </div>
-            <Button type="button" variant={v[key] ? "secondary" : "outline"} size="sm" className="w-full h-7 text-xs"
+            <Button type="button" variant={v[key] ? "secondary" : "outline"} size="sm" className="w-full"
               onClick={() => v[key] ? setField(key, "") : sign(nameKey, key)}>
               {v[key] ? "결재취소" : "결재"}
             </Button>
@@ -74,7 +74,7 @@ export function ApprovalLineView({ approval }: { approval?: Approval }) {
             {APPROVAL_ROLES.map(({ key, nameKey, label }) => (
               <td key={label} className="px-2 py-2 border-r last:border-r-0 text-center align-top">
                 <div className="font-medium">{(a[nameKey] as string) || "-"}</div>
-                <div className="text-[10px] text-muted-foreground mt-1">
+                <div className="text-xs text-muted-foreground mt-1">
                   {a[key] ? new Date(a[key] as string).toLocaleDateString("ko-KR") : "미결재"}
                 </div>
               </td>
@@ -123,13 +123,13 @@ export function InspectionApprovalEditor({ value, onChange, title }: { value?: I
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="text-xs font-semibold">결재란 <span className="text-muted-foreground font-normal">(직책·이름 수정, 결재자 추가·삭제 가능)</span></div>
         <div className="flex items-center gap-2">
-          <div className="text-[11px] font-medium">
+          <div className="text-xs font-medium">
             {nextRow
               ? <span className="text-primary">▶ 다음 결재: <b>{nextRow.role || "(직책)"}</b></span>
               : <span className="text-success">✓ 결재 완료</span>}
           </div>
           {nextRow && (
-            <Button type="button" variant="outline" size="sm" className="h-7 text-[11px] gap-1" onClick={copyRequest}>
+            <Button type="button" variant="outline" size="sm" className="gap-1" onClick={copyRequest}>
               결재 요청 링크 복사
             </Button>
           )}
@@ -142,19 +142,19 @@ export function InspectionApprovalEditor({ value, onChange, title }: { value?: I
           return (
             <div key={i} className={`space-y-1 rounded-md p-1.5 border transition-colors ${isNext ? "ring-2 ring-primary bg-primary/5" : signed ? "bg-success/5" : ""}`}>
               <div className="flex items-center gap-1">
-                <Input className="h-7 text-[11px] font-semibold px-1.5" placeholder="직책" value={r.role}
+                <Input className="font-semibold px-2" placeholder="직책" value={r.role}
                   onChange={(e) => patch(i, { role: e.target.value })} />
                 {rows.length > 1 && (
                   <button type="button" onClick={() => set(rows.filter((_, j) => j !== i))} className="text-muted-foreground hover:text-danger shrink-0" title="삭제"><X className="h-3.5 w-3.5" /></button>
                 )}
               </div>
               <div className="flex items-center gap-1">
-                {isNext && <span className="text-[9px] leading-none px-1 py-0.5 rounded bg-primary text-white shrink-0">지금</span>}
-                {signed && <span className="text-success text-[11px] shrink-0">✓</span>}
-                <Input className="h-8 text-xs" placeholder="성명" value={r.name} onChange={(e) => patch(i, { name: e.target.value })} />
+                {isNext && <span className="text-xs leading-none px-1 py-0.5 rounded bg-primary text-white shrink-0">지금</span>}
+                {signed && <span className="text-success text-xs shrink-0">✓</span>}
+                <Input placeholder="성명" value={r.name} onChange={(e) => patch(i, { name: e.target.value })} />
               </div>
-              <div className={`text-[10px] min-h-[14px] ${signed ? "text-success" : "text-muted-foreground"}`}>{signed ? new Date(r.at).toLocaleDateString("ko-KR") + " 결재" : "미결재"}</div>
-              <Button type="button" variant={signed ? "secondary" : isNext ? "default" : "outline"} size="sm" className="w-full h-7 text-xs"
+              <div className={`text-xs min-h-[14px] ${signed ? "text-success" : "text-muted-foreground"}`}>{signed ? new Date(r.at).toLocaleDateString("ko-KR") + " 결재" : "미결재"}</div>
+              <Button type="button" variant={signed ? "secondary" : isNext ? "default" : "outline"} size="sm" className="w-full"
                 onClick={() => (signed ? patch(i, { at: "" }) : r.name ? patch(i, { at: new Date().toISOString() }) : toast.error("성명을 먼저 입력하세요"))}>
                 {signed ? "결재취소" : "결재"}
               </Button>

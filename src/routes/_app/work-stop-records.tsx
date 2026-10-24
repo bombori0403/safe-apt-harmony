@@ -74,7 +74,7 @@ function PhotoPicker({
         ))}
         {!disabled && (
           <button type="button" onClick={() => ref.current?.click()} disabled={busy}
-            className="w-20 h-20 rounded-md border-2 border-dashed flex flex-col items-center justify-center text-muted-foreground hover:border-primary hover:text-primary text-[10px] gap-1">
+            className="w-20 h-20 rounded-md border-2 border-dashed flex flex-col items-center justify-center text-muted-foreground hover:border-primary hover:text-primary text-xs gap-1">
             {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <Camera className="h-5 w-5" />}
             {busy ? "업로드" : "사진 추가"}
           </button>
@@ -251,7 +251,7 @@ function WorkStopRecords() {
           <h1 className="text-2xl font-bold">작업중지권 행사 기록</h1>
           <p className="text-sm text-muted-foreground mt-1">산업안전보건법 제52조에 따른 작업중지권 행사 이력입니다.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Link to="/work-stop-right"><Button variant="outline" size="sm">법령 안내</Button></Link>
           <Link to="/work-stop-records/ledger"><Button variant="outline" size="sm" className="gap-1.5"><Printer className="h-4 w-4"/>실적 관리대장</Button></Link>
           <Dialog open={open} onOpenChange={(o)=>{ setOpen(o); if(!o) resetForm(); }}>
@@ -318,13 +318,13 @@ function WorkStopRecords() {
                   <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
                     <span>{new Date(it.exercised_at).toLocaleString("ko-KR")}</span>
                     <span>· {it.exerciser_name}{it.exerciser_position ? ` (${it.exerciser_position})` : ""}</span>
-                    <span className={`ml-auto px-2 py-0.5 rounded text-[11px] ${it.result==="작업재개"?"bg-success/15 text-success":"bg-warning/15 text-warning"}`}>{it.result}</span>
+                    <span className={`ml-auto px-2 py-0.5 rounded text-xs ${it.result==="작업재개"?"bg-success/15 text-success":"bg-warning/15 text-warning"}`}>{it.result}</span>
                   </div>
                   <div className="text-sm font-medium">{it.work_description}</div>
                   <div className="text-xs text-muted-foreground">사유: {it.stop_reason}</div>
                   {Array.isArray(it.cause_photos) && it.cause_photos.length > 0 && (
                     <div>
-                      <div className="text-[11px] text-muted-foreground mb-1">중지 원인 사진</div>
+                      <div className="text-sm text-muted-foreground mb-1">중지 원인 사진</div>
                       <div className="flex flex-wrap gap-1.5">
                         {it.cause_photos.map((u:string,i:number)=>(
                           <span key={i} className="w-16 h-16 rounded border overflow-hidden bg-muted block">
@@ -337,7 +337,7 @@ function WorkStopRecords() {
                   {it.result_detail && <div className="text-xs">결과: {it.result_detail}</div>}
                   {Array.isArray(it.resolution_photos) && it.resolution_photos.length > 0 && (
                     <div>
-                      <div className="text-[11px] text-muted-foreground mb-1">시정 완료 사진</div>
+                      <div className="text-sm text-muted-foreground mb-1">시정 완료 사진</div>
                       <div className="flex flex-wrap gap-1.5">
                         {it.resolution_photos.map((u:string,i:number)=>(
                           <span key={i} className="w-16 h-16 rounded border overflow-hidden bg-muted block">

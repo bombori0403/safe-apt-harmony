@@ -180,7 +180,7 @@ function Hazards() {
                       <span className="flex-1">
                         {l.description}
                         {searching && l.category && (
-                          <span className="ml-1.5 text-[11px] text-muted-foreground">· {CATEGORY_LABEL[l.category as WorkCategory] ?? l.category}</span>
+                          <span className="ml-1.5 text-sm text-muted-foreground">· {CATEGORY_LABEL[l.category as WorkCategory] ?? l.category}</span>
                         )}
                       </span>
                     </label>
@@ -213,7 +213,7 @@ function Hazards() {
                   <div>
                     <div>{c}</div>
                     {suggestLegalBasis(c) && (
-                      <div className="text-[11px] text-muted-foreground mt-0.5">{suggestLegalBasis(c)!.legal_basis}</div>
+                      <div className="text-sm text-muted-foreground mt-0.5">{suggestLegalBasis(c)!.legal_basis}</div>
                     )}
                   </div>
                   <button type="button" onClick={() => setCustom(custom.filter((_, j) => j !== i))}><Trash2 className="h-3.5 w-3.5 text-danger" /></button>

@@ -191,7 +191,7 @@ function Inputs() {
           <Card><CardContent className="p-5 space-y-3">
             <div className="space-y-1">
               <div className="font-semibold">청취조사에 의한 유해·위험요인 조사표</div>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 실시방법: 위험성평가 수행자가 현장 근로자와 면담을 통해 직접 경험한 유해·위험요인을 찾음
               </p>
             </div>
@@ -204,7 +204,7 @@ function Inputs() {
                 <Input type="datetime-local" value={hearingAt} onChange={e=>setHearingAt(e.target.value)} /></div>
             </div>
 
-            <p className="text-[11px] text-muted-foreground">※ 육하원칙(누가, 언제, 어디서, 무엇을, 어떻게, 왜)에 따라 작성</p>
+            <p className="text-sm text-muted-foreground">※ 육하원칙(누가, 언제, 어디서, 무엇을, 어떻게, 왜)에 따라 작성</p>
             {[1,2,3].map(n => {
               const key = `experience_${n}` as "experience_1"|"experience_2"|"experience_3";
               return (
@@ -279,7 +279,7 @@ function AttachmentPicker({ files, setFiles, uploading, onPick }: any) {
             </button>
           </div>
         ))}
-        <label className="w-20 h-20 rounded-md border-2 border-dashed border-border flex flex-col items-center justify-center text-muted-foreground hover:border-primary hover:text-primary text-[10px] gap-1 cursor-pointer">
+        <label className="w-20 h-20 rounded-md border-2 border-dashed border-border flex flex-col items-center justify-center text-muted-foreground hover:border-primary hover:text-primary text-xs gap-1 cursor-pointer">
           {uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Camera className="h-5 w-5" />}
           {uploading ? "업로드" : "추가"}
           <input type="file" accept="image/*" multiple className="hidden"

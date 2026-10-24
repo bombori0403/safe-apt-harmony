@@ -102,7 +102,7 @@ function EducationList() {
               <p className="text-sm text-muted-foreground mt-3">아직 이수 기록이 없습니다. 교육을 완료 처리하거나 TBM에 교육시간을 입력하세요.</p>
             ) : (
               <div className="mt-3">
-                <div className="flex items-center gap-2 text-[11px] font-semibold text-muted-foreground pb-1.5 border-b">
+                <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground pb-1.5 border-b">
                   <span className="flex-1">이름</span>
                   <span className="w-20 text-right">교육</span>
                   <span className="w-20 text-right">TBM</span>
@@ -116,7 +116,7 @@ function EducationList() {
                     </div>
                   ))}
                 </div>
-                <p className="text-[11px] text-muted-foreground pt-2">‘교육’은 안전보건교육 완료분, ‘TBM’은 작업 전 안전미팅 인정시간입니다. 실제 법정 이수 기준은 직종에 따라 다르니 담당자가 확인하세요.</p>
+                <p className="text-sm text-muted-foreground pt-2">‘교육’은 안전보건교육 완료분, ‘TBM’은 작업 전 안전미팅 인정시간입니다. 실제 법정 이수 기준은 직종에 따라 다르니 담당자가 확인하세요.</p>
               </div>
             )
           )}

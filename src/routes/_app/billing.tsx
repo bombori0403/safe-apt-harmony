@@ -162,7 +162,7 @@ function Billing() {
           <Button onClick={() => pay("TRANSFER")} disabled={!ready || paying} variant="outline" className="w-full h-11 gap-2">
             <Landmark className="h-4 w-4" /> 계좌이체로 결제
           </Button>
-          <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
+          <p className="text-sm text-muted-foreground text-center leading-relaxed">
             결제는 토스페이먼츠 결제창을 통해 안전하게 처리됩니다. 세금계산서·문의는 카카오톡 채널로 남겨주세요.
           </p>
         </div>

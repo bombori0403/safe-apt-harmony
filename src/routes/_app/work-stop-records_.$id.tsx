@@ -122,7 +122,7 @@ function WorkStopRecordDetail() {
           </div>
         </div>
 
-        <p className="text-[10px] text-gray-600 mt-3 leading-relaxed">
+        <p className="text-xs print:text-[10px] text-gray-600 mt-3 leading-relaxed">
           ※ 본 기록은 산업안전보건법 제52조에 따라 근로자가 산업재해 발생의 급박한 위험을 인지하여 작업을 중지·대피한 사실과 그에 따른 사업주의 안전조치 및 작업재개 사실을 함께 기록한 문서입니다.
         </p>
       </div>

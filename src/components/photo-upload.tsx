@@ -90,17 +90,18 @@ export function PhotoUpload({ assessmentId, hazardId, photos, onChange, max, var
     <div className="space-y-2">
       <div className="flex flex-wrap gap-2">
         {photos.map((url, i) => (
-          <div key={i} className="relative w-20 h-20 rounded-md overflow-hidden border bg-muted">
+          <div key={i} className="relative w-24 h-24 rounded-md overflow-hidden border bg-muted">
             <SignedImg src={url} alt="" className="w-full h-full object-cover" />
-            <button onClick={() => remove(i)} type="button"
-              className="absolute top-0.5 right-0.5 bg-black/60 text-white rounded-full p-0.5 print:hidden">
-              <X className="h-3 w-3" />
+            {/* 삭제 버튼: 고령 사용자 터치 영역 확보(약 40px), 실수 삭제 방지로 aria-label 명시 */}
+            <button onClick={() => remove(i)} type="button" aria-label="이 사진 삭제"
+              className="absolute top-1 right-1 h-9 w-9 flex items-center justify-center bg-black/60 text-white rounded-full print:hidden">
+              <X className="h-5 w-5" />
             </button>
           </div>
         ))}
         {canAdd && (
           <button type="button" onClick={() => fileRef.current?.click()} disabled={busy}
-            className="w-20 h-20 rounded-md border-2 border-dashed border-border flex flex-col items-center justify-center text-muted-foreground hover:border-primary hover:text-primary text-[10px] gap-1 print:hidden">
+            className="w-24 h-24 rounded-md border-2 border-dashed border-border flex flex-col items-center justify-center text-muted-foreground hover:border-primary hover:text-primary text-sm gap-1 print:hidden">
             {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <Camera className="h-5 w-5" />}
             {busy ? "업로드 중" : "사진 추가"}
           </button>

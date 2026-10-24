@@ -51,7 +51,7 @@ export function LegalDutiesSection() {
               <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-success text-white shadow-sm">
                 <Icon className="h-5 w-5" />
               </div>
-              <div className="inline-flex rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
+              <div className="inline-flex rounded-md bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
                 {d.law}
               </div>
               <h3 className="font-semibold text-[15px]">{d.title}</h3>
@@ -278,7 +278,7 @@ export function SourcesNote() {
             </li>
           ))}
         </ul>
-        <p className="text-[11px] text-muted-foreground/80 leading-relaxed pt-1">
+        <p className="text-sm text-muted-foreground/80 leading-relaxed pt-1">
           본 페이지의 법령 안내는 이해를 돕기 위한 것으로 법률 자문이 아닙니다.
           개별 사업장의 의무 적용 여부는 관할 고용노동청 또는 전문가의 확인을 받으시기 바랍니다.
         </p>

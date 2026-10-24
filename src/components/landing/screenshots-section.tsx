@@ -18,7 +18,7 @@ export function BrowserFrame({
         <span className="h-2.5 w-2.5 rounded-full bg-destructive/50" />
         <span className="h-2.5 w-2.5 rounded-full bg-warning/60" />
         <span className="h-2.5 w-2.5 rounded-full bg-success/50" />
-        <span className="ml-3 truncate text-[10px] text-muted-foreground">리스크로그</span>
+        <span className="ml-3 truncate text-xs text-muted-foreground">리스크로그</span>
       </div>
       {failed ? (
         <div className="aspect-[16/10] flex flex-col items-center justify-center gap-2 bg-muted/30 text-muted-foreground">

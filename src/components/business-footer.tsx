@@ -15,7 +15,7 @@ export function BusinessFooter({ className = "" }: { className?: string }) {
     BUSINESS.contact && `문의: ${BUSINESS.contact}`,
   ].filter(Boolean);
   return (
-    <div className={`text-[11px] leading-relaxed text-muted-foreground ${className}`}>
+    <div className={`text-xs leading-relaxed text-muted-foreground ${className}`}>
       {parts.join(" | ")}
     </div>
   );

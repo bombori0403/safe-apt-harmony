@@ -105,7 +105,7 @@ export function SignatureButton({ value, onChange, name }: { value?: string; onC
           <img src={value} alt="서명" className="h-8 w-20 object-contain border rounded bg-white" />
         </button>
       ) : (
-        <Button type="button" variant="outline" size="sm" className="h-8 gap-1 text-xs shrink-0" onClick={openPad}>
+        <Button type="button" variant="outline" size="sm" className="gap-1 shrink-0" onClick={openPad}>
           <Pencil className="h-3 w-3" />서명
         </Button>
       )}

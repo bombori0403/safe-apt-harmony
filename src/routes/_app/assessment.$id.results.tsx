@@ -155,7 +155,7 @@ function Results() {
         {hazards.map(h => (
           <Card key={h.id}><CardContent className="p-4 space-y-3">
             <div>
-              <Badge variant="outline" className={`text-[10px] font-medium ${h.origin === "carryover" ? "border-muted-foreground/40 text-muted-foreground" : "border-primary/50 text-primary"}`}>
+              <Badge variant="outline" className={`text-xs font-medium ${h.origin === "carryover" ? "border-muted-foreground/40 text-muted-foreground" : "border-primary/50 text-primary"}`}>
                 {h.origin === "carryover" ? "재검토 (과년도)" : "신규"}
               </Badge>
             </div>
@@ -170,8 +170,8 @@ function Results() {
                 <>
                   <div className="font-medium flex-1">{h.description}</div>
                   <div className="flex gap-1">
-                    <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => { setEditingId(h.id); setEditDesc(h.description); }}><Pencil className="h-3.5 w-3.5" /></Button>
-                    <Button size="sm" variant="ghost" className="h-7 px-2 text-destructive hover:text-destructive" onClick={() => deleteHazard(h.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                    <Button size="sm" variant="ghost" className="px-2" onClick={() => { setEditingId(h.id); setEditDesc(h.description); }}><Pencil className="h-5 w-5" /></Button>
+                    <Button size="sm" variant="ghost" className="px-2 text-destructive hover:text-destructive" onClick={() => deleteHazard(h.id)}><Trash2 className="h-5 w-5" /></Button>
                   </div>
                 </>
               )}
@@ -183,10 +183,10 @@ function Results() {
                 <span className="text-xs font-semibold text-primary flex items-center gap-1.5 flex-wrap">
                   <Scale className="h-3.5 w-3.5 shrink-0" />
                   법적기준
-                  <Badge variant="outline" className="text-[10px] font-normal border-primary/40 text-primary">자동 제안 · 확인/수정</Badge>
+                  <Badge variant="outline" className="text-xs font-normal border-primary/40 text-primary">자동 제안 · 확인/수정</Badge>
                 </span>
                 {editingLegalId !== h.id && (
-                  <Button size="sm" variant="outline" className="h-7 px-2.5 gap-1 text-xs shrink-0 border-primary/40 text-primary hover:bg-primary/10 hover:text-primary"
+                  <Button size="sm" variant="outline" className="px-2.5 gap-1 shrink-0 border-primary/40 text-primary hover:bg-primary/10 hover:text-primary"
                     onClick={() => { setEditingLegalId(h.id); setEditLegal(effectiveLegal(h)); }}>
                     <Pencil className="h-3 w-3" />수정
                   </Button>

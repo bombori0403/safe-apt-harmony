@@ -129,7 +129,7 @@ function OrgUsage() {
             <CardHeader className="pb-3"><CardTitle className="text-base">전체 저장용량 (기본 제공 대비)</CardTitle></CardHeader>
             <CardContent className="space-y-2">
               <UsageBar label={`우리 회사 사진 저장 (단지 ${complexes.length}개 기본 제공 합계)`} icon={HardDrive} used={orgUsed} limit={orgQuota} />
-              <p className="text-[11px] text-muted-foreground">기본 제공은 세대수 구간별 단지당 {STORAGE_RANGE_LABEL}입니다. 70% 넘으면 주황, 90% 넘으면 빨강으로 표시됩니다.</p>
+              <p className="text-sm text-muted-foreground">기본 제공은 세대수 구간별 단지당 {STORAGE_RANGE_LABEL}입니다. 70% 넘으면 주황, 90% 넘으면 빨강으로 표시됩니다.</p>
             </CardContent>
           </Card>
 
@@ -182,7 +182,7 @@ function OrgUsage() {
                   )}
                 </tbody>
               </table>
-              <p className="text-[11px] text-muted-foreground mt-3">사진 저장은 평가에 첨부한 사진 기준입니다. 아차사고·작업중지 사진은 회사 전체 합계에만 포함됩니다.</p>
+              <p className="text-sm text-muted-foreground mt-3">사진 저장은 평가에 첨부한 사진 기준입니다. 아차사고·작업중지 사진은 회사 전체 합계에만 포함됩니다.</p>
             </CardContent>
           </Card>
         </>
@@ -247,7 +247,7 @@ function PlatformUsage() {
               {[{ k: "업체", v: totals.organizations }, { k: "계정", v: totals.users }, { k: "평가", v: totals.assessments }, { k: "사진", v: totals.photo_count }].map((x) => (
                 <div key={x.k} className="rounded-lg border bg-muted/20 py-2">
                   <div className="text-lg font-bold">{x.v.toLocaleString()}</div>
-                  <div className="text-[11px] text-muted-foreground">{x.k}</div>
+                  <div className="text-sm text-muted-foreground">{x.k}</div>
                 </div>
               ))}
             </div>
@@ -356,7 +356,7 @@ function PlatformUsage() {
                 </tbody>
               </table>
             )}
-            <p className="text-[11px] text-muted-foreground mt-3 leading-relaxed">
+            <p className="text-sm text-muted-foreground mt-3 leading-relaxed">
               사진 저장은 매핑 가능한 것만 집계 — 업체별=평가+아차사고 사진, 단지별=평가 사진. 작업중지 사진은 제외.
               DB 용량은 전체 단일 수치라 위 총량만 참고하세요.
             </p>

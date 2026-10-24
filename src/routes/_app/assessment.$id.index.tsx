@@ -135,7 +135,7 @@ function Detail() {
       <div className="md:hidden sticky top-0 z-20 -mx-4 px-4 py-2 border-b bg-background/95 backdrop-blur flex items-center gap-2">
         <div className="flex-1 min-w-0">
           <div className="font-semibold text-sm truncate">{a.work_name}</div>
-          <div className="text-[11px] text-muted-foreground truncate">유해요인 {hazards.length} · 대책 {hazards.reduce((s, h) => s + (h.measures?.length ?? 0), 0)} · {a.status}</div>
+          <div className="text-sm text-muted-foreground truncate">유해요인 {hazards.length} · 대책 {hazards.reduce((s, h) => s + (h.measures?.length ?? 0), 0)} · {a.status}</div>
         </div>
         <Link to="/kras-std-report" search={{ assessmentId: id }}>
           <Button size="sm" variant="outline" className="h-8 gap-1 shrink-0"><FileText className="h-3.5 w-3.5" />출력</Button>
@@ -190,7 +190,7 @@ function Detail() {
                     : s.done ? "border-success/40 bg-success/5"
                     : (s as any).output ? "border-secondary bg-secondary/40"
                     : "border-border hover:bg-muted/40"}`}>
-                  <span className={`flex items-center justify-center w-5 h-5 rounded-full text-[11px] font-bold shrink-0 ${
+                  <span className={`flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold shrink-0 ${
                     s.done ? "bg-success text-white" : i === currentIdx ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
                     {s.done ? <Check className="h-3 w-3" /> : i + 1}
                   </span>
@@ -239,8 +239,8 @@ function Detail() {
                     )}
                     {canManage && (
                       <div className="flex gap-1">
-                        <Button size="sm" variant="ghost" className="h-8 px-2" onClick={() => { setEditHazardId(h.id); setEditHazardDesc(h.description); }}><Pencil className="h-3.5 w-3.5" /></Button>
-                        <Button size="sm" variant="ghost" className="h-8 px-2 text-destructive hover:text-destructive" onClick={() => deleteHazard(h.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                        <Button size="sm" variant="ghost" className="px-2" onClick={() => { setEditHazardId(h.id); setEditHazardDesc(h.description); }}><Pencil className="h-5 w-5" /></Button>
+                        <Button size="sm" variant="ghost" className="px-2 text-destructive hover:text-destructive" onClick={() => deleteHazard(h.id)}><Trash2 className="h-5 w-5" /></Button>
                       </div>
                     )}
                   </>

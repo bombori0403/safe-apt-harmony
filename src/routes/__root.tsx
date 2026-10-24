@@ -60,7 +60,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1" },
+      // 고령 사용자가 손가락으로 벌려 확대할 수 있어야 한다 — maximum-scale 제한 금지
+      { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "리스크로그 — 공동주택 위험성평가 SaaS" },
       { name: "description", content: "한국 공동주택 관리사무소 전용 위험성평가 통합 관리 플랫폼. 산업안전보건법 제36조, 고용노동부 고시 제2024-76호 기반." },
       { property: "og:title", content: "리스크로그 — 공동주택 위험성평가 SaaS" },

@@ -41,7 +41,7 @@ function ChipView({ chip }: { chip: Chip }) {
     g: "bg-success/15 text-success",
     mut: "text-muted-foreground",
   };
-  return <span className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold whitespace-nowrap ${cls[chip.tone]}`}>{chip.text}</span>;
+  return <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap ${cls[chip.tone]}`}>{chip.text}</span>;
 }
 
 function Console() {
@@ -220,7 +220,7 @@ function Console() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm" style={{ minWidth: 760 }}>
               <thead>
-                <tr className="text-[11px] text-muted-foreground bg-muted/40">
+                <tr className="text-sm text-muted-foreground bg-muted/40">
                   <th className="text-left font-semibold px-4 py-2.5">단지</th>
                   <th className="font-semibold px-2 py-2.5">정기평가</th>
                   <th className="font-semibold px-2 py-2.5">고위험</th>

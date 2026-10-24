@@ -382,7 +382,7 @@ function NewAssessment() {
                   </div>
                   <div className="font-semibold mt-2">{info.title}</div>
                   <div className="text-xs text-muted-foreground mt-1">{info.desc}</div>
-                  <div className="text-[11px] text-primary mt-2">권장: {info.usecase}</div>
+                  <div className="text-sm text-primary mt-2">권장: {info.usecase}</div>
                 </button>
               );
             })}
@@ -447,11 +447,11 @@ function NewAssessment() {
               const c = RISK_COLORS[l] ?? "oklch(0.7 0.14 162)";
               return (
                 <button key={l} type="button" onClick={() => setAllowable(l)} aria-pressed={sel}
-                  className={`relative flex flex-col items-center gap-1.5 py-2.5 px-1 rounded-lg border-2 text-[11px] md:text-sm font-semibold transition-all ${sel ? "shadow-md -translate-y-0.5" : "bg-white hover:bg-muted/30"}`}
+                  className={`relative flex flex-col items-center gap-1.5 py-2.5 px-1 rounded-lg border-2 text-xs md:text-sm font-semibold transition-all ${sel ? "shadow-md -translate-y-0.5" : "bg-white hover:bg-muted/30"}`}
                   style={{ borderColor: c, borderWidth: sel ? "3px" : "2px", background: sel ? `color-mix(in oklch, ${c} 15%, white)` : undefined }}>
                   <span className="inline-block h-3.5 w-3.5 rounded-full shrink-0" style={{ background: c }} />
                   <span className="leading-tight text-center">{l}</span>
-                  {sel && <span className="absolute -top-2 -right-2 h-5 w-5 rounded-full text-white text-[11px] leading-none flex items-center justify-center shadow" style={{ background: c }}>✓</span>}
+                  {sel && <span className="absolute -top-2 -right-2 h-5 w-5 rounded-full text-white text-xs leading-none flex items-center justify-center shadow" style={{ background: c }}>✓</span>}
                 </button>
               );
             })}
@@ -461,7 +461,7 @@ function NewAssessment() {
             선택한 허용 수준: <b>{allowable}</b>
             <span className="text-muted-foreground">— 이보다 높은 위험은 개선 대상</span>
           </div>
-          <p className="text-[11px] text-muted-foreground mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             법령상 허용 가능한 위험성 수준은 산업안전보건법 등 관련 법령에서 정한 기준 이상이어야 합니다.
           </p>
         </CardContent></Card>

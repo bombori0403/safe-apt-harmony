@@ -107,7 +107,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       return (
         <div key={gi} className={gi > 0 ? "pt-4" : ""}>
           {group.title && (
-            <div className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/45">
+            <div className="px-3 pb-1.5 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/60">
               {group.title}
             </div>
           )}
@@ -152,7 +152,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <img src="/logo-mark.png" alt="리스크로그" className="h-9 w-9 rounded-full object-cover shrink-0" />
           <div className="min-w-0">
             <div className="font-bold text-lg tracking-tight leading-tight">리스크로그</div>
-            {orgName && <div className="text-[11px] text-muted-foreground truncate">{orgName}</div>}
+            {orgName && <div className="text-sm text-muted-foreground truncate">{orgName}</div>}
           </div>
         </div>
         <nav className="flex-1 p-3 overflow-y-auto">{navTree()}</nav>
@@ -177,7 +177,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="hidden md:block sticky top-0 z-30 border-b bg-background/90 backdrop-blur print:hidden">
           <RelatedApps variant="topbar" />
         </div>
-        <main className="flex-1 pb-20 md:pb-0 print:pb-0">{children}</main>
+        {/* 휴대폰: 하단 탭(56px) + 문의 버튼이 폼 맨 아래 제출 버튼을 가리지 않도록 여백을 넉넉히 둔다 */}
+        <main className="flex-1 pb-36 md:pb-0 print:pb-0">{children}</main>
 
         {/* Bottom tabbar - mobile */}
         <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t flex print:hidden">
@@ -187,11 +188,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Link
                 key={to}
                 to={to}
-                className={`flex-1 flex flex-col items-center justify-center py-2 text-[11px] gap-0.5 ${
-                  active ? "text-primary" : "text-muted-foreground"
+                className={`flex-1 flex flex-col items-center justify-center min-h-14 py-2 text-sm gap-1 ${
+                  active ? "text-primary font-semibold" : "text-muted-foreground"
                 }`}
               >
-                <Icon className="h-5 w-5" />
+                <Icon className="h-6 w-6" />
                 {label}
               </Link>
             );
@@ -200,9 +201,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             type="button"
             onClick={() => setMenuOpen(true)}
             aria-label="전체 메뉴 열기"
-            className="flex-1 flex flex-col items-center justify-center py-2 text-[11px] gap-0.5 text-muted-foreground"
+            className="flex-1 flex flex-col items-center justify-center min-h-14 py-2 text-sm gap-1 text-muted-foreground"
           >
-            <Menu className="h-5 w-5" />
+            <Menu className="h-6 w-6" />
             전체
           </button>
         </nav>
@@ -221,7 +222,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <SheetTitle className="font-bold text-base tracking-tight leading-tight text-sidebar-foreground">
                 전체 메뉴
               </SheetTitle>
-              {orgName && <div className="text-[11px] text-muted-foreground truncate">{orgName}</div>}
+              {orgName && <div className="text-sm text-muted-foreground truncate">{orgName}</div>}
             </div>
           </div>
           <nav className="flex-1 p-3 overflow-y-auto">{navTree()}</nav>

@@ -137,7 +137,7 @@ function Measures() {
             <div className="flex items-center justify-between gap-2">
               <div className="font-medium">{h.description}</div>
               <div className="flex items-center gap-2">
-                {isOverAllow(h.level) && <span className="px-2 py-0.5 rounded text-[10px] bg-destructive/10 text-destructive">허용수준 초과</span>}
+                {isOverAllow(h.level) && <span className="px-2 py-0.5 rounded text-xs bg-destructive/10 text-destructive">허용수준 초과</span>}
                 {h.level && <span className={`px-2 py-1 rounded text-xs ${riskLevelClass(h.level)}`}>{h.level}</span>}
               </div>
             </div>
@@ -157,11 +157,11 @@ function Measures() {
                 <div className="text-xs font-medium text-muted-foreground mb-2">이행 사진 대지 (변경 전 / 변경 후)</div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <div className="text-[11px] font-medium text-muted-foreground mb-1">변경 전 (현장)</div>
+                    <div className="text-xs font-medium text-muted-foreground mb-1">변경 전 (현장)</div>
                     <PhotoUpload max={2} assessmentId={id} hazardId={h.id} photos={h.photos ?? []} onChange={(photos) => updateHazardPhotos(h.id, { photos })} />
                   </div>
                   <div>
-                    <div className="text-[11px] font-medium text-muted-foreground mb-1">변경 후 (이행)</div>
+                    <div className="text-xs font-medium text-muted-foreground mb-1">변경 후 (이행)</div>
                     <PhotoUpload max={2} assessmentId={id} hazardId={h.id} photos={h.after_photos ?? []} onChange={(after_photos) => updateHazardPhotos(h.id, { after_photos })} />
                   </div>
                 </div>
@@ -304,12 +304,12 @@ function MeasureRow({ m, onUpdate, onDelete }: { m: any; onUpdate: (p: any) => v
           <select
             value={m.status ?? "대기"}
             onChange={e => onUpdate({ status: e.target.value, completed_at: e.target.value === "완료" ? new Date().toISOString() : null })}
-            className={`h-7 px-1.5 rounded border text-xs ${statusColor}`}
+            className={`h-10 px-2 rounded border text-sm ${statusColor}`}
           >
             {MEASURE_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
-          <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => setEditing(true)}><Pencil className="h-3.5 w-3.5" /></Button>
-          <Button size="sm" variant="ghost" className="h-7 px-2 text-destructive hover:text-destructive" onClick={onDelete}><Trash2 className="h-3.5 w-3.5" /></Button>
+          <Button size="sm" variant="ghost" className="px-2" onClick={() => setEditing(true)}><Pencil className="h-5 w-5" /></Button>
+          <Button size="sm" variant="ghost" className="px-2 text-destructive hover:text-destructive" onClick={onDelete}><Trash2 className="h-5 w-5" /></Button>
         </div>
         {m.responsible_name && <div className="text-xs text-muted-foreground mt-0.5">책임자: {m.responsible_name} · {m.due_date ?? "-"}</div>}
         {m.status !== "완료" && (

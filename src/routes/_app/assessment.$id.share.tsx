@@ -140,7 +140,7 @@ function Share() {
                   <div className="font-medium">{p.name} <span className="text-muted-foreground text-xs ml-1">{p.role}</span></div>
                   <div className="text-xs text-muted-foreground">{p.participation_role}</div>
                   {sig && (
-                    <div className="text-[10px] text-muted-foreground mt-0.5">
+                    <div className="text-xs text-muted-foreground mt-0.5">
                       서명: {new Date(sig.signed_at).toLocaleString("ko-KR")}
                     </div>
                   )}
@@ -175,7 +175,7 @@ function Share() {
           <Button variant="outline" className="gap-2" onClick={() => toast.info("카카오 알림톡 발송 기능 준비 중")}><MessageSquare className="h-4 w-4" />알림톡 발송</Button>
           <Button variant="outline" className="gap-2" onClick={copyLink}><Link2 className="h-4 w-4" />링크 복사</Button>
         </div>
-        <p className="text-[11px] text-muted-foreground">참여자는 QR/링크로 접속해 본인 서명만 입력하면 됩니다.</p>
+        <p className="text-sm text-muted-foreground">참여자는 QR/링크로 접속해 본인 서명만 입력하면 됩니다.</p>
       </CardContent></Card>
 
       <div className="flex justify-between">

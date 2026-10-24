@@ -191,7 +191,7 @@ function NewNearMiss() {
               </div>
             ))}
             <button type="button" onClick={()=>fileRef.current?.click()} disabled={busy}
-              className="w-20 h-20 rounded-md border-2 border-dashed flex flex-col items-center justify-center text-muted-foreground hover:border-primary text-[10px] gap-1">
+              className="w-20 h-20 rounded-md border-2 border-dashed flex flex-col items-center justify-center text-muted-foreground hover:border-primary text-xs gap-1">
               {busy ? <Loader2 className="h-5 w-5 animate-spin"/> : <Camera className="h-5 w-5"/>}
               {busy ? "업로드" : "사진 추가"}
             </button>

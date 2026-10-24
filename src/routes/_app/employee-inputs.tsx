@@ -359,7 +359,7 @@ function EmployeeInputs() {
           <Card className="no-print"><CardContent className="p-5 space-y-3">
             <div className="space-y-1">
               <div className="font-semibold">청취조사에 의한 유해·위험요인 조사표</div>
-              <p className="text-[11px] text-muted-foreground">현장 근로자와 면담을 통해 경험한 유해·위험요인을 기록합니다.</p>
+              <p className="text-sm text-muted-foreground">현장 근로자와 면담을 통해 경험한 유해·위험요인을 기록합니다.</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               <div>
@@ -379,7 +379,7 @@ function EmployeeInputs() {
                 <Input value={hearing.worker_name} onChange={e=>setHearing({...hearing, worker_name: e.target.value})} placeholder="응답한 근로자" /></div>
             </div>
 
-            <p className="text-[11px] text-muted-foreground">※ 육하원칙(누가, 언제, 어디서, 무엇을, 어떻게, 왜)에 따라 작성</p>
+            <p className="text-sm text-muted-foreground">※ 육하원칙(누가, 언제, 어디서, 무엇을, 어떻게, 왜)에 따라 작성</p>
             {[1,2,3].map(n => {
               const key = `experience_${n}` as "experience_1"|"experience_2"|"experience_3";
               return (
@@ -560,7 +560,7 @@ function AttachmentPicker({ files, setFiles, uploading, onPick }: any) {
             </button>
           </div>
         ))}
-        <label className="w-20 h-20 rounded-md border-2 border-dashed border-border flex flex-col items-center justify-center text-muted-foreground hover:border-primary hover:text-primary text-[10px] gap-1 cursor-pointer">
+        <label className="w-20 h-20 rounded-md border-2 border-dashed border-border flex flex-col items-center justify-center text-muted-foreground hover:border-primary hover:text-primary text-xs gap-1 cursor-pointer">
           {uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Camera className="h-5 w-5" />}
           {uploading ? "업로드" : "추가"}
           <input type="file" accept="image/*" multiple className="hidden"
@@ -679,13 +679,13 @@ function ApprovalLineEditor({ value, onChange }: { value: Approval; onChange: (a
       <div className="grid grid-cols-3 gap-2">
         {APPROVAL_ROLES.map(({ key, nameKey, label }) => (
           <div key={label} className="space-y-1">
-            <Label className="text-[11px]">{label}</Label>
-            <Input className="h-8 text-xs" placeholder="성명" value={(v[nameKey] as string) || ""}
+            <Label className="text-xs">{label}</Label>
+            <Input placeholder="성명" value={(v[nameKey] as string) || ""}
               onChange={e => setField(nameKey, e.target.value)} />
-            <div className="text-[10px] text-muted-foreground min-h-[14px]">
+            <div className="text-xs text-muted-foreground min-h-[14px]">
               {v[key] ? new Date(v[key] as string).toLocaleString("ko-KR") : "미결재"}
             </div>
-            <Button type="button" variant={v[key] ? "secondary" : "outline"} size="sm" className="w-full h-7 text-xs"
+            <Button type="button" variant={v[key] ? "secondary" : "outline"} size="sm" className="w-full"
               onClick={() => v[key] ? setField(key, "") : sign(nameKey, key)}>
               {v[key] ? "결재취소" : "결재"}
             </Button>
@@ -712,7 +712,7 @@ function ApprovalLineView({ approval }: { approval?: Approval }) {
             {APPROVAL_ROLES.map(({ key, nameKey, label }) => (
               <td key={label} className="px-2 py-2 border-r last:border-r-0 text-center align-top">
                 <div className="font-medium">{(a[nameKey] as string) || "-"}</div>
-                <div className="text-[10px] text-muted-foreground mt-1">
+                <div className="text-xs text-muted-foreground mt-1">
                   {a[key] ? new Date(a[key] as string).toLocaleDateString("ko-KR") : "미결재"}
                 </div>
               </td>

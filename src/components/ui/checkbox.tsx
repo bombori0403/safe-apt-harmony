@@ -11,7 +11,9 @@ const Checkbox = React.forwardRef<
   <CheckboxPrimitive.Root
     ref={ref}
     className={cn(
-      "grid place-content-center peer h-4 w-4 shrink-0 rounded-sm border border-primary shadow focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground",
+      // 네모 자체를 키우고(h-5), 보이지 않는 여백(before)으로 터치 영역을 44px까지 넓힌다.
+      // 설명 문장은 <label htmlFor> 로 묶어 글자를 눌러도 체크되게 할 것(각 화면에서).
+      "relative grid place-content-center peer h-5 w-5 shrink-0 rounded-sm border border-primary shadow focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground before:absolute before:-inset-3 before:content-['']",
       className,
     )}
     {...props}

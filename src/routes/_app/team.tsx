@@ -401,7 +401,7 @@ function TeamPage() {
                 <QRCodeSVG value={qrLink} size={220} level="M" />
               </div>
               <div className="w-full">
-                <div className="text-[11px] text-muted-foreground break-all bg-muted p-2 rounded">{qrLink}</div>
+                <div className="text-sm text-muted-foreground break-all bg-muted p-2 rounded">{qrLink}</div>
               </div>
               <Button variant="outline" size="sm" className="w-full" onClick={async () => {
                 await navigator.clipboard.writeText(qrLink);

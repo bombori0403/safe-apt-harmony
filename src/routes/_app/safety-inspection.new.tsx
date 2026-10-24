@@ -142,7 +142,7 @@ function NewInspection() {
           <div className="mt-2 space-y-1.5">
             {items.map((it, i) => (
               <div key={i} className="flex items-center gap-2 text-sm bg-muted/40 rounded-md px-3 py-2">
-                <span className="flex-1">{it.category && <span className="text-[11px] text-muted-foreground mr-1.5">[{it.category}]</span>}{it.text}</span>
+                <span className="flex-1">{it.category && <span className="text-sm text-muted-foreground mr-1.5">[{it.category}]</span>}{it.text}</span>
                 <button type="button" onClick={() => setItems(items.filter((_, j) => j !== i))} className="text-muted-foreground hover:text-danger">
                   <X className="h-4 w-4" />
                 </button>

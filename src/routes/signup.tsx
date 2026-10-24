@@ -127,14 +127,14 @@ function Signup() {
           </form>
           <Link to="/login" className="block text-center mt-4 text-sm text-primary hover:underline">로그인으로 돌아가기</Link>
 
-          <p className="text-[11px] text-center text-muted-foreground mt-6">
+          <p className="text-xs text-center text-muted-foreground mt-6">
             가입 시 즉시 14일 체험이 시작됩니다 · 결제 정보 불필요
           </p>
-          <p className="text-[11px] text-center text-muted-foreground mt-2 leading-relaxed">
+          <p className="text-xs text-center text-muted-foreground mt-2 leading-relaxed">
             정식 이용 시 사진 저장용량은 세대수 구간에 따라 단지당 {STORAGE_RANGE_LABEL}이 기본 제공되며,
             초과 시 추가 요금이 발생할 수 있습니다(초과 예상 시 사전 안내).
           </p>
-          <p className="text-[11px] text-center text-muted-foreground mt-2">
+          <p className="text-xs text-center text-muted-foreground mt-2">
             가입을 진행하면{" "}
             <Link to="/privacy" className="underline hover:text-foreground">개인정보처리방침</Link>에
             동의하는 것으로 간주됩니다.

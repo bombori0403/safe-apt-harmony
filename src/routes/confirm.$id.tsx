@@ -113,7 +113,7 @@ function Confirm() {
           <Button onClick={submit} disabled={saving || !sig} className="w-full h-11">
             {saving ? "저장 중..." : "확인 및 제출"}
           </Button>
-          <p className="text-[11px] text-muted-foreground text-center">
+          <p className="text-sm text-muted-foreground text-center">
             본 기록은 산업안전보건법 제36조 제2항에 따른 근로자 참여 증빙으로 보존됩니다.
           </p>
         </CardContent></Card>

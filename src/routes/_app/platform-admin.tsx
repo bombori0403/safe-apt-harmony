@@ -147,7 +147,7 @@ function PlatformAdmin() {
                       <div className="text-xs text-muted-foreground">
                         사업자 {o.business_number ?? "-"} · {o.representative_name ?? "-"} · {o.phone ?? "-"}
                       </div>
-                      <div className="text-[11px] text-muted-foreground mt-0.5">
+                      <div className="text-sm text-muted-foreground mt-0.5">
                         신청 {o.activation_requested_at ? new Date(o.activation_requested_at).toLocaleString() : "-"}
                       </div>
                     </div>

@@ -234,7 +234,7 @@ function ImportPage() {
                     {saving ? "가져오는 중..." : "표준서식 전체 가져오기"}
                   </Button>
                 </div>
-                <p className="text-[11px] text-muted-foreground mt-2">※ 사진(변경 전/후)은 엑셀에서 못 가져와요. 앱의 감소대책 화면에서 따로 올려주세요.</p>
+                <p className="text-sm text-muted-foreground mt-2">※ 사진(변경 전/후)은 엑셀에서 못 가져와요. 앱의 감소대책 화면에서 따로 올려주세요.</p>
               </div>
             </div>
           </div>
@@ -342,7 +342,7 @@ function ImportPage() {
                       <td className="py-1 pr-2 text-muted-foreground">{i + 1}</td>
                       <td className="py-1 pr-2">{h.description}</td>
                       <td className="py-1 pr-2 text-center">
-                        {h.level ? <span className={`px-1.5 py-0.5 rounded text-[11px] ${riskLevelClass(h.level as RiskLevel)}`}>{h.level}</span> : "-"}
+                        {h.level ? <span className={`px-1.5 py-0.5 rounded text-xs ${riskLevelClass(h.level as RiskLevel)}`}>{h.level}</span> : "-"}
                       </td>
                       <td className="py-1 pr-2 text-muted-foreground">{h.measures[0]?.content ?? "-"}</td>
                       <td className="py-1 pr-2 text-muted-foreground">{h.measures[0]?.responsible ?? "-"}</td>

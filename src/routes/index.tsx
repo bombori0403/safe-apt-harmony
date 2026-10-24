@@ -106,7 +106,7 @@ function Landing() {
                 </span>
                 <div className="leading-tight">
                   <div className="text-xs font-bold">공단 KRAS 양식 그대로</div>
-                  <div className="text-[10px] text-muted-foreground">인쇄 · PDF 저장</div>
+                  <div className="text-xs text-muted-foreground">인쇄 · PDF 저장</div>
                 </div>
               </div>
             </div>

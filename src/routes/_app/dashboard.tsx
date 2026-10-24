@@ -546,7 +546,7 @@ function Dashboard() {
                   <Link key={h.id} to="/assessment/$id/measures" params={{ id: h.assessment_id }} search={{ hazard: h.id }}
                     onClick={() => setHighOpen(false)}
                     className="flex items-start gap-2 px-2 py-2.5 hover:bg-muted/50 rounded-md">
-                    <span className={`shrink-0 px-1.5 py-0.5 rounded text-[11px] font-medium ${riskLevelClass(badgeLv)}`}>{badgeLv}</span>
+                    <span className={`shrink-0 px-1.5 py-0.5 rounded text-xs font-medium ${riskLevelClass(badgeLv)}`}>{badgeLv}</span>
                     <span className="flex-1 min-w-0">
                       <span className="block text-sm leading-snug">{h.description}</span>
                       <span className="block text-xs text-muted-foreground mt-0.5">{h.process_name || h.assessments?.work_name || "-"}</span>
@@ -576,13 +576,13 @@ function Dashboard() {
                     </span>
                   </div>
                   {selectedComplexId !== "all" && dueTier === "overdue" && (
-                    <Badge variant="destructive" className="mt-2 text-[10px]">기한초과</Badge>
+                    <Badge variant="destructive" className="mt-2 text-xs">기한초과</Badge>
                   )}
                   {selectedComplexId !== "all" && currentComplex?.next_assessment_auto && !currentComplex?.next_assessment_date && (
-                    <div className="text-[10px] text-muted-foreground mt-1">자동계산됨</div>
+                    <div className="text-xs text-muted-foreground mt-1">자동계산됨</div>
                   )}
                   {autoDiff !== null && autoDiff !== 0 && (
-                    <div className="text-[10px] text-muted-foreground mt-1">
+                    <div className="text-xs text-muted-foreground mt-1">
                       자동계산과 {Math.abs(autoDiff)}일 차이 (수동지정 우선)
                     </div>
                   )}
@@ -639,7 +639,7 @@ function Dashboard() {
                           <div className="font-medium truncate text-sm">{it.title}</div>
                           <div className="text-xs text-muted-foreground mt-0.5">{it.checklist_category}{it.scheduled_date && <> · {it.scheduled_date}</>}</div>
                         </div>
-                        {open > 0 ? <Badge variant="destructive" className="text-[10px] shrink-0">개선 {open}</Badge> : <Badge variant="outline" className="shrink-0">{it.status}</Badge>}
+                        {open > 0 ? <Badge variant="destructive" className="text-xs shrink-0">개선 {open}</Badge> : <Badge variant="outline" className="shrink-0">{it.status}</Badge>}
                       </Link>
                     );
                   })}
@@ -683,7 +683,7 @@ function Dashboard() {
                     <Link key={it.id} to="/work-permit/$id" params={{ id: it.id }} className="py-3 flex items-center justify-between gap-3 hover:bg-muted/30 -mx-2 px-2 rounded">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted font-medium shrink-0">{it.permit_type}</span>
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-muted font-medium shrink-0">{it.permit_type}</span>
                           <span className="font-medium truncate text-sm">{it.title}</span>
                         </div>
                         <div className="text-xs text-muted-foreground mt-0.5">{it.work_date || ""}{it.gas_required && <span className="text-danger"> · 가스측정</span>}</div>
@@ -805,7 +805,7 @@ function Dashboard() {
         </Card>
       </div>
 
-      <p className="text-[11px] text-muted-foreground text-center">
+      <p className="text-sm text-muted-foreground text-center">
         본 시스템은 산업안전보건법 제36조 및 고용노동부 고시 제2024-76호에 따른 위험성평가 6단계 표준 절차를 지원합니다.
       </p>
     </div>
@@ -827,7 +827,7 @@ function ProcedureGuide({ firstTime }: { firstTime: boolean }) {
         <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
           <h2 className="font-semibold flex items-center gap-2">
             위험성평가 진행 순서
-            {firstTime && <Badge className="text-[10px]">처음이신가요?</Badge>}
+            {firstTime && <Badge className="text-xs">처음이신가요?</Badge>}
           </h2>
           <span className="text-xs text-muted-foreground">②~⑤는 “새 평가”를 시작하면 차례로 안내됩니다</span>
         </div>
@@ -838,7 +838,7 @@ function ProcedureGuide({ firstTime }: { firstTime: boolean }) {
                 <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">{s.n}</span>
                 <span className="text-[13px] font-semibold leading-tight">{s.title}</span>
               </div>
-              <p className="text-[11px] text-muted-foreground mt-1.5 leading-snug">{s.desc}</p>
+              <p className="text-sm text-muted-foreground mt-1.5 leading-snug">{s.desc}</p>
               {i < PROCEDURE_STEPS.length - 1 && (
                 <span className="hidden lg:block absolute -right-[7px] top-1/2 -translate-y-1/2 text-muted-foreground/50 z-10">›</span>
               )}

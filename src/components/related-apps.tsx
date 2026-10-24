@@ -33,7 +33,7 @@ export function RelatedApps({ variant = "card" }: { variant?: "card" | "sidebar"
     return (
       <div className="relative overflow-hidden flex flex-wrap items-center gap-2 justify-end px-4 py-1.5 bg-gradient-to-r from-primary/10 via-transparent to-primary/10">
         <div aria-hidden className="promo-shimmer pointer-events-none absolute inset-y-0 -left-1/3 w-1/4 bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
-        <span className="relative hidden sm:flex items-center gap-1 text-[11px] font-bold text-primary mr-0.5">
+        <span className="relative hidden sm:flex items-center gap-1 text-xs font-bold text-primary mr-0.5">
           <Sparkles className="h-3.5 w-3.5" />함께 쓰는 도구
         </span>
         {apps.map((a) => (
@@ -42,12 +42,12 @@ export function RelatedApps({ variant = "card" }: { variant?: "card" | "sidebar"
             <span className="promo-emoji text-base leading-none shrink-0">{a.emoji}</span>
             <span className="text-left leading-tight min-w-0">
               <span className="block text-[12px] font-semibold text-primary truncate">{a.name}</span>
-              <span className="block text-[10px] text-muted-foreground truncate">{a.desc}</span>
+              <span className="block text-xs text-muted-foreground truncate">{a.desc}</span>
             </span>
             <ExternalLink className="h-3.5 w-3.5 text-primary/70 shrink-0" />
           </a>
         ))}
-        <span className="relative text-[9px] px-1.5 py-px rounded-full bg-primary text-white font-bold">AD</span>
+        <span className="relative text-xs px-1.5 py-px rounded-full bg-primary text-white font-bold">AD</span>
       </div>
     );
   }
@@ -58,10 +58,10 @@ export function RelatedApps({ variant = "card" }: { variant?: "card" | "sidebar"
         {/* 빛 스침 효과 */}
         <div aria-hidden className="promo-shimmer pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 bg-gradient-to-r from-transparent via-white/25 to-transparent" />
         <div className="relative flex items-center justify-between px-1 pb-1.5">
-          <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-sidebar-foreground/70">
+          <span className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-sidebar-foreground/70">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary" />함께 쓰는 도구
           </span>
-          <span className="text-[9px] px-1.5 py-px rounded-full bg-primary/80 text-white font-semibold">AD</span>
+          <span className="text-xs px-1.5 py-px rounded-full bg-primary/80 text-white font-semibold">AD</span>
         </div>
         <div className="relative space-y-0.5">
           {apps.map((a) => (
@@ -70,7 +70,7 @@ export function RelatedApps({ variant = "card" }: { variant?: "card" | "sidebar"
               <span className="promo-emoji text-lg leading-none shrink-0">{a.emoji}</span>
               <span className="min-w-0 flex-1">
                 <span className="block text-xs font-semibold truncate">{a.name}</span>
-                <span className="block text-[10px] text-sidebar-foreground/55 truncate">{a.desc}</span>
+                <span className="block text-xs text-sidebar-foreground/55 truncate">{a.desc}</span>
               </span>
               <ExternalLink className="h-3 w-3 opacity-50 shrink-0" />
             </a>
@@ -92,7 +92,7 @@ export function RelatedApps({ variant = "card" }: { variant?: "card" | "sidebar"
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
                     <span className="font-semibold text-sm">{a.name}</span>
-                    {a.tag && <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{a.tag}</span>}
+                    {a.tag && <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{a.tag}</span>}
                     <ExternalLink className="h-3 w-3 text-muted-foreground ml-auto shrink-0" />
                   </div>
                   <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{a.desc}</p>
@@ -130,11 +130,11 @@ function FloatPromo({ apps }: { apps: typeof RELATED_APPS }) {
     <div className="promo-card fixed top-3 right-3 z-40 w-56 overflow-hidden rounded-xl bg-sidebar text-sidebar-foreground shadow-xl ring-1 ring-primary/50">
       <div aria-hidden className="promo-shimmer pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 bg-gradient-to-r from-transparent via-white/25 to-transparent" />
       <div className="relative flex items-center justify-between px-3 pt-2 pb-1">
-        <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-sidebar-foreground/70">
+        <span className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-sidebar-foreground/70">
           <Sparkles className="h-3 w-3 text-primary" />함께 쓰는 도구
         </span>
         <div className="flex items-center gap-1">
-          <span className="text-[9px] px-1.5 py-px rounded-full bg-primary/80 text-white font-semibold">AD</span>
+          <span className="text-xs px-1.5 py-px rounded-full bg-primary/80 text-white font-semibold">AD</span>
           <button type="button" onClick={() => setC(true)} aria-label="접기" className="text-sidebar-foreground/50 hover:text-sidebar-foreground">
             <X className="h-3.5 w-3.5" />
           </button>
@@ -147,7 +147,7 @@ function FloatPromo({ apps }: { apps: typeof RELATED_APPS }) {
             <span className="promo-emoji text-lg leading-none shrink-0">{a.emoji}</span>
             <span className="min-w-0 flex-1">
               <span className="block text-xs font-semibold truncate">{a.name}</span>
-              <span className="block text-[10px] text-sidebar-foreground/55 truncate">{a.desc}</span>
+              <span className="block text-xs text-sidebar-foreground/55 truncate">{a.desc}</span>
             </span>
             <ExternalLink className="h-3 w-3 opacity-50 shrink-0" />
           </a>

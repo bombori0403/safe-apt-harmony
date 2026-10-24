@@ -18,6 +18,7 @@ export function MascotBuddy() {
       aria-hidden="true"
       className="
         pointer-events-none select-none print:hidden
+        hidden md:block
         fixed z-40 right-4 md:right-6
         bottom-[9.5rem] md:bottom-[5.25rem]
       "

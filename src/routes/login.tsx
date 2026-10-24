@@ -164,12 +164,12 @@ function Login() {
             <Link to="/signup" className="block text-sm font-medium text-primary hover:underline">
               회사 대표 회원가입 →
             </Link>
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               직원이라면 관리자에게 받은 초대 링크로 가입하세요.
             </p>
           </div>
 
-          <p className="text-[11px] text-center text-muted-foreground mt-8 leading-relaxed">
+          <p className="text-xs text-center text-muted-foreground mt-8 leading-relaxed">
             본 서비스는 산업안전보건법 제36조, 고용노동부 고시 제2024-76호,
             <br />
             공동주택관리법 제32조에 근거한 위험성평가 절차를 지원합니다.

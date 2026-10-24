@@ -306,7 +306,7 @@ function NearMissDetail() {
                     type="button"
                     onClick={() => incFileRef.current?.click()}
                     disabled={incBusy}
-                    className="w-20 h-20 rounded-md border-2 border-dashed flex flex-col items-center justify-center text-muted-foreground hover:border-primary text-[10px] gap-1"
+                    className="w-20 h-20 rounded-md border-2 border-dashed flex flex-col items-center justify-center text-muted-foreground hover:border-primary text-xs gap-1"
                   >
                     {incBusy ? (
                       <Loader2 className="h-5 w-5 animate-spin" />
@@ -401,7 +401,7 @@ function NearMissDetail() {
                 type="button"
                 onClick={() => fileRef.current?.click()}
                 disabled={busy}
-                className="w-20 h-20 rounded-md border-2 border-dashed flex flex-col items-center justify-center text-muted-foreground hover:border-primary text-[10px] gap-1"
+                className="w-20 h-20 rounded-md border-2 border-dashed flex flex-col items-center justify-center text-muted-foreground hover:border-primary text-xs gap-1"
               >
                 {busy ? (
                   <Loader2 className="h-5 w-5 animate-spin" />
@@ -562,7 +562,7 @@ function NearMissDetail() {
           </div>
         </div>
 
-        <p className="text-[10px] text-gray-600 mt-3 leading-relaxed">
+        <p className="text-xs print:text-[10px] text-gray-600 mt-3 leading-relaxed">
           ※ 본 보고서는 산업재해로 이어질 수 있었던 아차사고 사례를 기록하여 동일·유사 사고의 재발을
           방지하기 위한 자료입니다.
         </p>

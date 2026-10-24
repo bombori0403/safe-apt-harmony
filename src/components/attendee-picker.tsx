@@ -81,7 +81,7 @@ export function AttendeePicker({
         <div className="flex flex-wrap gap-1.5">
           {roster.map((m) => (
             <span key={m.id} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border bg-background text-sm">
-              {m.name}<span className="text-[10px] text-muted-foreground">{m.role}</span>
+              {m.name}<span className="text-xs text-muted-foreground">{m.role}</span>
               <button type="button" onClick={() => deactivate(m.id)} className="text-muted-foreground hover:text-danger" title="명부에서 제거"><X className="h-3 w-3" /></button>
             </span>
           ))}
@@ -93,7 +93,7 @@ export function AttendeePicker({
           {available.map((m) => (
             <button key={m.id} type="button" onClick={() => onPick(m.name, m.role ?? "기타")}
               className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border bg-background text-sm hover:border-primary hover:bg-primary/5">
-              <UserPlus className="h-3 w-3 text-primary" />{m.name}<span className="text-[10px] text-muted-foreground">{m.role}</span>
+              <UserPlus className="h-3 w-3 text-primary" />{m.name}<span className="text-xs text-muted-foreground">{m.role}</span>
             </button>
           ))}
         </div>
