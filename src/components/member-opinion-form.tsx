@@ -126,7 +126,13 @@ export function MemberOpinionForm({ onSubmitted }: { onSubmitted?: () => void })
 
     if (error || !data?.length) {
       setSave("error");
-      setErrorText(writeErrorMessage(error, "체험 기간이 끝났거나 권한이 없어 저장하지 못했습니다. 입력은 이 기기에 남아 있습니다."));
+      // DB 업데이트(SQL) 미적용 상태를 사용자가 알아볼 수 있는 말로 바꾼다.
+      const notMigrated = /employee_inputs_input_type_check/.test(error?.message ?? "");
+      setErrorText(
+        notMigrated
+          ? "아직 서버 업데이트(데이터베이스 SQL)가 적용되지 않아 의견을 저장할 수 없습니다. 관리자에게 알려 주세요. 입력은 이 기기에 남아 있습니다."
+          : writeErrorMessage(error, "체험 기간이 끝났거나 권한이 없어 저장하지 못했습니다. 입력은 이 기기에 남아 있습니다."),
+      );
       return;
     }
     draft.clear();
