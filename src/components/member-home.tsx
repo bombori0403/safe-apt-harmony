@@ -32,7 +32,8 @@ export function MemberHome({ userRow }: { userRow: any }) {
         .in("complex_id", ids).neq("status", "완료").order("created_at", { ascending: false }).limit(50);
       const list = as ?? [];
       if (list.length === 0) { setPending([]); return; }
-      const myName = String(userRow.name ?? "").trim();
+      const norm = (v: unknown) => String(v ?? "").replace(/\s+/g, "");
+      const myName = norm(userRow.name);
       const aIds = list.map((a: any) => a.id);
       const [{ data: ps }, { data: sigs }] = await Promise.all([
         supabase.from("participants").select("id, assessment_id, name, user_id, confirmed").in("assessment_id", aIds),
@@ -42,7 +43,7 @@ export function MemberHome({ userRow }: { userRow: any }) {
       const need = new Set(
         (ps ?? [])
           .filter((p: any) => {
-            const mine = p.user_id ? p.user_id === userRow.id : String(p.name ?? "").trim() === myName;
+            const mine = p.user_id ? p.user_id === userRow.id : (myName !== "" && norm(p.name) === myName);
             return mine && !p.confirmed && !signed.has(p.id);
           })
           .map((p: any) => p.assessment_id),

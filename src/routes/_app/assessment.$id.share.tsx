@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { SignaturePad } from "@/components/signature-pad";
-import { QrCode, MessageSquare, Link2, CheckCircle2, Printer } from "lucide-react";
+import { QrCode, MessageSquare, Link2, CheckCircle2, Printer, Trash2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { writeErrorMessage } from "@/lib/write-error";
 
@@ -23,6 +23,8 @@ function Share() {
   const [sigs, setSigs] = useState<any[]>([]);
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
+  // 직원 계정 목록(관리자만 조회 가능 — RLS). 여기서 고르면 user_id 가 붙어 직원 홈 "확인·서명할 평가"에 정확히 잡힌다.
+  const [orgUsers, setOrgUsers] = useState<{ id: string; name: string; job_title: string | null; org_role: string }[]>([]);
   const [signFor, setSignFor] = useState<any>(null);
   const [signImg, setSignImg] = useState<string | null>(null);
   const [qrUrl, setQrUrl] = useState("");
@@ -38,6 +40,11 @@ function Share() {
     setParts(p ?? []);
     const { data: s } = await supabase.from("signatures").select("*").eq("assessment_id", id);
     setSigs(s ?? []);
+    if (ass?.organization_id) {
+      const { data: us } = await supabase.from("users").select("id, name, job_title, org_role")
+        .eq("organization_id", ass.organization_id).order("name");
+      setOrgUsers((us ?? []) as any);
+    }
   }
   useEffect(() => { load(); }, [id]);
 
@@ -47,8 +54,27 @@ function Share() {
 
   async function addPart() {
     if (!name.trim()) return;
-    const { error } = await supabase.from("participants").insert({ assessment_id: id, name, role, participation_role: "근로자" });
-    if (error) toast.error(error.message); else { setName(""); setRole(""); load(); }
+    const { error } = await supabase.from("participants").insert({ assessment_id: id, name: name.trim(), role, participation_role: "근로자" });
+    if (error) toast.error(writeErrorMessage(error)); else { setName(""); setRole(""); load(); }
+  }
+
+  /** 직원 계정에서 골라 추가 — user_id 를 함께 저장해 이름 표기가 달라도 본인에게 정확히 연결된다. */
+  async function addUserPart(userId: string) {
+    const u = orgUsers.find((x) => x.id === userId);
+    if (!u) return;
+    if (parts.some((p) => p.user_id === u.id || String(p.name).trim() === u.name.trim())) { toast.info("이미 참여자에 있습니다"); return; }
+    const { error } = await supabase.from("participants").insert({
+      assessment_id: id, name: u.name, role: u.job_title ?? "", participation_role: "근로자", user_id: u.id,
+    } as any);
+    if (error) toast.error(writeErrorMessage(error)); else load();
+  }
+
+  async function removePart(p: any) {
+    if (sigs.some((s) => s.participant_id === p.id)) { toast.error("이미 서명한 참여자는 삭제할 수 없습니다"); return; }
+    if (!confirm(`${p.name} 님을 참여자에서 뺄까요?`)) return;
+    const { data, error } = await supabase.from("participants").delete().eq("id", p.id).select("id");
+    if (error || !data?.length) { toast.error(writeErrorMessage(error, "권한이 없거나 체험 기간이 끝나 삭제할 수 없습니다.")); return; }
+    load();
   }
 
   async function saveSignature() {
@@ -153,7 +179,12 @@ function Share() {
                     <span className="flex items-center gap-1 text-success text-xs"><CheckCircle2 className="h-4 w-4" />확인됨</span>
                   </div>
                 ) : (
-                  <Button size="sm" variant="outline" onClick={() => { setSignFor(p); setSignImg(null); }}>서명하기</Button>
+                  <div className="flex items-center gap-1">
+                    <Button size="sm" variant="outline" onClick={() => { setSignFor(p); setSignImg(null); }}>서명하기</Button>
+                    <Button size="icon" variant="ghost" aria-label={`${p.name} 참여자 삭제`} className="text-destructive hover:text-destructive" onClick={() => removePart(p)}>
+                      <Trash2 className="h-5 w-5" />
+                    </Button>
+                  </div>
                 )}
               </div>
             );
@@ -161,10 +192,28 @@ function Share() {
           {parts.length === 0 && <div className="py-6 text-center text-sm text-muted-foreground">참여자가 없습니다.</div>}
         </div>
 
-        <div className="grid grid-cols-3 gap-2 pt-3 border-t">
-          <Input value={name} onChange={e=>setName(e.target.value)} placeholder="이름" />
-          <Input value={role} onChange={e=>setRole(e.target.value)} placeholder="직책" />
-          <Button onClick={addPart}>참여자 추가</Button>
+        <div className="space-y-3 pt-3 border-t">
+          {orgUsers.length > 0 && (
+            <div className="space-y-1">
+              <label htmlFor="pick-user" className="text-sm font-medium flex items-center gap-1"><UserPlus className="h-4 w-4" />직원 계정에서 고르기 <span className="text-muted-foreground font-normal">(고르면 바로 추가되고, 그 직원의 앱 화면에 "확인·서명할 평가"로 뜹니다)</span></label>
+              <select id="pick-user" value="" onChange={(e) => { if (e.target.value) addUserPart(e.target.value); }}
+                className="w-full h-11 px-3 rounded-md border bg-background text-base">
+                <option value="">— 직원 선택 —</option>
+                {orgUsers.filter((u) => u.org_role !== "admin" && !parts.some((p) => p.user_id === u.id)).map((u) => (
+                  <option key={u.id} value={u.id}>{u.name}{u.job_title ? ` · ${u.job_title}` : ""}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          <div className="space-y-1">
+            <div className="text-sm font-medium">직접 입력 (계정이 없는 참여자)</div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <Input value={name} onChange={e=>setName(e.target.value)} placeholder="이름" aria-label="참여자 이름" />
+              <Input value={role} onChange={e=>setRole(e.target.value)} placeholder="직책" aria-label="참여자 직책" />
+              <Button onClick={addPart} disabled={!name.trim()}>참여자 추가</Button>
+            </div>
+            <p className="text-sm text-muted-foreground">직원 계정이 있는 사람은 가입할 때 쓴 이름과 똑같이 적어야 그 직원 화면에 뜹니다. 위 목록에서 고르는 편이 확실합니다.</p>
+          </div>
         </div>
       </CardContent></Card>
 
