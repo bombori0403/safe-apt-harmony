@@ -23,6 +23,9 @@ import { compressImage } from "@/lib/image-compress";
 import { MemberOpinionForm, MemberOpinionList, OPINION_STATUS_LABEL, type OpinionReviewStatus } from "@/components/member-opinion-form";
 
 export const Route = createFileRoute("/_app/employee-inputs")({
+  // /employee-inputs?tab=opinion 처럼 열 탭을 지정할 수 있다 (대시보드 '최근 직원 참여'에서 사용)
+  validateSearch: (s: Record<string, unknown>): { tab?: "hearing" | "open_chat" | "opinion" } =>
+    s.tab === "hearing" || s.tab === "open_chat" || s.tab === "opinion" ? { tab: s.tab } : {},
   component: EmployeeInputs,
 });
 
@@ -72,7 +75,8 @@ function EmployeeInputs() {
   const [filterComplex, setFilterComplex] = useState<string>("all");
   const [formComplex, setFormComplex] = useState<string>("");
   const [items, setItems] = useState<any[]>([]);
-  const [tab, setTab] = useState<InputType>("hearing");
+  const search = Route.useSearch();
+  const [tab, setTab] = useState<InputType>((search.tab as InputType) ?? "hearing");
 
   const [hearing, setHearing] = useState({ ...EMPTY_HEARING });
   const [hearingAt, setHearingAt] = useState<string>(nowLocal);

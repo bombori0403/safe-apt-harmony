@@ -742,10 +742,18 @@ function Dashboard() {
             ) : (
               <div className="divide-y">
                 {employeeInputs.map((it) => (
-                  <RowLink key={it.id} to="/assessment/$id/inputs" params={{ id: it.assessment_id }} className="py-3 flex items-center justify-between gap-3 hover:bg-muted/30 -mx-2 px-2 rounded">
+                  // 직원 의견(opinion)·평가에 연결되지 않은 기록은 평가 화면이 아니라 직원 참여 화면으로 보낸다
+                  // (평가 id 없이 /assessment/undefined/inputs 로 가면 영원히 "불러오는 중"이었다).
+                  <RowLink
+                    key={it.id}
+                    {...(it.input_type !== "opinion" && it.assessment_id
+                      ? { to: "/assessment/$id/inputs", params: { id: it.assessment_id } }
+                      : { to: "/employee-inputs", search: { tab: it.input_type === "opinion" ? "opinion" : it.input_type } })}
+                    className="py-3 flex items-center justify-between gap-3 hover:bg-muted/30 -mx-2 px-2 rounded"
+                  >
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <Badge variant="outline">{it.input_type === "hearing" ? "청취조사" : "오픈채팅"}</Badge>
+                        <Badge variant="outline">{it.input_type === "hearing" ? "청취조사" : it.input_type === "opinion" ? "직원 의견" : "오픈채팅"}</Badge>
                         <span className="font-medium truncate">{it.respondent_name || it.respondent_role || "직원 의견"}</span>
                       </div>
                       <div className="text-xs text-muted-foreground mt-1 truncate">

@@ -68,9 +68,11 @@ function Inputs() {
       .then(({ data }) => setMe(data as any));
   }, [user]);
 
+  const [loaded, setLoaded] = useState(false);
   async function load() {
     const { data: ass } = await supabase.from("assessments").select("*").eq("id", id).maybeSingle();
     setA(ass);
+    setLoaded(true);
     const { data } = await supabase.from("employee_inputs")
       .select("*").eq("assessment_id", id).order("occurred_at", { ascending: false });
     setItems(data ?? []);
@@ -167,7 +169,15 @@ function Inputs() {
   const hearings = items.filter(i => i.input_type === "hearing");
   const chats = items.filter(i => i.input_type === "open_chat");
 
-  if (!a) return <div className="p-8 text-muted-foreground">불러오는 중...</div>;
+  if (!a) {
+    if (!loaded) return <div className="p-8 text-muted-foreground">불러오는 중...</div>;
+    return (
+      <div className="p-8 space-y-3">
+        <p className="text-base">이 평가를 찾을 수 없습니다. 삭제됐거나 권한이 없는 평가입니다.</p>
+        <Link to="/employee-inputs" className="text-primary underline">직원 참여 화면으로 가기</Link>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-5">
