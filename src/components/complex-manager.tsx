@@ -1,3 +1,4 @@
+import { myComplexMemberships } from "@/lib/my-complexes";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -43,7 +44,7 @@ export function ComplexManager() {
       if (error) toast.error(writeErrorMessage(error));
       list = data ?? [];
     } else if (u) {
-      const { data: members } = await supabase.from("complex_members").select("complex_id").eq("user_id", u.id);
+      const { data: members } = await myComplexMemberships(u.id);
       const ids = [...new Set((members ?? []).map((m: any) => m.complex_id).filter(Boolean))];
       list = ids.length
         ? (await supabase.from("complexes").select("*").in("id", ids).order("created_at", { ascending: true })).data ?? []

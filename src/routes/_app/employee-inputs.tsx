@@ -1,3 +1,4 @@
+import { myComplexMemberships } from "@/lib/my-complexes";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -100,7 +101,7 @@ function EmployeeInputs() {
       if (!u.organization_id) return;
       let q = supabase.from("complexes").select("id, name").eq("organization_id", u.organization_id).order("name");
       if (u.org_role !== "admin") {
-        const { data: cm } = await supabase.from("complex_members").select("complex_id").eq("user_id", u.id);
+        const { data: cm } = await myComplexMemberships(u.id);
         const ids = (cm ?? []).map((c: any) => c.complex_id);
         if (ids.length === 0) { setComplexes([]); return; }
         q = q.in("id", ids);

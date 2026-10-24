@@ -1,3 +1,4 @@
+import { myComplexMemberships } from "@/lib/my-complexes";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -18,7 +19,7 @@ export function useComplexFilter() {
       if (u?.org_role === "admin") {
         list = (await supabase.from("complexes").select("id,name").order("name")).data ?? [];
       } else {
-        const { data: m } = await supabase.from("complex_members").select("complex_id").eq("user_id", u?.id ?? "");
+        const { data: m } = await myComplexMemberships(u?.id ?? "");
         const ids = [...new Set((m ?? []).map((x: any) => x.complex_id).filter(Boolean))];
         list = ids.length ? (await supabase.from("complexes").select("id,name").in("id", ids)).data ?? [] : [];
       }

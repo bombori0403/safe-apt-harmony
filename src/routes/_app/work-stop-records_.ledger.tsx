@@ -1,3 +1,4 @@
+import { myComplexMemberships } from "@/lib/my-complexes";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,7 +37,7 @@ function Ledger() {
       if (authId) {
         const { data: me } = await supabase.from("users").select("id,org_role").eq("auth_id", authId).maybeSingle();
         if (me && me.org_role !== "admin") {
-          const { data: cm } = await supabase.from("complex_members").select("complex_id").eq("user_id", me.id);
+          const { data: cm } = await myComplexMemberships(me.id);
           allowedComplexIds = (cm ?? []).map((r: any) => r.complex_id);
         }
       }

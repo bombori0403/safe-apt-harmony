@@ -1,3 +1,4 @@
+import { myComplexMemberships } from "@/lib/my-complexes";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Building2 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -68,7 +69,7 @@ function Settings() {
         if (error) toast.error(writeErrorMessage(error));
         list = data ?? [];
       } else {
-        const { data: members } = await supabase.from("complex_members").select("complex_id").eq("user_id", u.id);
+        const { data: members } = await myComplexMemberships(u.id);
         const ids = [...new Set((members ?? []).map((m: any) => m.complex_id).filter(Boolean))];
         list = ids.length
           ? (await supabase.from("complexes").select("*").in("id", ids).order("created_at", { ascending: true })).data ?? []

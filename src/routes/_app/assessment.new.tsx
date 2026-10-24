@@ -1,3 +1,4 @@
+import { myComplexMemberships } from "@/lib/my-complexes";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -117,7 +118,7 @@ function NewAssessment() {
         availableComplexes = data ?? [];
       } else {
         // 매니저/일반: 배정된 단지만
-        const { data: members } = await supabase.from("complex_members").select("complex_id").eq("user_id", userId ?? "");
+        const { data: members } = await myComplexMemberships(userId ?? "");
         const ids = [...new Set((members ?? []).map((m: any) => m.complex_id).filter(Boolean))];
         availableComplexes = ids.length
           ? (await supabase.from("complexes").select("id, name").in("id", ids).order("name")).data ?? []

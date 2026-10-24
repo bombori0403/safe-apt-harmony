@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { myComplexMemberships } from "@/lib/my-complexes";
 
 /**
  * Returns the current user's public.users id and a default complex id (if any).
@@ -18,12 +19,9 @@ export async function getCurrentUserContext(authUid: string): Promise<{
     .maybeSingle();
   if (!userRow) return { userId: null, complexId: null, userRow: null };
 
-  const { data: member } = await supabase
-    .from("complex_members")
-    .select("complex_id")
-    .eq("user_id", userRow.id)
-    .limit(1)
-    .maybeSingle();
+  // complex_members 는 클라이언트에서 읽히지 않는다(RLS 정책 없음) → RLS 가 걸러 주는 complexes 를 쓴다.
+  const { data: mine } = await myComplexMemberships(userRow.id);
+  const member = mine[0];
 
   if (member?.complex_id) {
     return { userId: userRow.id, complexId: member.complex_id, userRow };

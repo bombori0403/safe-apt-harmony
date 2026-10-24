@@ -1,3 +1,4 @@
+import { myComplexMemberships } from "@/lib/my-complexes";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -87,7 +88,7 @@ function PrintAll() {
           }
         } else {
           // 매니저/직원은 담당 단지 전체(complex_members)로 확장 — 첫 단지만 나오던 버그 수정.
-          const { data: members } = await supabase.from("complex_members").select("complex_id").eq("user_id", userRow?.id ?? "");
+          const { data: members } = await myComplexMemberships(userRow?.id ?? "");
           allowedIds = [...new Set((members ?? []).map((m: any) => m.complex_id).filter(Boolean))];
           if (allowedIds.length === 0 && complexId) allowedIds = [complexId];
           if (targetComplex) {

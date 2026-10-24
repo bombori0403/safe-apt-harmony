@@ -1,3 +1,4 @@
+import { myComplexMemberships } from "@/lib/my-complexes";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,7 +40,7 @@ function NewPermit() {
       if (userRow?.org_role === "admin") {
         list = (await supabase.from("complexes").select("id,name").order("name")).data ?? [];
       } else {
-        const { data: members } = await supabase.from("complex_members").select("complex_id").eq("user_id", userId ?? "");
+        const { data: members } = await myComplexMemberships(userId ?? "");
         const ids = [...new Set((members ?? []).map((m: any) => m.complex_id).filter(Boolean))];
         list = ids.length ? (await supabase.from("complexes").select("id,name").in("id", ids)).data ?? [] : [];
       }

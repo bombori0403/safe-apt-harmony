@@ -1,3 +1,4 @@
+import { myComplexMemberships } from "@/lib/my-complexes";
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,7 +24,7 @@ export function MemberHome({ userRow }: { userRow: any }) {
   useEffect(() => {
     if (!userRow?.id) return;
     (async () => {
-      const { data: cm } = await supabase.from("complex_members").select("complex_id").eq("user_id", userRow.id);
+      const { data: cm } = await myComplexMemberships(userRow.id);
       const ids = (cm ?? []).map((c: any) => c.complex_id);
       if (ids.length === 0) { setPending([]); return; }
       const { data: as } = await supabase
