@@ -296,13 +296,34 @@ function TeamPage() {
                             <div className="text-xs text-muted-foreground">{m.email}</div>
                           </div>
                           <div className="flex items-center gap-2 flex-wrap">
+                            {/* 단지 지정: 서버 함수(assignMemberComplex)는 있었지만 화면에 선택칸이 없어
+                                초대한 직원이 '단지 미지정'에 갇혀 있었다. 관리자(본사)는 단지에 묶지 않는다. */}
+                            {m.org_role !== "admin" && (
+                              <select
+                                aria-label={`${m.name} 소속 단지`}
+                                value={userComplexMap.get(m.id)?.id ?? ""}
+                                onChange={async (e) => {
+                                  const complexId = e.target.value || null;
+                                  try {
+                                    await assignComplex({ data: { userId: m.id, complexId } });
+                                    toast.success(complexId ? "단지가 지정되었습니다" : "단지 지정을 해제했습니다");
+                                    load();
+                                  } catch (err) { toast.error(err instanceof Error ? err.message : "단지 지정 실패"); }
+                                }}
+                                className="h-10 px-2 rounded border bg-background text-base max-w-[14rem]"
+                              >
+                                <option value="">단지 미지정</option>
+                                {(data.complexes ?? []).map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                              </select>
+                            )}
                             <select
+                              aria-label={`${m.name} 권한`}
                               value={m.org_role}
                               onChange={async (e) => {
                                 try { await updateRole({ data: { userId: m.id, role: e.target.value as any } }); toast.success("권한 변경됨"); load(); }
                                 catch (err) { toast.error(err instanceof Error ? err.message : "실패"); }
                               }}
-                              className="h-9 px-2 rounded border bg-background text-sm"
+                              className="h-10 px-2 rounded border bg-background text-base"
                             >
                               <option value="member">일반</option>
                               <option value="manager">매니저</option>
