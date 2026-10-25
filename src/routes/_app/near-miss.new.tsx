@@ -15,6 +15,7 @@ import { writeErrorMessage } from "@/lib/write-error";
 import { compressImage } from "@/lib/image-compress";
 import { getCurrentUserContext } from "@/lib/user-context";
 import { notifyUrgentReport } from "@/lib/notify.functions";
+import { VoiceInput, appendSpoken } from "@/components/voice-input";
 
 export const Route = createFileRoute("/_app/near-miss/new")({
   component: NewNearMiss,
@@ -35,11 +36,11 @@ function NewNearMiss() {
   // 로컬 벽시계로 초기화(UTC 그대로 넣으면 시간대만큼 어긋남).
   const [occurredAt, setOccurredAt] = useState(() => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16));
   const [incidentName, setIncidentName] = useState("");
-  const [locCat, setLocCat] = useState(LOC_OPTIONS[0]);
+  const [locCat, setLocCat] = useState(""); // 기본값 없음 — "지하주차장·전도·없음"이 미리 찍혀 그대로 저장되던 문제
   const [locDetail, setLocDetail] = useState("");
-  const [type, setType] = useState(TYPE_OPTIONS[0]);
+  const [type, setType] = useState("");
   const [desc, setDesc] = useState("");
-  const [severity, setSeverity] = useState(SEV_OPTIONS[2]);
+  const [severity, setSeverity] = useState("");
   const [photos, setPhotos] = useState<string[]>([]);
   const [countermeasure, setCountermeasure] = useState("");
   const [urgent, setUrgent] = useState(false);
@@ -87,7 +88,10 @@ function NewNearMiss() {
 
   async function submit() {
     if (!complexId) { toast.error("단지를 선택해주세요"); return; }
-    if (!desc.trim()) { toast.error("사고 경위를 입력해주세요"); return; }
+    if (!locCat) { toast.error("발생 장소를 골라 주세요"); return; }
+    if (!type) { toast.error("사고 유형을 골라 주세요"); return; }
+    if (!severity) { toast.error("예상 피해 정도를 골라 주세요"); return; }
+    if (!desc.trim()) { toast.error("사고 경위를 적어 주세요 (말로 입력해도 됩니다)"); return; }
     // Ensure the org id is present — RLS requires organization_id = current_user_org().
     let effectiveOrg = orgId;
     if (!effectiveOrg && user) {
@@ -96,12 +100,13 @@ function NewNearMiss() {
     }
     if (!effectiveOrg) { toast.error("조직 정보를 불러오지 못했습니다. 새로고침 후 다시 시도해주세요."); return; }
     setSaving(true);
+    const resolvedTitle = incidentName.trim() || `${[locCat, type].filter(Boolean).join(" ")} 아차사고`; // 제목을 안 적으면 장소·유형으로 자동
     const { error } = await (supabase as any).from("near_miss").insert({
       complex_id: complexId,
       organization_id: effectiveOrg,
       reported_by: userRowId || null,
       occurred_at: new Date(occurredAt).toISOString(),
-      incident_name: incidentName || null,
+      incident_name: resolvedTitle,
       situation: desc,
       location_category: locCat,
       location_detail: locDetail || null,
@@ -117,7 +122,7 @@ function NewNearMiss() {
     if (urgent) {
       // 긴급이면 관리소장에게 즉시 이메일 (실패해도 등록은 성공 처리)
       const complexName = complexes.find((c) => c.id === complexId)?.name ?? "";
-      notifyUrgentReport({ data: { orgId: effectiveOrg, kind: "아차사고", title: incidentName || "", complexName, location: [locCat, locDetail].filter(Boolean).join(" "), situation: desc } })
+      notifyUrgentReport({ data: { orgId: effectiveOrg, kind: "아차사고", title: resolvedTitle, complexName, location: [locCat, locDetail].filter(Boolean).join(" "), situation: desc } })
         .then((r: any) => { if (r?.sent > 0) toast.success(`긴급 알림을 관리자 ${r.sent}명에게 발송했습니다`); })
         .catch(() => {});
     }
@@ -150,13 +155,15 @@ function NewNearMiss() {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label>발생 장소</Label>
-            <select value={locCat} onChange={e=>setLocCat(e.target.value)} className="w-full h-11 px-3 rounded-md border bg-background text-sm mt-1">
+            <select value={locCat} onChange={e=>setLocCat(e.target.value)} className="w-full h-11 px-3 rounded-md border bg-background text-base mt-1" aria-label="발생 장소">
+              <option value="">— 선택해 주세요 —</option>
               {LOC_OPTIONS.map(o=> <option key={o}>{o}</option>)}
             </select>
           </div>
           <div>
             <Label>사고 유형</Label>
-            <select value={type} onChange={e=>setType(e.target.value)} className="w-full h-11 px-3 rounded-md border bg-background text-sm mt-1">
+            <select value={type} onChange={e=>setType(e.target.value)} className="w-full h-11 px-3 rounded-md border bg-background text-base mt-1" aria-label="사고 유형">
+              <option value="">— 선택해 주세요 —</option>
               {TYPE_OPTIONS.map(o=> <option key={o}>{o}</option>)}
             </select>
           </div>
@@ -167,14 +174,15 @@ function NewNearMiss() {
         </div>
         <div>
           <Label>사고 경위</Label>
-          <Textarea value={desc} onChange={e=>setDesc(e.target.value)} rows={4} placeholder="어떤 상황이 발생했는지 구체적으로 작성해주세요" className="mt-1" />
+          <Textarea id="nm-desc" value={desc} onChange={e=>setDesc(e.target.value)} rows={4} placeholder="어떤 상황이 발생했는지 구체적으로 작성해주세요" className="mt-1" />
+          <VoiceInput className="mt-2" onCommit={(t) => setDesc((d) => appendSpoken(d, t))} onCommitted={() => document.getElementById("nm-desc")?.focus()} />
         </div>
         <div>
           <Label>예상 피해 정도</Label>
           <div className="flex gap-2 mt-1">
             {SEV_OPTIONS.map(s=>(
-              <button key={s} type="button" onClick={()=>setSeverity(s)}
-                className={`flex-1 py-2.5 rounded-md border text-sm font-medium ${severity===s?"bg-primary text-primary-foreground border-primary":"bg-background"}`}>
+              <button key={s} type="button" onClick={()=>setSeverity(s)} aria-pressed={severity===s}
+                className={`flex-1 min-h-11 py-2.5 rounded-md border text-base font-medium ${severity===s?"bg-primary text-primary-foreground border-primary":"bg-background"}`}>
                 {s}
               </button>
             ))}

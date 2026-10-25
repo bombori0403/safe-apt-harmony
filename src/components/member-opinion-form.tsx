@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SignedImg } from "@/components/signed-img";
+import { VoiceInput, appendSpoken } from "@/components/voice-input";
 import { compressImage } from "@/lib/image-compress";
 import { writeErrorMessage } from "@/lib/write-error";
 import { toast } from "sonner";
@@ -212,6 +213,11 @@ export function MemberOpinionForm({ onSubmitted }: { onSubmitted?: () => void })
           onChange={(e) => setForm((f) => ({ ...f, text: e.target.value }))}
           placeholder="예) 지하 2층 계단에 물이 자주 고여 미끄럽습니다"
           className="text-base"
+        />
+        <VoiceInput
+          hint="타이핑이 번거로우면 말로 해도 됩니다 (되는 휴대폰에서만 버튼이 보입니다)."
+          onCommit={(t) => setForm((f) => ({ ...f, text: appendSpoken(f.text, t) }))}
+          onCommitted={() => document.getElementById("opinion-text")?.focus()}
         />
         <p className="text-sm text-muted-foreground">글 대신 사진만 올려도 됩니다.</p>
       </div>
