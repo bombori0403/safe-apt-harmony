@@ -43,13 +43,14 @@ export function VoiceInput({
   const [interim, setInterim] = useState("");
   const [notice, setNotice] = useState(""); // 화면 읽기용 짧은 상태 안내(aria-live)
   const recRef = useRef<SR | null>(null);
-  const baseRef = useRef(""); // 이전 세션('이어서 말하기' 전)까지 확정된 글 — 현재 세션 결과는 여기에 더해 다시 조립
+  const segmentsRef = useRef<string[]>([]); // 확정된 문장들 (한 문장 = 한 세션)
+  const wantRef = useRef(false); // 사용자가 계속 듣기를 원하는지 (문장 사이 자동 재시작 여부)
   const startBtn = useRef<HTMLButtonElement | null>(null);
   const stopBtn = useRef<HTMLButtonElement | null>(null);
   const commitBtn = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => { setSupported(!!getSR()); }, []);
-  useEffect(() => () => { detachAndAbort(); }, []); // 언마운트: 핸들러 해제 후 중단
+  useEffect(() => () => { wantRef.current = false; detachAndAbort(); }, []); // 언마운트: 핸들러 해제 후 중단
 
   // 상태 전환 뒤 다음 조작 버튼으로 포커스 이동 (버튼이 DOM 에서 바뀌므로)
   useEffect(() => {
@@ -69,6 +70,7 @@ export function VoiceInput({
   }
 
   function disable(msg: string) {
+    wantRef.current = false;
     detachAndAbort();
     setSupported(false);
     setStatus("idle");
@@ -76,31 +78,38 @@ export function VoiceInput({
     toast.info(msg);
   }
 
-  function start() {
+  /** 한 문장 단위로 듣는다(continuous=false). 문장이 끝나면 확정분을 segments 에 쌓고, 사용자가 멈추지 않았으면 곧바로 다시 듣는다.
+   *  안드로이드 크롬 계열은 continuous 모드에서 "지금까지 들은 전체"를 새 항목으로 계속 추가해 보내 결과가 계단처럼 반복되므로 이 방식을 쓴다. */
+  function startSession() {
     const Ctor = getSR();
     if (!Ctor) { disable("이 기기에서는 음성 입력을 쓸 수 없습니다. 글로 적어 주세요."); return; }
     detachAndAbort(); // 이전 세션이 남아 있으면 정리
     let rec: SR;
     try { rec = new Ctor(); } catch { disable("이 기기에서는 음성 입력을 쓸 수 없습니다. 글로 적어 주세요."); return; }
     rec.lang = "ko-KR";
-    rec.continuous = true;
+    rec.continuous = false;
     rec.interimResults = true;
     rec.maxAlternatives = 1;
     const mine = () => recRef.current === rec; // 늦게 오는 옛 세션 이벤트 거르기
 
     rec.onresult = (e: any) => {
       if (!mine()) return;
-      // 안드로이드 크롬 계열은 지금까지의 결과 전체를 매번 다시 보내고 resultIndex 도 믿을 수 없다.
-      // 그래서 "새로 온 부분만 누적"하지 않고, 확정·임시 모두 e.results 전체에서 매번 다시 조립한다(멱등 → 반복 입력 없음).
-      let fin = "", mid = "";
+      // 항목을 이어 붙이지 않는다. 가장 마지막 항목 하나가 "지금까지 들은 문장"이다.
+      let fin: string | null = null, mid = "";
       for (let i = 0; i < e.results.length; i++) {
         const r = e.results[i];
         const t = (r[0]?.transcript ?? "").trim();
         if (!t) continue;
-        if (r.isFinal) fin += (fin ? " " : "") + t; else mid += (mid ? " " : "") + t;
+        if (r.isFinal) fin = t; else mid = t;
       }
-      setFinalText(baseRef.current ? (fin ? `${baseRef.current} ${fin}` : baseRef.current) : fin);
-      setInterim(mid);
+      if (fin !== null) {
+        const seg = segmentsRef.current;
+        if (seg[seg.length - 1] !== fin) seg.push(fin); // 같은 확정분이 두 번 오면 한 번만
+        setFinalText(seg.join(" "));
+        setInterim("");
+      } else {
+        setInterim(mid);
+      }
     };
     rec.onerror = (e: any) => {
       if (!mine()) return;
@@ -110,28 +119,39 @@ export function VoiceInput({
         disable("마이크를 쓸 수 없어 음성 입력을 껐습니다. 글로 적어 주세요.");
         return;
       }
-      if (code === "network") toast.error("인터넷 연결이 필요합니다. 글로 적어 주세요.");
-      // no-speech 등: onend 가 이어서 오므로 거기서 paused 처리
+      if (code === "network") { toast.error("인터넷 연결이 필요합니다. 글로 적어 주세요."); wantRef.current = false; }
+      // no-speech 등은 onend 가 이어서 처리
     };
     rec.onend = () => {
       if (!mine()) return;
       setInterim("");
-      setStatus("paused"); // 사용자가 멈췄든, 무음으로 끝났든 → 지금까지 들은 내용을 넣을지 고르게
-      setNotice("듣기를 멈췄습니다. 내용을 확인하고 넣어 주세요.");
+      if (wantRef.current) {
+        // 사용자가 멈추지 않았는데 한 문장이 끝난 것 → 바로 다시 듣는다
+        setTimeout(() => { if (wantRef.current && recRef.current === rec) startSession(); }, 120);
+      } else {
+        setStatus("paused");
+        setNotice("듣기를 멈췄습니다. 내용을 확인하고 넣어 주세요.");
+      }
     };
     recRef.current = rec;
-    baseRef.current = finalText.trim(); // 이어서 말하기: 지금까지 확정된 글은 그대로 두고 그 뒤에 붙인다
     try {
       rec.start();
       setStatus("listening");
-      setNotice("듣는 중입니다. 말씀하세요.");
     } catch {
       disable("음성 입력을 시작하지 못했습니다. 글로 적어 주세요.");
     }
   }
 
+  /** 버튼: 말로 입력하기 / 이어서 말하기 — 지금까지 확정된 문장(segments)은 그대로 두고 이어 듣는다 */
+  function start() {
+    wantRef.current = true;
+    setNotice("듣는 중입니다. 말씀하세요.");
+    startSession();
+  }
+
   /** 말하기 끝내기: stop() 은 비동기 — 마지막 결과·onend 가 올 때까지 '정리하는 중' */
   function stopListening() {
+    wantRef.current = false;
     setStatus("stopping");
     setNotice("말한 내용을 정리하는 중입니다.");
     try { recRef.current?.stop?.(); } catch { setStatus("paused"); }
@@ -139,8 +159,9 @@ export function VoiceInput({
 
   function commit() {
     const text = (finalText + (interim ? " " + interim : "")).trim();
+    wantRef.current = false;
     detachAndAbort();
-    baseRef.current = "";
+    segmentsRef.current = [];
     setStatus("idle"); setFinalText(""); setInterim("");
     if (text) {
       onCommit(text);
@@ -154,8 +175,9 @@ export function VoiceInput({
   }
 
   function cancel() {
+    wantRef.current = false;
     detachAndAbort();
-    baseRef.current = "";
+    segmentsRef.current = [];
     setStatus("idle"); setFinalText(""); setInterim("");
     setNotice("이번 음성 입력을 취소했습니다.");
     setTimeout(() => startBtn.current?.focus(), 0);
