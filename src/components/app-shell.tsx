@@ -179,8 +179,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="hidden md:block sticky top-0 z-30 border-b bg-background/90 backdrop-blur print:hidden">
           <RelatedApps variant="topbar" />
         </div>
-        {/* 휴대폰: 하단 탭(56px) + 문의 버튼이 폼 맨 아래 제출 버튼을 가리지 않도록 여백을 넉넉히 둔다 */}
-        <main className="flex-1 pb-36 md:pb-0 print:pb-0">{children}</main>
+        {/* 하단 여백: 휴대폰은 탭(56px)+문의 버튼, PC도 우하단 문의 버튼이 폼 맨 아래 '다음' 버튼을 덮지 않게 (크로스체크에서 실제로 덮였음) */}
+        <main className="flex-1 pb-36 md:pb-28 print:pb-0">{children}</main>
 
         {/* Bottom tabbar - mobile */}
         <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t flex print:hidden">
