@@ -39,14 +39,14 @@ export function ApprovalLineEditor({ value, onChange }: { value?: Approval; onCh
   }
   return (
     <div className="border rounded-md p-3 space-y-2">
-      <div className="text-xs font-semibold">결재라인</div>
+      <div className="text-sm font-semibold">결재라인</div>
       <div className="grid grid-cols-3 gap-2">
         {APPROVAL_ROLES.map(({ key, nameKey, label }) => (
           <div key={label} className="space-y-1">
-            <Label className="text-xs">{label}</Label>
+            <Label>{label}</Label>
             <Input placeholder="성명" value={(v[nameKey] as string) || ""}
               onChange={(e) => setField(nameKey, e.target.value)} />
-            <div className="text-xs text-muted-foreground min-h-[14px]">
+            <div className="text-sm text-muted-foreground min-h-[20px]">
               {v[key] ? new Date(v[key] as string).toLocaleString("ko-KR") : "미결재"}
             </div>
             <Button type="button" variant={v[key] ? "secondary" : "outline"} size="sm" className="w-full"
@@ -64,7 +64,7 @@ export function ApprovalLineView({ approval }: { approval?: Approval }) {
   const a = approval;
   if (!a || (!a.drafter_name && !a.reviewer_name && !a.approver_name)) return null;
   return (
-    <div className="mt-2 border rounded-md overflow-hidden text-xs">
+    <div className="mt-2 border rounded-md overflow-hidden text-sm">
       <table className="w-full">
         <thead className="bg-muted/50">
           <tr>{APPROVAL_ROLES.map((r) => <th key={r.label} className="px-2 py-1 border-r last:border-r-0 font-medium">{r.label}</th>)}</tr>
@@ -74,7 +74,7 @@ export function ApprovalLineView({ approval }: { approval?: Approval }) {
             {APPROVAL_ROLES.map(({ key, nameKey, label }) => (
               <td key={label} className="px-2 py-2 border-r last:border-r-0 text-center align-top">
                 <div className="font-medium">{(a[nameKey] as string) || "-"}</div>
-                <div className="text-xs text-muted-foreground mt-1">
+                <div className="text-sm text-muted-foreground mt-1">
                   {a[key] ? new Date(a[key] as string).toLocaleDateString("ko-KR") : "미결재"}
                 </div>
               </td>
@@ -110,10 +110,11 @@ export function InspectionApprovalEditor({ value, onChange, title }: { value?: I
   async function copyRequest() {
     const url = typeof window !== "undefined" ? window.location.href : "";
     const who = nextRow?.role || "다음 결재자";
-    const msg = `[리스크로그] "${title || "안전점검"}" ${who} 결재를 부탁드립니다.\n${url}`;
+    // 이 링크는 앱 화면이라 리스크로그에 로그인한 직원(결재자)만 열 수 있다 — 외부인에게는 진행 현황 열람 링크를 쓴다.
+    const msg = [`[리스크로그] "${title || "안전점검"}" ${who} 결재를 부탁드립니다.`, url, "(리스크로그에 로그인한 뒤 열립니다)"].join("\n");
     try {
       await navigator.clipboard.writeText(msg);
-      toast.success(`${who} 결재 요청 링크를 복사했습니다. 카톡 등에 붙여넣어 전달하세요.`);
+      toast.success(`${who} 결재 요청 링크를 복사했습니다. 결재자는 로그인한 뒤 열 수 있습니다.`);
     } catch {
       window.prompt("아래 내용을 복사해 전달하세요", msg);
     }
@@ -121,9 +122,9 @@ export function InspectionApprovalEditor({ value, onChange, title }: { value?: I
   return (
     <div className="border rounded-md p-3 space-y-2">
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <div className="text-xs font-semibold">결재란 <span className="text-muted-foreground font-normal">(직책·이름 수정, 결재자 추가·삭제 가능)</span></div>
+        <div className="text-sm font-semibold">결재란 <span className="text-muted-foreground font-normal">(직책·이름 수정, 결재자 추가·삭제 가능)</span></div>
         <div className="flex items-center gap-2">
-          <div className="text-xs font-medium">
+          <div className="text-sm font-medium">
             {nextRow
               ? <span className="text-primary">▶ 다음 결재: <b>{nextRow.role || "(직책)"}</b></span>
               : <span className="text-success">✓ 결재 완료</span>}
@@ -135,7 +136,7 @@ export function InspectionApprovalEditor({ value, onChange, title }: { value?: I
           )}
         </div>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
         {rows.map((r, i) => {
           const signed = !!r.at;
           const isNext = i === nextIdx;
@@ -145,15 +146,15 @@ export function InspectionApprovalEditor({ value, onChange, title }: { value?: I
                 <Input className="font-semibold px-2" placeholder="직책" value={r.role}
                   onChange={(e) => patch(i, { role: e.target.value })} />
                 {rows.length > 1 && (
-                  <button type="button" onClick={() => set(rows.filter((_, j) => j !== i))} className="text-muted-foreground hover:text-danger shrink-0" title="삭제"><X className="h-3.5 w-3.5" /></button>
+                  <Button type="button" size="icon" variant="ghost" onClick={() => set(rows.filter((_, j) => j !== i))} className="h-9 w-9 text-muted-foreground hover:text-danger shrink-0" aria-label={`${r.role || "결재자"} 삭제`}><X className="h-5 w-5" /></Button>
                 )}
               </div>
               <div className="flex items-center gap-1">
-                {isNext && <span className="text-xs leading-none px-1 py-0.5 rounded bg-primary text-white shrink-0">지금</span>}
-                {signed && <span className="text-success text-xs shrink-0">✓</span>}
+                {isNext && <span className="text-sm leading-none px-1.5 py-1 rounded bg-primary text-white shrink-0">지금</span>}
+                {signed && <span className="text-success text-base shrink-0">✓</span>}
                 <Input placeholder="성명" value={r.name} onChange={(e) => patch(i, { name: e.target.value })} />
               </div>
-              <div className={`text-xs min-h-[14px] ${signed ? "text-success" : "text-muted-foreground"}`}>{signed ? new Date(r.at).toLocaleDateString("ko-KR") + " 결재" : "미결재"}</div>
+              <div className={`text-sm min-h-[20px] ${signed ? "text-success" : "text-muted-foreground"}`}>{signed ? new Date(r.at).toLocaleDateString("ko-KR") + " 결재" : "미결재"}</div>
               <Button type="button" variant={signed ? "secondary" : isNext ? "default" : "outline"} size="sm" className="w-full"
                 onClick={() => (signed ? patch(i, { at: "" }) : r.name ? patch(i, { at: new Date().toISOString() }) : toast.error("성명을 먼저 입력하세요"))}>
                 {signed ? "결재취소" : "결재"}
@@ -162,8 +163,8 @@ export function InspectionApprovalEditor({ value, onChange, title }: { value?: I
           );
         })}
         <button type="button" onClick={() => set([...rows, { role: "", name: "", at: "" }])}
-          className="min-h-[92px] rounded-md border-2 border-dashed flex flex-col items-center justify-center gap-1 text-muted-foreground hover:border-primary hover:text-primary text-xs">
-          <Plus className="h-4 w-4" />결재자 추가
+          className="min-h-[92px] rounded-md border-2 border-dashed flex flex-col items-center justify-center gap-1 text-muted-foreground hover:border-primary hover:text-primary text-sm">
+          <Plus className="h-5 w-5" />결재자 추가
         </button>
       </div>
     </div>

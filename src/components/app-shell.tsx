@@ -57,7 +57,7 @@ const NAV_GROUPS = [
   {
     title: null,
     items: [
-      { to: "/manual/", label: "사용 설명서", icon: HelpCircle, external: true },
+      { to: "/manual/index.html", label: "사용 설명서", icon: HelpCircle, external: true }, // 개발 서버는 /manual/ 를 404 로 보내므로 파일명까지,
       { to: "/settings", label: "설정", icon: Settings },
     ],
   },
