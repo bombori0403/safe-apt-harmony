@@ -43,6 +43,7 @@ export function VoiceInput({
   const [interim, setInterim] = useState("");
   const [notice, setNotice] = useState(""); // 화면 읽기용 짧은 상태 안내(aria-live)
   const recRef = useRef<SR | null>(null);
+  const baseRef = useRef(""); // 이전 세션('이어서 말하기' 전)까지 확정된 글 — 현재 세션 결과는 여기에 더해 다시 조립
   const startBtn = useRef<HTMLButtonElement | null>(null);
   const stopBtn = useRef<HTMLButtonElement | null>(null);
   const commitBtn = useRef<HTMLButtonElement | null>(null);
@@ -89,14 +90,16 @@ export function VoiceInput({
 
     rec.onresult = (e: any) => {
       if (!mine()) return;
-      // 임시 문장은 전체 results 에서 다시 만든다 (앞쪽 임시 결과가 사라지지 않게). 확정은 새로 확정된 것만 누적.
-      let newFinal = "", mid = "";
+      // 안드로이드 크롬 계열은 지금까지의 결과 전체를 매번 다시 보내고 resultIndex 도 믿을 수 없다.
+      // 그래서 "새로 온 부분만 누적"하지 않고, 확정·임시 모두 e.results 전체에서 매번 다시 조립한다(멱등 → 반복 입력 없음).
+      let fin = "", mid = "";
       for (let i = 0; i < e.results.length; i++) {
         const r = e.results[i];
-        if (r.isFinal) { if (i >= e.resultIndex) newFinal += r[0].transcript; }
-        else mid += r[0].transcript;
+        const t = (r[0]?.transcript ?? "").trim();
+        if (!t) continue;
+        if (r.isFinal) fin += (fin ? " " : "") + t; else mid += (mid ? " " : "") + t;
       }
-      if (newFinal.trim()) setFinalText((t) => (t ? t + " " : "") + newFinal.trim());
+      setFinalText(baseRef.current ? (fin ? `${baseRef.current} ${fin}` : baseRef.current) : fin);
       setInterim(mid);
     };
     rec.onerror = (e: any) => {
@@ -117,6 +120,7 @@ export function VoiceInput({
       setNotice("듣기를 멈췄습니다. 내용을 확인하고 넣어 주세요.");
     };
     recRef.current = rec;
+    baseRef.current = finalText.trim(); // 이어서 말하기: 지금까지 확정된 글은 그대로 두고 그 뒤에 붙인다
     try {
       rec.start();
       setStatus("listening");
@@ -136,6 +140,7 @@ export function VoiceInput({
   function commit() {
     const text = (finalText + (interim ? " " + interim : "")).trim();
     detachAndAbort();
+    baseRef.current = "";
     setStatus("idle"); setFinalText(""); setInterim("");
     if (text) {
       onCommit(text);
@@ -150,6 +155,7 @@ export function VoiceInput({
 
   function cancel() {
     detachAndAbort();
+    baseRef.current = "";
     setStatus("idle"); setFinalText(""); setInterim("");
     setNotice("이번 음성 입력을 취소했습니다.");
     setTimeout(() => startBtn.current?.focus(), 0);
