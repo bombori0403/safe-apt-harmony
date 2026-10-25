@@ -60,3 +60,13 @@ git add -A && git commit -m "..." && git push origin main   # main 브랜치
 - `src/routes/_app/settings.tsx`에 단지관리 이전 코드 일부가 미사용으로 남음(동작 무해).
 - xlsx(0.18.5)는 알려진 취약점 있으나 사용자 본인 파일만 파싱 → 위험 낮음.
 - 이메일 인증은 현재 꺼둠(가입 마찰↓). 비밀번호 최소 6자.
+
+## 2026-10 어르신 친화 업그레이드 이후 컨벤션 (설계: ../docs/ux-upgrade-plan.md, 법령 근거: ../docs/legal-basis.md)
+- **글자·터치 하한**: 화면용 글자 `text-sm`(≈16px) 이상, 버튼/입력 `h-11` 이상. `text-[Npx]` 고정 픽셀은 인쇄 전용 컴포넌트(print-sheet, kras-*, *-report, ledger)에서만.
+- **complex_members 는 클라이언트에서 읽지 않는다** (SELECT 정책 없음 → 항상 빈 배열). 소속 단지는 `lib/my-complexes.ts`의 `myComplexMemberships()`(complexes 를 RLS 로 거름)로.
+- **공용 부품**: `hooks/use-draft.ts`(기기 임시 저장, 키에 사용자 ID 필수) · `components/save-status.tsx`(저장 상태 지속 표시, 복구 배너) · `components/step-header.tsx`(평가 작성 n/5 + 지금 할 일) · `components/term.tsx` + `lib/glossary.ts`(용어 풀이 — "고시 정의"라고 쓰지 말 것, 5단계·5×5 는 앱 자체 척도) · `components/voice-input.tsx`(음성, 미지원 시 숨김).
+- **음성 입력(Web Speech)**: 안드로이드 크롬 계열은 continuous 모드에서 결과가 계단식으로 반복된다 → `continuous=false` + 마지막 항목만 사용 + onend 자동 재시작 방식을 유지할 것.
+- **공개 화면**: `/confirm/:id`(서명)는 평가 UUID, `/view/:id?k=`(열람)는 서버 HMAC 토큰(`getViewToken`, 로그인 담당자만 발급) 필요. 둘 다 `assessments.share_enabled` 로 차단. 공개 응답에 참여자·열람자·책임자 이름을 넣지 않는다.
+- **직원(member) 화면**: 대시보드 → `MemberHome`, 직원 참여 → `MemberOpinionForm`(employee_inputs input_type=opinion). 검토 상태(meta.review_status)는 트리거가 관리자·매니저만 허용.
+- **법령 표기**: 기록·보존은 시행규칙 **제37조의4**(3년). 자체 5년 보관은 중처법 시행령 제13조(소상공인 제외, 이행일 기산)와 구분해 쓴다. 근로자 참여는 순회점검이 기본(제37조의2) — 앱 의견은 "병행 수단"으로만 표현.
+- **적용된 마이그레이션(2026-10)**: `20261024_phase1_member_opinion.sql`, `20261025_complex_members_select.sql`(선택), `20261025_phase3_share.sql` — 모두 SQL Editor 에서 실행 완료.
