@@ -173,7 +173,7 @@ function Landing() {
             <Feature icon={BadgeCheck} title="아차사고 · 작업중지권"
               desc="위험성평가 외에도 아차사고 기록, 작업중지권 행사 대장 등 안전관리 업무를 함께 지원합니다." />
             <Feature icon={Shield} title="이력 5년 보관"
-              desc="시행규칙 제37조의 법정 보존기간 3년을 넘겨, 자체 규정 기준 5년간 안전하게 보관합니다." />
+              desc="시행규칙 제37조의4의 법정 보존기간 3년을 넘겨, 자체 규정 기준 5년간 안전하게 보관합니다." />
           </div>
         </div>
       </section>
