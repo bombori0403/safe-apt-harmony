@@ -1,20 +1,24 @@
 import { myComplexMemberships } from "@/lib/my-complexes";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useSubscription } from "@/hooks/use-subscription";
+import { useDraft } from "@/hooks/use-draft";
+import { DraftBanner, SaveStatus } from "@/components/save-status";
+import { Term, MethodTerm } from "@/components/term";
+import { METHOD_GLOSS, METHOD_SCALE_HINT, SCALE_DISCLAIMER } from "@/lib/glossary";
 import { TrialExpiredBlock } from "@/components/trial-watermark";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { METHOD_INFO, recommendMethod } from "@/lib/method-recommend";
-import { ASSESSMENT_METHODS, METHOD_LABEL, WORK_CATEGORIES, CATEGORY_LABEL, type WorkCategory, type AssessmentMethod, type AssessmentType, type RiskLevel } from "@/lib/types";
+import { recommendMethod } from "@/lib/method-recommend";
+import { ASSESSMENT_METHODS, WORK_CATEGORIES, CATEGORY_LABEL, type WorkCategory, type AssessmentMethod, type AssessmentType } from "@/lib/types";
 import { getCurrentUserContext } from "@/lib/user-context";
 import { toast } from "sonner";
-import { Star, AlertTriangle, ShieldAlert, ChevronDown, ChevronUp, History, Settings } from "lucide-react";
+import { Star, AlertTriangle, ShieldAlert, ChevronDown, ChevronUp, History, Building } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { WORK_STOP_LAW_TITLE, WORK_STOP_LAW_TEXT } from "@/lib/work-stop-law";
 
@@ -66,6 +70,17 @@ function guessCategory(workName: string): WorkCategory | null {
   return null;
 }
 
+/** 사전준비 마법사 화면 수 — 빈 "참여자" 화면을 체크리스트에 합쳐 6 → 5 */
+const TOTAL_STEPS = 5;
+const STEP_TITLES = ["평가 기본정보", "평가 방법 선택", "위험성 수준 판단기준", "허용 가능한 위험성 수준", "실시 전 확인"];
+
+/** 이 기기에 임시 저장하는 폼 상태(사진 없음) */
+type Draft = {
+  step: number; complexId: string; type: AssessmentType; workName: string; date: string; location: string;
+  method: AssessmentMethod; workCategory: WorkCategory; catTouched: boolean; allowable: string;
+  participantConsent: boolean; workStopConsent: boolean; sourceId: string; pickedNearMiss: Record<string, boolean>;
+};
+
 export const Route = createFileRoute("/_app/assessment/new")({
   component: NewAssessment,
 });
@@ -106,6 +121,29 @@ function NewAssessment() {
   const [prevList, setPrevList] = useState<any[]>([]);
   const [sourceId, setSourceId] = useState<string>("");
   const [saving, setSaving] = useState(false);
+  const [pickedNearMiss, setPickedNearMiss] = useState<Record<string, boolean>>({});
+
+  // ── 이 기기에 자동 임시 저장 (새로고침·뒤로가기로 6화면 입력이 날아가던 문제) ──
+  const draftValue: Draft = { step, complexId, type, workName, date, location, method, workCategory, catTouched, allowable, participantConsent, workStopConsent, sourceId, pickedNearMiss };
+  // 작업명을 적기 시작했거나 2화면 이상 갔을 때만 저장 — 빈 폼이 "작성 중이던 내용"으로 남지 않게
+  const draft = useDraft(userRowId ? `assessment-new:${userRowId}` : null, draftValue, { enabled: workName.trim().length > 0 || step > 1 });
+  function restore(d: Draft) {
+    setStep(d.step || 1); if (d.complexId) setComplexId(d.complexId); setType(d.type); setWorkName(d.workName); setDate(d.date); setLocation(d.location);
+    setMethod(d.method); setWorkCategory(d.workCategory); setCatTouched(d.catTouched); setAllowable(d.allowable);
+    setParticipantConsent(d.participantConsent); setWorkStopConsent(d.workStopConsent); setSourceId(d.sourceId); setPickedNearMiss(d.pickedNearMiss ?? {});
+  }
+  const locked = !!draft.pending; // 복구 여부를 고르기 전엔 입력 잠금
+
+  // 완료 시 빠진 동의로 스크롤·강조
+  const participantRef = useRef<HTMLLabelElement | null>(null);
+  const workStopRef = useRef<HTMLLabelElement | null>(null);
+  const [flash, setFlash] = useState<"participant" | "workstop" | null>(null);
+  function focusMissing(which: "participant" | "workstop") {
+    const el = which === "participant" ? participantRef.current : workStopRef.current;
+    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    setFlash(which);
+    setTimeout(() => setFlash(null), 2500);
+  }
 
   useEffect(() => {
     if (!user) return;
@@ -125,12 +163,9 @@ function NewAssessment() {
           : [];
       }
       setComplexes(availableComplexes);
-      if (complexId) setComplexId(complexId);
-      else if (availableComplexes[0]) setComplexId(availableComplexes[0].id);
+      setComplexId((cur) => cur || complexId || availableComplexes[0]?.id || "");
     });
   }, [user]);
-
-  const [pickedNearMiss, setPickedNearMiss] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (!complexId) return;
@@ -148,14 +183,14 @@ function NewAssessment() {
       .eq("complex_id", complexId)
       .order("assessment_date", { ascending: false })
       .then(({ data }) => setPrevList(data ?? []));
-    setSourceId("");
   }, [complexId]);
 
   const recommended = workName ? recommendMethod(workName) : null;
 
   async function submit() {
     if (!complexId) { toast.error("단지가 지정되지 않았습니다"); return; }
-    if (!workStopConsent) { toast.error("작업중지권 안내 동의가 필요합니다"); return; }
+    if (!participantConsent) { toast.error("근로자 참여 방법 확정에 체크해 주세요"); focusMissing("participant"); return; }
+    if (!workStopConsent) { toast.error("작업중지권 안내 확인에 체크해 주세요"); focusMissing("workstop"); return; }
     if (sub.isTrial) {
       const { count } = await supabase.from("assessments").select("id", { count: "exact", head: true });
       if ((count ?? 0) >= 10) {
@@ -198,6 +233,9 @@ function NewAssessment() {
       // 정기 재검토: 이전 평가의 위험요인 + 감소대책을 그대로 불러오기(전체, 완료/미완료 유지)
       let copied = 0;
       if (sourceId) {
+        // 원본 평가가 같은 단지 것인지 확인 — 다른 단지 위험요인이 섞여 들어오는 사고 방지
+        const { data: srcA } = await supabase.from("assessments").select("id, complex_id").eq("id", sourceId).maybeSingle();
+        if (!srcA || srcA.complex_id !== complexId) throw new Error("불러오려는 이전 평가가 이 단지의 것이 아닙니다. 1화면에서 다시 선택해 주세요.");
         const { data: src } = await supabase.from("hazards")
           .select("description, process_name, current_control, likelihood, severity, level, level_standardized, legal_basis_override, library_item_id, post_likelihood, post_severity, post_level, checklist_result, ops_data, measures(content, type, due_date, status, completed_at, responsible_name, residual_action)")
           .eq("assessment_id", sourceId)
@@ -227,6 +265,7 @@ function NewAssessment() {
         }
       }
 
+      draft.clear(); // 서버에 저장됐으니 기기 임시본은 지운다
       toast.success(copied
         ? `평가 생성 완료 · 이전 평가에서 ${copied}건 불러옴. 검토·추가 후 진행하세요.`
         : "평가 생성 완료. 유해·위험요인 파악 단계로 이동합니다.");
@@ -240,44 +279,57 @@ function NewAssessment() {
 
   if (sub.isExpired) return <TrialExpiredBlock what="새 평가 작성" paid={sub.isPaid} />;
 
+  const flashCls = "ring-4 ring-warning/60 rounded-md";
+
   return (
     <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-5">
       <div>
-        <div className="text-sm text-muted-foreground">사전준비 단계 — {step}/6</div>
-        <h1 className="text-2xl font-bold mt-1">위험성평가 사전준비</h1>
+        <div className="text-sm text-muted-foreground flex flex-wrap gap-x-2">
+          <span className="font-semibold text-primary">평가 작성 1/5 · 사전준비</span>
+          <span>화면 {step}/{TOTAL_STEPS}</span>
+          <span>· 다음 단계: 유해·위험요인 파악</span>
+        </div>
+        <h1 className="text-2xl font-bold mt-1">{step}. {STEP_TITLES[step - 1]}</h1>
       </div>
 
-      <div className="flex gap-1">
-        {[1,2,3,4,5,6].map(n => (
-          <div key={n} className={`flex-1 h-1.5 rounded-full ${n <= step ? "bg-primary" : "bg-muted"}`} />
+      <div className="flex gap-1" aria-hidden="true">
+        {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map(n => (
+          <div key={n} className={`flex-1 h-2 rounded-full ${n <= step ? "bg-primary" : "bg-muted"}`} />
         ))}
       </div>
 
-      {/* 아차사고 반영 카드 */}
-      {complexId && (
+      {draft.pending && (
+        <DraftBanner at={draft.pendingAt} onResume={() => { const v = draft.take(); if (v) restore(v); }} onDiscard={() => draft.discard()} />
+      )}
+      <SaveStatus state={draft.savedAt ? "draft" : "idle"} draftAt={draft.savedAt} />
+
+      <fieldset disabled={locked} className="space-y-5 min-w-0 disabled:opacity-60">
+
+      {/* 아차사고 반영 · 이전 평가 불러오기 — 1화면에만 (6화면 전부 반복되던 것을 정리) */}
+      {step === 1 && complexId && (
         <Card>
           <CardContent className="p-4">
-            <button type="button" onClick={()=>setNmExpanded(v=>!v)} className="w-full flex items-center justify-between gap-2 text-left">
+            <button type="button" onClick={()=>setNmExpanded(v=>!v)} className="w-full flex items-center justify-between gap-2 text-left min-h-11">
               <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-md bg-warning/15 text-warning"><AlertTriangle className="h-4 w-4"/></div>
+                <div className="p-1.5 rounded-md bg-warning/15 text-warning"><AlertTriangle className="h-5 w-5"/></div>
                 <div>
-                  <div className="text-sm font-semibold">지난 12개월 아차사고 {nearMiss.length}건</div>
-                  <div className="text-xs text-muted-foreground">위험요인으로 등록할 항목을 선택하세요</div>
+                  <div className="text-base font-semibold">지난 12개월 아차사고 {nearMiss.length}건</div>
+                  <div className="text-sm text-muted-foreground">위험요인으로 함께 평가할 항목이 있으면 골라 주세요 (선택)</div>
                 </div>
               </div>
-              {nmExpanded ? <ChevronUp className="h-4 w-4"/> : <ChevronDown className="h-4 w-4"/>}
+              {nmExpanded ? <ChevronUp className="h-5 w-5"/> : <ChevronDown className="h-5 w-5"/>}
             </button>
             {nmExpanded && (
               <div className="mt-3 space-y-1.5 max-h-64 overflow-y-auto">
                 {nearMiss.length === 0 ? (
-                  <div className="text-xs text-muted-foreground py-2">등록된 아차사고가 없습니다.</div>
+                  <div className="text-sm text-muted-foreground py-2">등록된 아차사고가 없습니다.</div>
                 ) : nearMiss.map(n => (
-                  <label key={n.id} className="flex items-start gap-2 p-2 rounded-md hover:bg-muted/40 cursor-pointer text-sm">
-                    <input type="checkbox" className="mt-0.5"
+                  <label key={n.id} className="flex items-start gap-3 p-2 rounded-md hover:bg-muted/40 cursor-pointer text-base">
+                    <input type="checkbox" className="mt-1"
                       checked={!!pickedNearMiss[n.id]}
                       onChange={e=>setPickedNearMiss({...pickedNearMiss, [n.id]: e.target.checked})} />
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs text-muted-foreground">{new Date(n.occurred_at).toLocaleDateString("ko-KR")} · {n.location_category ?? "-"} · {n.incident_type ?? "-"}</div>
+                      <div className="text-sm text-muted-foreground">{new Date(n.occurred_at).toLocaleDateString("ko-KR")} · {n.location_category ?? "-"} · {n.incident_type ?? "-"}</div>
                       <div className="line-clamp-2">{n.situation}</div>
                     </div>
                   </label>
@@ -288,18 +340,17 @@ function NewAssessment() {
         </Card>
       )}
 
-      {/* 정기 재검토: 이전 평가 불러오기 */}
-      {complexId && prevList.length > 0 && (
+      {step === 1 && complexId && prevList.length > 0 && (
         <Card>
           <CardContent className="p-4 space-y-2.5">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-md bg-primary/10 text-primary"><History className="h-4 w-4" /></div>
+              <div className="p-1.5 rounded-md bg-primary/10 text-primary"><History className="h-5 w-5" /></div>
               <div>
-                <div className="text-sm font-semibold">이전 평가 재검토 (정기평가)</div>
-                <div className="text-xs text-muted-foreground">작년 위험요인·감소대책을 전부 불러와 검토합니다. 완료/미완료 상태도 그대로 유지되고, 이어서 신규 위험요인을 추가할 수 있어요.</div>
+                <div className="text-base font-semibold">이전 평가 재검토 (정기평가)</div>
+                <div className="text-sm text-muted-foreground">작년 위험요인·감소대책을 전부 불러와 검토합니다. 완료/미완료 상태도 그대로 유지되고, 이어서 신규 위험요인을 추가할 수 있어요.</div>
               </div>
             </div>
-            <select value={sourceId} onChange={e => setSourceId(e.target.value)} className="w-full h-10 px-3 rounded-md border bg-background text-sm">
+            <select value={sourceId} onChange={e => setSourceId(e.target.value)} className="w-full h-11 px-3 rounded-md border bg-background text-base" aria-label="불러올 이전 평가">
               <option value="">불러오지 않음 (새로 작성)</option>
               {prevList.map((p: any) => (
                 <option key={p.id} value={p.id}>{p.work_name} · {p.assessment_date} · 위험요인 {p.hazards?.[0]?.count ?? 0}건</option>
@@ -311,17 +362,19 @@ function NewAssessment() {
 
       {step === 1 && (
         <Card><CardContent className="p-5 space-y-4">
-          <h2 className="font-semibold text-lg">Step 1. 평가 기본정보</h2>
           <div>
-            <Label>평가 단지</Label>
+            <Label htmlFor="cx">평가 단지</Label>
             {complexes.length === 0 ? (
               <div className="rounded-md border bg-muted/40 p-3 mt-1.5 flex flex-wrap items-center justify-between gap-2">
-                <span className="text-sm text-muted-foreground">등록된 단지가 없습니다. 먼저 단지를 등록해주세요.</span>
-                <Link to="/settings"><Button size="sm" variant="outline" className="gap-1"><Settings className="h-4 w-4" />설정에서 단지 등록</Button></Link>
+                <span className="text-base text-muted-foreground">등록된 단지가 없습니다. 먼저 단지를 등록해주세요.</span>
+                <Link to="/complexes"><Button size="sm" variant="outline" className="gap-1"><Building className="h-4 w-4" />단지 관리에서 등록</Button></Link>
               </div>
             ) : (
-              <select value={complexId} onChange={e=>setComplexId(e.target.value)}
-                className="w-full h-10 px-3 rounded-md border bg-background text-sm mt-1.5">
+              <select id="cx" value={complexId} onChange={e=>{
+                  // 단지를 바꾸면 그 단지 기준으로 고른 이전 평가·아차사고 선택은 무효 (초안 복구와 구분해 사용자 조작에서만 초기화)
+                  setComplexId(e.target.value); setSourceId(""); setPickedNearMiss({});
+                }}
+                className="w-full h-11 px-3 rounded-md border bg-background text-base mt-1.5">
                 {complexes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             )}
@@ -331,28 +384,33 @@ function NewAssessment() {
             <div className="flex gap-2 mt-1.5">
               {(["최초평가","정기평가","수시평가"] as AssessmentType[]).map(t => (
                 <button key={t} type="button"
-                  onClick={() => setType(t)}
-                  className={`flex-1 py-2.5 rounded-md border text-sm font-medium ${type===t?"bg-primary text-primary-foreground border-primary":"bg-background"}`}>
+                  onClick={() => setType(t)} aria-pressed={type===t}
+                  className={`flex-1 min-h-11 py-2.5 rounded-md border text-base font-medium ${type===t?"bg-primary text-primary-foreground border-primary":"bg-background"}`}>
                   {t}
                 </button>
               ))}
             </div>
+            <p className="text-sm text-muted-foreground mt-1.5">
+              {type === "최초평가" && <Term k="최초평가" />}
+              {type === "정기평가" && <Term k="정기평가" />}
+              {type === "수시평가" && <Term k="수시평가" />}
+            </p>
           </div>
           <div>
             <Label htmlFor="wn">평가 대상 작업명</Label>
             <Input id="wn" value={workName} onChange={e=>setWorkName(e.target.value)} placeholder="예: 승강기 정기점검" />
           </div>
           <div>
-            <Label>작업 카테고리</Label>
-            <p className="text-xs text-muted-foreground mt-1 mb-1.5">
+            <Label htmlFor="cat">작업 카테고리</Label>
+            <p className="text-sm text-muted-foreground mt-1 mb-1.5">
               작업명에 따라 자동 선택됩니다. 이 카테고리 기준으로 유해·위험요인 목록이 제안됩니다.
             </p>
-            <select value={workCategory} onChange={e=>{ setWorkCategory(e.target.value as WorkCategory); setCatTouched(true); }}
-              className="w-full h-10 px-3 rounded-md border bg-background text-sm">
+            <select id="cat" value={workCategory} onChange={e=>{ setWorkCategory(e.target.value as WorkCategory); setCatTouched(true); }}
+              className="w-full h-11 px-3 rounded-md border bg-background text-base">
               {WORK_CATEGORIES.map(c => <option key={c} value={c}>{CATEGORY_LABEL[c]}</option>)}
             </select>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label htmlFor="dt">평가일자</Label>
               <Input id="dt" type="date" value={date} onChange={e=>setDate(e.target.value)} />
@@ -367,23 +425,22 @@ function NewAssessment() {
 
       {step === 2 && (
         <Card><CardContent className="p-5 space-y-4">
-          <h2 className="font-semibold text-lg">Step 2. 평가 방법 선택</h2>
-          <p className="text-sm text-muted-foreground">다음 5종 중 1개를 선택하세요. 작업명에 따라 ★ 추천이 표시됩니다.</p>
+          <p className="text-base text-muted-foreground">다섯 가지 중 하나를 고르세요. 작업명에 따라 ★ 추천이 표시됩니다. 잘 모르면 추천을 고르면 됩니다.</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {ASSESSMENT_METHODS.map(m => {
-              const info = METHOD_INFO[m];
+              const g = METHOD_GLOSS[m];
               const isRec = recommended === m;
               const isSel = method === m;
               return (
-                <button key={m} type="button" onClick={() => setMethod(m)}
+                <button key={m} type="button" onClick={() => setMethod(m)} aria-pressed={isSel}
                   className={`text-left p-4 rounded-lg border-2 transition-all ${isSel ? "border-primary bg-accent/40 shadow-md" : "border-border hover:border-primary/40"}`}>
                   <div className="flex items-start justify-between gap-2">
-                    <div className="text-xl">{info.icon}</div>
-                    {isRec && <Badge className="gap-1 bg-warning text-warning-foreground"><Star className="h-3 w-3" />추천</Badge>}
+                    <div className="font-semibold text-lg">{g.title}</div>
+                    {isRec && <Badge className="gap-1 bg-warning text-warning-foreground shrink-0"><Star className="h-3 w-3" />추천</Badge>}
                   </div>
-                  <div className="font-semibold mt-2">{info.title}</div>
-                  <div className="text-xs text-muted-foreground mt-1">{info.desc}</div>
-                  <div className="text-sm text-primary mt-2">권장: {info.usecase}</div>
+                  <div className="text-base text-muted-foreground mt-1">{g.short}</div>
+                  <div className="text-sm text-muted-foreground mt-2 leading-relaxed">{g.long}</div>
+                  {g.appOnly && <div className="text-sm text-warning mt-2">※ 고시의 4가지 방법 외에 이 앱이 추가한 자체 척도</div>}
                 </button>
               );
             })}
@@ -393,53 +450,25 @@ function NewAssessment() {
 
       {step === 3 && (
         <Card><CardContent className="p-5 space-y-3">
-          <h2 className="font-semibold text-lg">Step 3. 위험성 수준 판단기준 확정</h2>
-          <div className="rounded-md bg-muted p-3 text-sm">
-            선택한 방법: <span className="font-semibold text-primary">{METHOD_INFO[method].title}</span>
+          <div className="rounded-md bg-muted p-3 text-base">
+            선택한 방법: <MethodTerm method={method} />
           </div>
-          {method === "3단계_판단법" && (
-            <div className="text-sm space-y-2">
-              <p><span className="font-semibold text-danger">상</span> = 사망 또는 영구장애를 일으키는 재해</p>
-              <p><span className="font-semibold text-warning">중</span> = 휴업 1개월 이상의 부상·질병</p>
-              <p><span className="font-semibold text-success">하</span> = 휴업 1개월 미만 또는 무휴업</p>
-            </div>
+          <p className="text-base">아래 기준으로 각 위험요인의 <Term k="위험성" compact />을 정합니다.</p>
+          <ul className="text-base space-y-1.5 list-disc pl-5">
+            {METHOD_SCALE_HINT[method].map((line) => <li key={line}>{line}</li>)}
+          </ul>
+          {(method === "빈도강도법") && (
+            <p className="text-sm text-muted-foreground"><Term k="가능성" /> · <Term k="중대성" /></p>
           )}
-          {method === "5단계_판단법" && (
-            <div className="text-sm space-y-2">
-              <p><span className="font-semibold text-danger">매우높음</span> = 사망 또는 영구장애</p>
-              <p><span className="font-semibold text-danger">높음</span> = 6개월 이상 휴업 필요</p>
-              <p><span className="font-semibold text-warning">보통</span> = 3~6개월 휴업 필요</p>
-              <p><span className="font-semibold text-success">낮음</span> = 3개월 미만 휴업 필요</p>
-              <p className="text-muted-foreground"><span className="font-semibold">매우낮음</span> = 휴업 불필요</p>
-            </div>
-          )}
-          {method === "빈도강도법" && (
-            <div className="text-sm space-y-2">
-              <p>가능성 1~5점 × 중대성 1~5점 = 위험성 점수</p>
-              <p>1~4점=매우낮음 · 5~8점=낮음 · 9~12점=보통 · 13~16점=높음 · 17~25점=매우높음</p>
-            </div>
-          )}
-          {method === "체크리스트법" && (
-            <div className="text-sm space-y-2">
-              <p>판정 기준: <span className="font-semibold text-success">○ 적정</span> / <span className="font-semibold text-danger">× 보완</span></p>
-              <p className="text-muted-foreground">'보완' 항목은 자동으로 감소대책 수립 단계로 전달됩니다.</p>
-            </div>
-          )}
-          {method === "OPS" && (
-            <div className="text-sm space-y-2">
-              <p>핵심 질문 3개에 답변:</p>
-              <p>Q1. 무엇이 위험한가? · Q2. 얼마나 심각한가? · Q3. 어떻게 막을 것인가?</p>
-              <p className="text-muted-foreground mt-2">위험요인 1개=낮음 / 2개=보통 / 3개 이상=높음</p>
-            </div>
-          )}
+          <p className="text-sm text-muted-foreground">{SCALE_DISCLAIMER}</p>
         </CardContent></Card>
       )}
 
       {step === 4 && (
         <Card><CardContent className="p-5 space-y-3">
-          <h2 className="font-semibold text-lg">Step 4. 허용 가능한 위험성 수준 확정</h2>
-          <p className="text-sm text-muted-foreground">
-            선택한 방법(<span className="font-semibold text-primary">{METHOD_INFO[method].title}</span>)의 척도에 맞춘 선택지입니다.
+          <p className="text-base"><Term k="허용가능한위험성" /></p>
+          <p className="text-base text-muted-foreground">
+            선택한 방법(<span className="font-semibold text-primary">{METHOD_GLOSS[method].title}</span>)의 척도입니다.
             이 수준 <b>이하</b>는 허용, 이보다 <b>높은</b> 위험성은 개선(감소대책) 대상이 됩니다.
           </p>
           <div className="grid gap-1.5 md:gap-2 mt-2" style={{ gridTemplateColumns: `repeat(${ALLOWABLE_OPTIONS[method].length}, minmax(0,1fr))` }}>
@@ -448,87 +477,83 @@ function NewAssessment() {
               const c = RISK_COLORS[l] ?? "oklch(0.7 0.14 162)";
               return (
                 <button key={l} type="button" onClick={() => setAllowable(l)} aria-pressed={sel}
-                  className={`relative flex flex-col items-center gap-1.5 py-2.5 px-1 rounded-lg border-2 text-xs md:text-sm font-semibold transition-all ${sel ? "shadow-md -translate-y-0.5" : "bg-white hover:bg-muted/30"}`}
+                  className={`relative flex flex-col items-center gap-1.5 min-h-14 py-2.5 px-1 rounded-lg border-2 text-sm md:text-base font-semibold transition-all ${sel ? "shadow-md -translate-y-0.5" : "bg-white hover:bg-muted/30"}`}
                   style={{ borderColor: c, borderWidth: sel ? "3px" : "2px", background: sel ? `color-mix(in oklch, ${c} 15%, white)` : undefined }}>
                   <span className="inline-block h-3.5 w-3.5 rounded-full shrink-0" style={{ background: c }} />
                   <span className="leading-tight text-center">{l}</span>
-                  {sel && <span className="absolute -top-2 -right-2 h-5 w-5 rounded-full text-white text-xs leading-none flex items-center justify-center shadow" style={{ background: c }}>✓</span>}
+                  {sel && <span className="absolute -top-2 -right-2 h-6 w-6 rounded-full text-white text-sm leading-none flex items-center justify-center shadow" style={{ background: c }}>✓</span>}
                 </button>
               );
             })}
           </div>
-          <div className="flex flex-wrap items-center gap-2 rounded-md border bg-muted/40 px-3 py-2 text-sm mt-1">
+          <div className="flex flex-wrap items-center gap-2 rounded-md border bg-muted/40 px-3 py-2 text-base mt-1">
             <span className="inline-block h-3.5 w-3.5 rounded-full shrink-0" style={{ background: RISK_COLORS[allowable] }} />
             선택한 허용 수준: <b>{allowable}</b>
             <span className="text-muted-foreground">— 이보다 높은 위험은 개선 대상</span>
           </div>
-          <p className="text-sm text-muted-foreground mt-1">
-            법령상 허용 가능한 위험성 수준은 산업안전보건법 등 관련 법령에서 정한 기준 이상이어야 합니다.
+          <p className="text-sm text-muted-foreground">
+            허용 가능한 위험성 수준은 법령에서 정한 기준 이상으로 정해야 합니다(고시 제9조 제2항). 근로자와 함께 정하는 것이 원칙입니다.
           </p>
         </CardContent></Card>
       )}
 
       {step === 5 && (
-        <Card><CardContent className="p-5 space-y-3">
-          <h2 className="font-semibold text-lg">Step 5. 평가 참여자</h2>
-          <p className="text-sm text-muted-foreground">
-            관리감독자가 유해·위험요인을 파악·감소대책 수립·이행 여부를 확인하는 경우에는 해당 작업에 종사하는 근로자를 참여시켜야 합니다.
-          </p>
-          <div className="rounded-md bg-muted p-3 text-sm">
-            평가 생성 후 다음 단계에서 참여자를 추가할 수 있습니다.
-          </div>
-        </CardContent></Card>
-      )}
-
-      {step === 6 && (
-        <Card><CardContent className="p-5 space-y-3">
-          <h2 className="font-semibold text-lg">Step 6. 평가 실시규정 체크리스트</h2>
-          <ul className="text-sm space-y-2">
-            <li>☑ 평가의 목적 및 방법 확정 — <span className="text-success">완료</span></li>
-            <li>☑ 평가담당자·책임자 역할 확정 — <span className="text-success">완료</span></li>
-            <li>☑ 위험성 수준 판단기준 확정 — <span className="text-success">완료</span></li>
-            <li>☑ 허용 가능한 위험성 수준 확정 — <span className="text-success">완료</span></li>
-            <li>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={participantConsent} onChange={e=>setParticipantConsent(e.target.checked)} />
-                근로자 참여 방법 확정
+        <>
+          <Card><CardContent className="p-5 space-y-3">
+            <p className="text-base text-muted-foreground">지금까지 정한 내용을 확인하고, 아래 두 가지에 체크하면 평가가 만들어집니다.</p>
+            <ul className="text-base space-y-2">
+              <li>☑ 평가의 목적 및 방법 확정 — <span className="text-success">완료</span> (<MethodTerm method={method} compact />)</li>
+              <li>☑ 평가담당자·책임자 역할 확정 — <span className="text-success">완료</span></li>
+              <li>☑ 위험성 수준 판단기준 확정 — <span className="text-success">완료</span></li>
+              <li>☑ 허용 가능한 위험성 수준 확정 — <span className="text-success">완료</span> (<b>{allowable}</b>)</li>
+            </ul>
+            <div className="rounded-md bg-muted/40 p-3 space-y-2">
+              <p className="text-base"><Term k="근로자참여" /></p>
+              <p className="text-sm text-muted-foreground">참여자 명단과 서명은 마지막 "협의·공유" 단계에서 받습니다. 순회점검을 기본으로 하고, 직원이 앱으로 보낸 안전 의견을 함께 반영합니다.</p>
+              <label ref={participantRef} className={`flex items-start gap-3 cursor-pointer text-base p-2 -m-2 ${flash === "participant" ? flashCls : ""}`}>
+                <input type="checkbox" className="mt-1" checked={participantConsent} onChange={e=>setParticipantConsent(e.target.checked)} />
+                <span>근로자 참여 방법을 확정했습니다 <span className="text-destructive">(필수)</span></span>
               </label>
-            </li>
-          </ul>
-          <div className="text-xs text-muted-foreground">선택 방법: {METHOD_LABEL[method]}</div>
-        </CardContent></Card>
-      )}
+            </div>
+          </CardContent></Card>
 
-      {/* 작업중지권 안내 */}
-      <Card className="border-warning/40">
-        <CardContent className="p-5 space-y-3">
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-md bg-warning/15 text-warning"><ShieldAlert className="h-4 w-4"/></div>
-            <h2 className="font-semibold">{WORK_STOP_LAW_TITLE}</h2>
-          </div>
-          <pre className="whitespace-pre-wrap text-xs leading-relaxed bg-muted/40 rounded-md p-3 font-sans max-h-40 overflow-y-auto">{WORK_STOP_LAW_TEXT}</pre>
-          <div className="text-xs">
-            <span className="text-muted-foreground">행사 시 비상연락:</span>{" "}
-            <span className="font-medium">{complexPhone || "관리사무소 비상연락망 (설정에서 등록)"}</span>
-          </div>
-          <label className="flex items-start gap-2 text-sm cursor-pointer">
-            <input type="checkbox" className="mt-0.5" checked={workStopConsent} onChange={e=>setWorkStopConsent(e.target.checked)} />
-            <span>본인은 위 작업중지권을 충분히 안내받았습니다. <span className="text-destructive">(필수)</span></span>
-          </label>
-          <Link to="/work-stop-right" className="text-xs text-primary underline">자세히 보기</Link>
-        </CardContent>
-      </Card>
+          {/* 작업중지권 안내 — 마지막 화면에만 */}
+          <Card className="border-warning/40">
+            <CardContent className="p-5 space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-md bg-warning/15 text-warning"><ShieldAlert className="h-5 w-5"/></div>
+                <h2 className="font-semibold text-lg">{WORK_STOP_LAW_TITLE}</h2>
+              </div>
+              <pre className="whitespace-pre-wrap text-sm leading-relaxed bg-muted/40 rounded-md p-3 font-sans max-h-48 overflow-y-auto">{WORK_STOP_LAW_TEXT}</pre>
+              <div className="text-base">
+                <span className="text-muted-foreground">행사 시 비상연락:</span>{" "}
+                <span className="font-medium">{complexPhone || "관리사무소 비상연락망 (단지 관리에서 등록)"}</span>
+              </div>
+              <label ref={workStopRef} className={`flex items-start gap-3 text-base cursor-pointer p-2 -m-2 ${flash === "workstop" ? flashCls : ""}`}>
+                <input type="checkbox" className="mt-1" checked={workStopConsent} onChange={e=>setWorkStopConsent(e.target.checked)} />
+                <span>위 작업중지권 안내를 확인했고 근로자에게 안내하겠습니다. <span className="text-destructive">(필수)</span></span>
+              </label>
+              <Link to="/work-stop-right" className="text-sm text-primary underline">자세히 보기</Link>
+            </CardContent>
+          </Card>
+        </>
+      )}
 
       <div className="flex justify-between gap-2">
-        <Button variant="outline" disabled={step===1} onClick={() => setStep(s => Math.max(1, s-1))}>이전</Button>
-        {step < 6 ? (
-          <Button onClick={() => setStep(s => s+1)} disabled={step===1 && !workName}>다음 단계로</Button>
+        <Button type="button" variant="outline" size="lg" disabled={step===1} onClick={() => setStep(s => Math.max(1, s-1))}>이전</Button>
+        {step < TOTAL_STEPS ? (
+          <Button type="button" size="lg" onClick={() => {
+            if (step === 1 && !workName.trim()) { toast.error("평가 대상 작업명을 적어 주세요"); document.getElementById("wn")?.focus(); return; }
+            setStep(s => s+1);
+          }}>다음 화면으로</Button>
         ) : (
-          <Button onClick={submit} disabled={!participantConsent || !workStopConsent || saving}>
-            {saving ? "저장 중..." : "유해·위험요인 파악으로"}
+          // 항상 누를 수 있게 두고, 빠진 체크가 있으면 그 자리로 데려간다 (버튼이 왜 안 눌리는지 모르던 문제)
+          <Button type="button" size="lg" onClick={submit} disabled={saving}>
+            {saving ? "저장 중..." : "평가 만들고 위험요인 파악으로"}
           </Button>
         )}
       </div>
+      </fieldset>
     </div>
   );
 }

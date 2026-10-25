@@ -73,12 +73,14 @@ export function useDraft<T>(
 
   // 값이 바뀌면 디바운스 후 저장
   useEffect(() => {
-    if (!fullKey || !enabled) return;
+    if (!fullKey) return;
     // 이 키에서의 첫 렌더(초기값)는 저장하지 않는다. 그 다음 실제 변경부터 저장.
+    // enabled 와 무관하게 먼저 무장(arm)해 두어야, enabled 가 나중에 켜진 첫 입력이 건너뛰어지지 않는다.
     if (armedKey.current !== fullKey) {
       armedKey.current = fullKey;
       return;
     }
+    if (!enabled) return;
     if (pending) return; // 복구 대기 중엔 덮어쓰지 않음
     let serialized: string;
     try {
@@ -111,10 +113,19 @@ export function useDraft<T>(
     return v;
   }, [pending]);
 
-  /** 복구 대기분을 버리고 새로 쓴다. 저장소의 값은 다음 입력 때 덮어써진다. */
+  /** 복구 대기분을 버리고 새로 쓴다. 저장소의 값도 지워 재진입 때 다시 나타나지 않게 한다. */
   const discard = useCallback(() => {
+    cancelTimer();
+    lastSaved.current = null;
+    if (fullKey) {
+      try {
+        localStorage.removeItem(fullKey);
+      } catch {
+        /* 무시 */
+      }
+    }
     setPendingFor(null);
-  }, []);
+  }, [fullKey]);
 
   /** 제출 성공 후: 저장소에서 지우고, 예약된 저장도 취소한다. */
   const clear = useCallback(() => {

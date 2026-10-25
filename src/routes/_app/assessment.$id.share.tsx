@@ -11,6 +11,8 @@ import { SignaturePad } from "@/components/signature-pad";
 import { QrCode, MessageSquare, Link2, CheckCircle2, Printer, Trash2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { writeErrorMessage } from "@/lib/write-error";
+import { StepHeader } from "@/components/step-header";
+import { MethodTerm } from "@/components/term";
 
 export const Route = createFileRoute("/_app/assessment/$id/share")({
   component: Share,
@@ -133,18 +135,28 @@ function Share() {
   return (
     <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-5">
       <div>
-        <h1 className="text-2xl font-bold">협의·공유</h1>
-        <p className="text-xs text-muted-foreground mt-1">
+        <StepHeader
+          current="share"
+          assessmentId={id}
+          workName={a.work_name}
+          method={a.method}
+          todo={parts.length === 0
+            ? "참여한 직원을 추가하고 확인 서명을 받으세요"
+            : confirmedIds.size < parts.length
+              ? `참여자 ${parts.length}명 중 ${parts.length - confirmedIds.size}명의 확인 서명이 남았습니다`
+              : "모든 참여자가 확인했습니다. 결과서를 출력하거나 평가를 완료하세요"}
+        />
+        <p className="text-sm text-muted-foreground">
           본 전자기록은 산업안전보건법 제36조 제2항에 따른 근로자 참여 기록으로 보존됩니다.
         </p>
       </div>
 
       <Card><CardContent className="p-5">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-          <div><div className="text-xs text-muted-foreground">평가일</div><div className="font-medium">{a.assessment_date}</div></div>
-          <div><div className="text-xs text-muted-foreground">작업명</div><div className="font-medium">{a.work_name}</div></div>
-          <div><div className="text-xs text-muted-foreground">방법</div><div className="font-medium">{a.method}</div></div>
-          <div><div className="text-xs text-muted-foreground">상태</div><div className="font-medium">{a.status}</div></div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-base">
+          <div><div className="text-sm text-muted-foreground">평가일</div><div className="font-medium">{a.assessment_date}</div></div>
+          <div><div className="text-sm text-muted-foreground">작업명</div><div className="font-medium">{a.work_name}</div></div>
+          <div><div className="text-sm text-muted-foreground">방법</div><div className="font-medium"><MethodTerm method={a.method} compact /></div></div>
+          <div><div className="text-sm text-muted-foreground">상태</div><div className="font-medium">{a.status}</div></div>
         </div>
       </CardContent></Card>
 
