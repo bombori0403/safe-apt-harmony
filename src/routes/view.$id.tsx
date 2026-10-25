@@ -39,7 +39,7 @@ function View() {
   const [acked, setAcked] = useState(false);
 
   async function load() {
-    if (!k) { setError("열람 링크가 올바르지 않습니다. 관리사무소에서 받은 '진행 현황 열람 링크'로 열어 주세요."); return; }
+    if (!k || k.length < 8 || k.length > 64) { setError("열람 링크가 올바르지 않습니다. 관리사무소에서 받은 '진행 현황 열람 링크'로 열어 주세요."); return; }
     try {
       const res = await getViewInfo({ data: { assessmentId: id, k } });
       setInfo(res);
