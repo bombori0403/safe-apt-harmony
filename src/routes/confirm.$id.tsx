@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SignaturePad } from "@/components/signature-pad";
 import { METHOD_GLOSS } from "@/lib/glossary";
-import { Shield, CheckCircle2, ExternalLink } from "lucide-react";
+import { Shield, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
 /**
@@ -22,6 +22,7 @@ function Confirm() {
   const { id } = Route.useParams();
   const [a, setA] = useState<any>(null);
   const [counts, setCounts] = useState<any>(null);
+  const [docVersion, setDocVersion] = useState<string | null>(null);
   const [parts, setParts] = useState<any[]>([]);
   const [pid, setPid] = useState<string>("");
   const [name, setName] = useState("");
@@ -37,6 +38,7 @@ function Confirm() {
         setA(res.assessment);
         setParts(res.participants);
         setCounts(res.counts);
+        setDocVersion(res.docVersion ?? null);
       } catch (e: any) {
         setError(e?.message ?? "평가 정보를 불러오지 못했습니다.");
       }
@@ -56,6 +58,7 @@ function Confirm() {
           name: pid ? null : name.trim(),
           signatureImage: sig,
           userAgent: navigator.userAgent,
+          docVersion,
         },
       });
       setDone(true);
@@ -112,11 +115,9 @@ function Confirm() {
             <ul className="text-base space-y-1 pt-1">
               <li>위험요인 <b>{counts.hazards}건</b>{counts.unrated ? ` (미평가 ${counts.unrated}건)` : ""}, 감소대책 <b>{counts.measures}건</b>{counts.measuresNotDone ? ` (실행 전·중 ${counts.measuresNotDone}건)` : ""}</li>
               <li>참여자 {counts.participants}명 중 {counts.confirmed}명 확인</li>
-              <li className="text-sm text-muted-foreground">문서 버전: 최종 수정 {a.updated_at ? new Date(a.updated_at).toLocaleString("ko-KR") : "-"}</li>
+              <li className="text-sm text-muted-foreground">문서 버전(마지막 수정): {docVersion ? new Date(docVersion).toLocaleString("ko-KR") : "-"}</li>
             </ul>
-            <a href={`/view/${id}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary underline text-base">
-              <ExternalLink className="h-4 w-4" />위험요인·대책 전체 내용 보기
-            </a>
+            <p className="text-sm text-muted-foreground">위험요인·대책 전체 내용은 관리사무소가 게시한 "결과 공지"나 담당자 화면에서 볼 수 있습니다. 서명 후 내용이 바뀌면 다시 확인을 요청받습니다.</p>
             <p className="text-sm text-muted-foreground pt-1">
               서명의 뜻: 이 평가의 위험요인 파악과 결정, 감소대책에 근로자로서 참여했고 위 내용을 확인했다는 기록입니다.
             </p>

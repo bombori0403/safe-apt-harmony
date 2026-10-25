@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { writeErrorMessage } from "@/lib/write-error";
 import { StepHeader } from "@/components/step-header";
+import { getViewToken } from "@/lib/confirm.functions";
 import { MethodTerm } from "@/components/term";
 
 export const Route = createFileRoute("/_app/assessment/$id/share")({
@@ -35,7 +36,7 @@ function Share() {
   const qrRef = useRef<HTMLImageElement | null>(null);
 
   const confirmUrl = typeof window !== "undefined" ? `${window.location.origin}/confirm/${id}` : "";
-  const viewUrl = typeof window !== "undefined" ? `${window.location.origin}/view/${id}` : "";
+  const [viewUrl, setViewUrl] = useState(""); // 열람 링크 = /view/:id?k=토큰 (서버가 발급)
   const [acks, setAcks] = useState<any[]>([]); // 외부인 열람 확인 기록
 
   async function load() {
@@ -47,6 +48,10 @@ function Share() {
     setSigs(s ?? []);
     const { data: ak } = await supabase.from("assessment_acks").select("name, role, acked_at").eq("assessment_id", id).order("acked_at", { ascending: false });
     setAcks(ak ?? []);
+    try {
+      const { token } = await getViewToken({ data: { assessmentId: id } });
+      setViewUrl(`${window.location.origin}/view/${id}?k=${token}`);
+    } catch { setViewUrl(""); }
     if (ass?.organization_id) {
       const { data: us } = await supabase.from("users").select("id, name, job_title, org_role")
         .eq("organization_id", ass.organization_id).order("name");
@@ -114,6 +119,7 @@ function Share() {
     toast.success("참여자 확인 링크가 복사되었습니다");
   }
   function copyViewLink() {
+    if (!viewUrl) { toast.error("열람 링크를 아직 만들지 못했습니다. 잠시 후 다시 시도해 주세요."); return; }
     navigator.clipboard.writeText(viewUrl);
     toast.success("진행 현황 열람 링크가 복사되었습니다 (입대의·본사용)");
   }

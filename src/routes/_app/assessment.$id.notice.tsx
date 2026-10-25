@@ -4,6 +4,7 @@ import QRCode from "qrcode";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { METHOD_GLOSS } from "@/lib/glossary";
+import { getViewToken } from "@/lib/confirm.functions";
 import { Printer, ArrowLeft } from "lucide-react";
 
 /**
@@ -25,7 +26,7 @@ function Notice() {
   const [cx, setCx] = useState<any>(null);
   const [hazards, setHazards] = useState<any[]>([]);
   const [qr, setQr] = useState("");
-  const viewUrl = typeof window !== "undefined" ? `${window.location.origin}/view/${id}` : "";
+  const [viewUrl, setViewUrl] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -37,6 +38,10 @@ function Notice() {
       }
       const { data: h } = await supabase.from("hazards").select("id, description, level, post_level, measures(content, status, due_date)").eq("assessment_id", id).order("created_at");
       setHazards(h ?? []);
+      try {
+        const { token } = await getViewToken({ data: { assessmentId: id } });
+        setViewUrl(`${window.location.origin}/view/${id}?k=${token}`);
+      } catch { setViewUrl(""); }
     })();
   }, [id]);
   useEffect(() => { if (viewUrl) QRCode.toDataURL(viewUrl, { width: 200, margin: 1 }).then(setQr).catch(() => {}); }, [viewUrl]);

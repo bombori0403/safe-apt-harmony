@@ -13,17 +13,22 @@ import { Check, ChevronDown, ChevronUp, Printer, Shield } from "lucide-react";
 import { toast } from "sonner";
 
 /**
- * 진행 현황 열람 — 로그인 없이 링크로 여는 읽기 전용 화면.
+ * 진행 현황 열람 — 로그인 없이 링크(?k=열람토큰)로 여는 읽기 전용 화면.
  * 대상: 입주자대표 회장, 위탁 본사 담당 등 "평가가 잘 되고 있는지"만 확인하는 사람.
  * 결재가 아니다. 아래 "확인했습니다"는 열람·보고 증빙 기록일 뿐이다.
- * 담당자가 공유를 끄면(assessments.share_enabled=false) 서버 함수가 거부한다.
+ * 개인정보 최소화: 참여자·열람자 이름은 보여주지 않고 수만 센다. 담당자가 공유를 끄면 서버가 거부한다.
  */
-export const Route = createFileRoute("/view/$id")({ component: View });
+export const Route = createFileRoute("/view/$id")({
+  validateSearch: (s: Record<string, unknown>): { k?: string } => (typeof s.k === "string" ? { k: s.k } : {}),
+  component: View,
+});
 
 const STATUS_LABEL: Record<string, string> = { 대기: "실행 전", 진행중: "실행 중", 완료: "실행 완료" };
+const FOLD_AFTER = 10;
 
 function View() {
   const { id } = Route.useParams();
+  const { k } = Route.useSearch();
   const [info, setInfo] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState<Record<string, boolean>>({});
@@ -34,22 +39,24 @@ function View() {
   const [acked, setAcked] = useState(false);
 
   async function load() {
+    if (!k) { setError("열람 링크가 올바르지 않습니다. 관리사무소에서 받은 '진행 현황 열람 링크'로 열어 주세요."); return; }
     try {
-      const res = await getViewInfo({ data: { assessmentId: id } });
+      const res = await getViewInfo({ data: { assessmentId: id, k } });
       setInfo(res);
       setError(null);
     } catch (e: any) {
       setError(e?.message ?? "평가 정보를 불러오지 못했습니다.");
     }
   }
-  useEffect(() => { load(); }, [id]);
+  useEffect(() => { load(); }, [id, k]);
 
   async function ack() {
-    if (!ackName.trim()) { toast.error("이름을 적어 주세요"); return; }
+    if (!ackName.trim() || !k) { toast.error("이름을 적어 주세요"); return; }
     setAcking(true);
     try {
-      await submitViewAck({ data: { assessmentId: id, name: ackName.trim(), role: ackRole.trim() || null, userAgent: navigator.userAgent } });
+      const r = await submitViewAck({ data: { assessmentId: id, k, name: ackName.trim(), role: ackRole.trim() || null, userAgent: navigator.userAgent } });
       setAcked(true);
+      if (r.duplicate) toast.info("오늘 이미 확인 기록이 있어 다시 남기지 않았습니다.");
       await load();
     } catch (e: any) {
       toast.error(e?.message ?? "기록하지 못했습니다");
@@ -85,9 +92,7 @@ function View() {
     a.status === "완료",
   ];
   const currentIdx = doneSteps.findIndex((d) => !d);
-  const currentStep = currentIdx === -1 ? 5 : currentIdx; // 0-based index of current
-
-  const shown = showAll ? hazards : hazards.slice(0, 10);
+  const currentStep = currentIdx === -1 ? 4 : currentIdx; // 0-based index of current
 
   return (
     <div className="min-h-screen bg-background print:bg-white">
@@ -106,7 +111,7 @@ function View() {
             <span>상태 <b className="text-foreground">{a.status}</b></span>
           </div>
           <p className="text-sm text-muted-foreground">
-            이 화면은 읽기 전용 열람용입니다. 최종 수정 {a.updated_at ? new Date(a.updated_at).toLocaleString("ko-KR") : "-"}.
+            읽기 전용 열람 화면입니다. 문서 버전(마지막 수정) {info.docVersion ? new Date(info.docVersion).toLocaleString("ko-KR") : "-"}.
           </p>
         </header>
 
@@ -116,7 +121,7 @@ function View() {
           <ol className="grid grid-cols-5 gap-1">
             {ASSESSMENT_STEPS.map((s, i) => {
               const done = doneSteps[i];
-              const active = i === currentStep;
+              const active = i === currentStep && a.status !== "완료";
               return (
                 <li key={s.key} className={`flex flex-col items-center gap-1 rounded-md px-1 py-2 border-b-4 ${active ? "border-primary" : done ? "border-success/60" : "border-muted"}`}>
                   <span className={`inline-flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${active ? "bg-primary text-primary-foreground" : done ? "bg-success text-success-foreground" : "bg-muted text-muted-foreground"}`}>
@@ -130,7 +135,7 @@ function View() {
           <p className="text-base">
             {a.status === "완료"
               ? "모든 단계가 끝나 평가가 완료되었습니다."
-              : `지금 ${ASSESSMENT_STEPS[currentStep]?.n ?? 5}단계 "${ASSESSMENT_STEPS[currentStep]?.label ?? "협의·공유"}" 진행 중입니다.`}
+              : `지금 ${ASSESSMENT_STEPS[currentStep].n}단계 "${ASSESSMENT_STEPS[currentStep].label}" 진행 중입니다.`}
           </p>
         </CardContent></Card>
 
@@ -138,19 +143,20 @@ function View() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <Stat label="위험요인" value={`${c.hazards}건`} sub={c.unrated ? `미평가 ${c.unrated}건` : "모두 평가됨"} warn={c.unrated > 0} />
           <Stat label="감소대책" value={`${c.measures}건`} sub={c.measuresNotDone ? `실행 전·중 ${c.measuresNotDone}건` : c.measures ? "모두 실행 완료" : "—"} warn={c.measuresNotDone > 0} />
-          <Stat label="참여 확인" value={`${c.confirmed}/${c.participants}명`} sub={c.participants ? (c.confirmed === c.participants ? "모두 확인" : "확인 진행 중") : "참여자 미등록"} warn={c.participants > 0 && c.confirmed < c.participants} />
+          <Stat label="근로자 참여 확인" value={`${c.confirmed}/${c.participants}명`} sub={c.participants ? (c.confirmed === c.participants ? "모두 확인" : "확인 진행 중") : "참여자 미등록"} warn={c.participants > 0 && c.confirmed < c.participants} />
           <Stat label="허용 수준" value={a.allowable_level ?? "-"} sub="이보다 높으면 대책 대상" />
         </div>
 
-        {/* 전체 목록 */}
+        {/* 전체 목록 — 화면에서는 10건 뒤로 접고, 인쇄에서는 전부 */}
         <Card><CardContent className="p-4 md:p-5 space-y-3">
           <h2 className="font-semibold text-lg">위험요인과 대책 (전체 {hazards.length}건)</h2>
           {hazards.length === 0 && <p className="text-base text-muted-foreground">아직 등록된 위험요인이 없습니다.</p>}
           <div className="divide-y">
-            {shown.map((h) => {
+            {hazards.map((h, idx) => {
               const isOpen = !!open[h.id];
+              const folded = !showAll && idx >= FOLD_AFTER;
               return (
-                <div key={h.id} className="py-3 space-y-2">
+                <div key={h.id} className={`py-3 space-y-2 ${folded ? "hidden print:block" : ""}`}>
                   <div className="flex items-start justify-between gap-2 flex-wrap">
                     <div className="font-medium text-base flex-1 min-w-[12rem]">{h.description}</div>
                     <div className="flex items-center gap-2">
@@ -161,70 +167,46 @@ function View() {
                       </Button>
                     </div>
                   </div>
-                  {(isOpen || true) && (
-                    <div className={`${isOpen ? "" : "hidden print:block"} text-sm space-y-1.5 pl-1`}>
-                      {h.current_control && <div><span className="text-muted-foreground">현재 조치: </span>{h.current_control}</div>}
-                      {h.legal_basis && <div><span className="text-muted-foreground">법적기준(참고): </span>{h.legal_basis}</div>}
-                      {h.measures.length === 0
-                        ? <div className="text-muted-foreground">감소대책 없음{h.level ? "" : " (미평가)"}</div>
-                        : (
-                          <ul className="space-y-1">
-                            {h.measures.map((m: any) => (
-                              <li key={m.id} className="flex flex-wrap items-center gap-2">
-                                <Badge variant={m.status === "완료" ? "default" : "outline"} className={m.status === "완료" ? "bg-success text-success-foreground" : ""}>{STATUS_LABEL[m.status] ?? m.status}</Badge>
-                                <span>{m.content}</span>
-                                {m.due_date && <span className="text-muted-foreground">예정 {m.due_date}</span>}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                    </div>
-                  )}
+                  <div className={`${isOpen ? "" : "hidden print:block"} text-sm space-y-1.5 pl-1`}>
+                    {h.current_control && <div><span className="text-muted-foreground">현재 조치: </span>{h.current_control}</div>}
+                    {h.legal_basis && <div><span className="text-muted-foreground">법적기준(참고): </span>{h.legal_basis}</div>}
+                    {h.measures.length === 0
+                      ? <div className="text-muted-foreground">감소대책 없음{h.level ? "" : " (미평가)"}</div>
+                      : (
+                        <ul className="space-y-1">
+                          {h.measures.map((m: any) => (
+                            <li key={m.id} className="flex flex-wrap items-center gap-2">
+                              <Badge variant={m.status === "완료" ? "default" : "outline"} className={m.status === "완료" ? "bg-success text-success-foreground" : ""}>{STATUS_LABEL[m.status] ?? m.status}</Badge>
+                              <span>{m.content}</span>
+                              {m.due_date && <span className="text-muted-foreground">예정 {m.due_date}</span>}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                  </div>
                 </div>
               );
             })}
           </div>
-          {hazards.length > 10 && !showAll && (
-            <Button type="button" variant="outline" className="w-full print:hidden" onClick={() => setShowAll(true)}>나머지 {hazards.length - 10}건 더 보기</Button>
-          )}
-        </CardContent></Card>
-
-        {/* 참여 확인 현황 */}
-        <Card><CardContent className="p-4 md:p-5 space-y-2">
-          <h2 className="font-semibold text-lg">근로자 참여 확인</h2>
-          {info.participants.length === 0 ? (
-            <p className="text-base text-muted-foreground">참여자가 아직 등록되지 않았습니다.</p>
-          ) : (
-            <ul className="flex flex-wrap gap-2">
-              {info.participants.map((p: any) => (
-                <li key={p.id} className={`px-3 py-1.5 rounded-full border text-sm ${p.confirmed ? "border-success/50 text-success bg-success/5" : "text-muted-foreground"}`}>
-                  {p.name}{p.role ? ` · ${p.role}` : ""} {p.confirmed ? "✓" : "(대기)"}
-                </li>
-              ))}
-            </ul>
+          {hazards.length > FOLD_AFTER && !showAll && (
+            <Button type="button" variant="outline" className="w-full print:hidden" onClick={() => setShowAll(true)}>나머지 {hazards.length - FOLD_AFTER}건 더 보기</Button>
           )}
         </CardContent></Card>
 
         {/* 열람 확인 */}
         <Card className="print:hidden"><CardContent className="p-4 md:p-5 space-y-3">
           <h2 className="font-semibold text-lg">확인했습니다 (열람 기록)</h2>
-          <p className="text-sm text-muted-foreground">입주자대표회의·본사 등 보고를 받는 분이 내용을 확인했다는 기록입니다. 결재나 승인이 아닙니다.</p>
+          <p className="text-sm text-muted-foreground">입주자대표회의·본사 등 보고를 받는 분이 내용을 확인했다는 기록입니다. 결재나 승인이 아닙니다. 기록은 관리사무소 화면에서 볼 수 있습니다.</p>
           {acked ? (
             <p className="text-base text-success inline-flex items-center gap-1"><Check className="h-5 w-5" />확인 기록이 저장되었습니다.</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              <div><Label htmlFor="ack-name">이름</Label><Input id="ack-name" value={ackName} onChange={(e) => setAckName(e.target.value)} placeholder="홍길동" /></div>
+              <div><Label htmlFor="ack-name">이름</Label><Input id="ack-name" value={ackName} onChange={(e) => setAckName(e.target.value)} placeholder="홍길동" autoComplete="name" /></div>
               <div><Label htmlFor="ack-role">직위 (선택)</Label><Input id="ack-role" value={ackRole} onChange={(e) => setAckRole(e.target.value)} placeholder="입주자대표회의 회장" /></div>
               <div className="flex items-end"><Button type="button" className="w-full" onClick={ack} disabled={acking || !ackName.trim()}>{acking ? "저장 중…" : "확인했습니다"}</Button></div>
             </div>
           )}
-          {info.acks.length > 0 && (
-            <ul className="text-sm text-muted-foreground space-y-0.5">
-              {info.acks.map((k: any, i: number) => (
-                <li key={i}>{k.name}{k.role ? ` (${k.role})` : ""} · {new Date(k.acked_at).toLocaleString("ko-KR")} 확인</li>
-              ))}
-            </ul>
-          )}
+          {info.ackCount > 0 && <p className="text-sm text-muted-foreground">지금까지 {info.ackCount}명이 확인했습니다.</p>}
         </CardContent></Card>
 
         <div className="flex flex-wrap gap-2 print:hidden">
