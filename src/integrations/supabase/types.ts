@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      assessment_acks: {
+        Row: {
+          acked_at: string
+          assessment_id: string
+          id: string
+          name: string
+          role: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          acked_at?: string
+          assessment_id: string
+          id?: string
+          name: string
+          role?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          acked_at?: string
+          assessment_id?: string
+          id?: string
+          name?: string
+          role?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_acks_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "assessments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assessments: {
         Row: {
           allowable_level: string | null
@@ -28,6 +63,7 @@ export type Database = {
           location: string | null
           method: Database["public"]["Enums"]["assessment_method"]
           organization_id: string | null
+          share_enabled: boolean
           shared_at: string | null
           status: Database["public"]["Enums"]["assessment_status"] | null
           updated_at: string | null
@@ -47,6 +83,7 @@ export type Database = {
           location?: string | null
           method: Database["public"]["Enums"]["assessment_method"]
           organization_id?: string | null
+          share_enabled?: boolean
           shared_at?: string | null
           status?: Database["public"]["Enums"]["assessment_status"] | null
           updated_at?: string | null
@@ -66,6 +103,7 @@ export type Database = {
           location?: string | null
           method?: Database["public"]["Enums"]["assessment_method"]
           organization_id?: string | null
+          share_enabled?: boolean
           shared_at?: string | null
           status?: Database["public"]["Enums"]["assessment_status"] | null
           updated_at?: string | null

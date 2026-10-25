@@ -15,6 +15,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ViewIdRouteImport } from './routes/view.$id'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as ConfirmIdRouteImport } from './routes/confirm.$id'
 import { Route as AppWorkStopRightRouteImport } from './routes/_app/work-stop-right'
@@ -58,6 +59,7 @@ import { Route as AppAssessmentIdIndexRouteImport } from './routes/_app/assessme
 import { Route as AppAssessmentIdShareRouteImport } from './routes/_app/assessment.$id.share'
 import { Route as AppAssessmentIdResultsRouteImport } from './routes/_app/assessment.$id.results'
 import { Route as AppAssessmentIdReportRouteImport } from './routes/_app/assessment.$id.report'
+import { Route as AppAssessmentIdNoticeRouteImport } from './routes/_app/assessment.$id.notice'
 import { Route as AppAssessmentIdMeasuresReportRouteImport } from './routes/_app/assessment.$id.measures-report'
 import { Route as AppAssessmentIdMeasuresRouteImport } from './routes/_app/assessment.$id.measures'
 import { Route as AppAssessmentIdKrasReportRouteImport } from './routes/_app/assessment.$id.kras-report'
@@ -91,6 +93,11 @@ const AppRoute = AppRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ViewIdRoute = ViewIdRouteImport.update({
+  id: '/view/$id',
+  path: '/view/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InviteTokenRoute = InviteTokenRouteImport.update({
@@ -309,6 +316,11 @@ const AppAssessmentIdReportRoute = AppAssessmentIdReportRouteImport.update({
   path: '/assessment/$id/report',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAssessmentIdNoticeRoute = AppAssessmentIdNoticeRouteImport.update({
+  id: '/assessment/$id/notice',
+  path: '/assessment/$id/notice',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAssessmentIdMeasuresReportRoute =
   AppAssessmentIdMeasuresReportRouteImport.update({
     id: '/assessment/$id/measures-report',
@@ -369,6 +381,7 @@ export interface FileRoutesByFullPath {
   '/work-stop-right': typeof AppWorkStopRightRoute
   '/confirm/$id': typeof ConfirmIdRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/view/$id': typeof ViewIdRoute
   '/assessment/new': typeof AppAssessmentNewRoute
   '/education/$id': typeof AppEducationIdRoute
   '/education/new': typeof AppEducationNewRoute
@@ -387,6 +400,7 @@ export interface FileRoutesByFullPath {
   '/assessment/$id/kras-report': typeof AppAssessmentIdKrasReportRoute
   '/assessment/$id/measures': typeof AppAssessmentIdMeasuresRoute
   '/assessment/$id/measures-report': typeof AppAssessmentIdMeasuresReportRoute
+  '/assessment/$id/notice': typeof AppAssessmentIdNoticeRoute
   '/assessment/$id/report': typeof AppAssessmentIdReportRoute
   '/assessment/$id/results': typeof AppAssessmentIdResultsRoute
   '/assessment/$id/share': typeof AppAssessmentIdShareRoute
@@ -424,6 +438,7 @@ export interface FileRoutesByTo {
   '/work-stop-right': typeof AppWorkStopRightRoute
   '/confirm/$id': typeof ConfirmIdRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/view/$id': typeof ViewIdRoute
   '/assessment/new': typeof AppAssessmentNewRoute
   '/education/$id': typeof AppEducationIdRoute
   '/education/new': typeof AppEducationNewRoute
@@ -442,6 +457,7 @@ export interface FileRoutesByTo {
   '/assessment/$id/kras-report': typeof AppAssessmentIdKrasReportRoute
   '/assessment/$id/measures': typeof AppAssessmentIdMeasuresRoute
   '/assessment/$id/measures-report': typeof AppAssessmentIdMeasuresReportRoute
+  '/assessment/$id/notice': typeof AppAssessmentIdNoticeRoute
   '/assessment/$id/report': typeof AppAssessmentIdReportRoute
   '/assessment/$id/results': typeof AppAssessmentIdResultsRoute
   '/assessment/$id/share': typeof AppAssessmentIdShareRoute
@@ -481,6 +497,7 @@ export interface FileRoutesById {
   '/_app/work-stop-right': typeof AppWorkStopRightRoute
   '/confirm/$id': typeof ConfirmIdRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/view/$id': typeof ViewIdRoute
   '/_app/assessment/new': typeof AppAssessmentNewRoute
   '/_app/education/$id': typeof AppEducationIdRoute
   '/_app/education/new': typeof AppEducationNewRoute
@@ -499,6 +516,7 @@ export interface FileRoutesById {
   '/_app/assessment/$id/kras-report': typeof AppAssessmentIdKrasReportRoute
   '/_app/assessment/$id/measures': typeof AppAssessmentIdMeasuresRoute
   '/_app/assessment/$id/measures-report': typeof AppAssessmentIdMeasuresReportRoute
+  '/_app/assessment/$id/notice': typeof AppAssessmentIdNoticeRoute
   '/_app/assessment/$id/report': typeof AppAssessmentIdReportRoute
   '/_app/assessment/$id/results': typeof AppAssessmentIdResultsRoute
   '/_app/assessment/$id/share': typeof AppAssessmentIdShareRoute
@@ -538,6 +556,7 @@ export interface FileRouteTypes {
     | '/work-stop-right'
     | '/confirm/$id'
     | '/invite/$token'
+    | '/view/$id'
     | '/assessment/new'
     | '/education/$id'
     | '/education/new'
@@ -556,6 +575,7 @@ export interface FileRouteTypes {
     | '/assessment/$id/kras-report'
     | '/assessment/$id/measures'
     | '/assessment/$id/measures-report'
+    | '/assessment/$id/notice'
     | '/assessment/$id/report'
     | '/assessment/$id/results'
     | '/assessment/$id/share'
@@ -593,6 +613,7 @@ export interface FileRouteTypes {
     | '/work-stop-right'
     | '/confirm/$id'
     | '/invite/$token'
+    | '/view/$id'
     | '/assessment/new'
     | '/education/$id'
     | '/education/new'
@@ -611,6 +632,7 @@ export interface FileRouteTypes {
     | '/assessment/$id/kras-report'
     | '/assessment/$id/measures'
     | '/assessment/$id/measures-report'
+    | '/assessment/$id/notice'
     | '/assessment/$id/report'
     | '/assessment/$id/results'
     | '/assessment/$id/share'
@@ -649,6 +671,7 @@ export interface FileRouteTypes {
     | '/_app/work-stop-right'
     | '/confirm/$id'
     | '/invite/$token'
+    | '/view/$id'
     | '/_app/assessment/new'
     | '/_app/education/$id'
     | '/_app/education/new'
@@ -667,6 +690,7 @@ export interface FileRouteTypes {
     | '/_app/assessment/$id/kras-report'
     | '/_app/assessment/$id/measures'
     | '/_app/assessment/$id/measures-report'
+    | '/_app/assessment/$id/notice'
     | '/_app/assessment/$id/report'
     | '/_app/assessment/$id/results'
     | '/_app/assessment/$id/share'
@@ -682,6 +706,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   ConfirmIdRoute: typeof ConfirmIdRoute
   InviteTokenRoute: typeof InviteTokenRoute
+  ViewIdRoute: typeof ViewIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -726,6 +751,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/view/$id': {
+      id: '/view/$id'
+      path: '/view/$id'
+      fullPath: '/view/$id'
+      preLoaderRoute: typeof ViewIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/invite/$token': {
@@ -1029,6 +1061,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAssessmentIdReportRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/assessment/$id/notice': {
+      id: '/_app/assessment/$id/notice'
+      path: '/assessment/$id/notice'
+      fullPath: '/assessment/$id/notice'
+      preLoaderRoute: typeof AppAssessmentIdNoticeRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/assessment/$id/measures-report': {
       id: '/_app/assessment/$id/measures-report'
       path: '/assessment/$id/measures-report'
@@ -1168,6 +1207,7 @@ interface AppRouteChildren {
   AppAssessmentIdKrasReportRoute: typeof AppAssessmentIdKrasReportRoute
   AppAssessmentIdMeasuresRoute: typeof AppAssessmentIdMeasuresRoute
   AppAssessmentIdMeasuresReportRoute: typeof AppAssessmentIdMeasuresReportRoute
+  AppAssessmentIdNoticeRoute: typeof AppAssessmentIdNoticeRoute
   AppAssessmentIdReportRoute: typeof AppAssessmentIdReportRoute
   AppAssessmentIdResultsRoute: typeof AppAssessmentIdResultsRoute
   AppAssessmentIdShareRoute: typeof AppAssessmentIdShareRoute
@@ -1207,6 +1247,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAssessmentIdKrasReportRoute: AppAssessmentIdKrasReportRoute,
   AppAssessmentIdMeasuresRoute: AppAssessmentIdMeasuresRoute,
   AppAssessmentIdMeasuresReportRoute: AppAssessmentIdMeasuresReportRoute,
+  AppAssessmentIdNoticeRoute: AppAssessmentIdNoticeRoute,
   AppAssessmentIdReportRoute: AppAssessmentIdReportRoute,
   AppAssessmentIdResultsRoute: AppAssessmentIdResultsRoute,
   AppAssessmentIdShareRoute: AppAssessmentIdShareRoute,
@@ -1224,6 +1265,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   ConfirmIdRoute: ConfirmIdRoute,
   InviteTokenRoute: InviteTokenRoute,
+  ViewIdRoute: ViewIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

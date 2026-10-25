@@ -6,10 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SignaturePad } from "@/components/signature-pad";
-import { Shield, CheckCircle2 } from "lucide-react";
+import { METHOD_GLOSS } from "@/lib/glossary";
+import { Shield, CheckCircle2, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 
-
+/**
+ * 참여자 확인 서명 — 로그인 없이 QR/링크로 여는 화면 (직원용).
+ * 서명 전에 "무엇에 서명하는지"(건수·문서 버전·전체 내용 링크·목적)를 보여준다.
+ */
 export const Route = createFileRoute("/confirm/$id")({
   component: Confirm,
 });
@@ -17,12 +21,14 @@ export const Route = createFileRoute("/confirm/$id")({
 function Confirm() {
   const { id } = Route.useParams();
   const [a, setA] = useState<any>(null);
+  const [counts, setCounts] = useState<any>(null);
   const [parts, setParts] = useState<any[]>([]);
   const [pid, setPid] = useState<string>("");
   const [name, setName] = useState("");
   const [sig, setSig] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -30,17 +36,19 @@ function Confirm() {
         const res = await getConfirmInfo({ data: { assessmentId: id } });
         setA(res.assessment);
         setParts(res.participants);
+        setCounts(res.counts);
       } catch (e: any) {
-        toast.error(e.message ?? "평가 정보를 불러오지 못했습니다.");
+        setError(e?.message ?? "평가 정보를 불러오지 못했습니다.");
       }
     })();
   }, [id]);
 
   async function submit() {
+    if (!sig) { toast.error("서명을 해 주세요"); return; }
+    if (!pid && !name.trim()) { toast.error("명단에서 본인을 고르거나 이름을 적어 주세요"); return; }
+    if (saving) return;
     setSaving(true);
     try {
-      if (!sig) { toast.error("서명을 입력하세요"); return; }
-      if (!pid && !name.trim()) { toast.error("이름을 입력하거나 명단에서 선택하세요"); return; }
       await submitParticipantConfirmation({
         data: {
           assessmentId: id,
@@ -58,6 +66,17 @@ function Confirm() {
     }
   }
 
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-background to-accent/30">
+        <Card className="max-w-md w-full"><CardContent className="p-8 text-center space-y-3">
+          <Shield className="h-12 w-12 text-muted-foreground mx-auto" />
+          <h1 className="text-xl font-bold">열 수 없습니다</h1>
+          <p className="text-base text-muted-foreground">{error}</p>
+        </CardContent></Card>
+      </div>
+    );
+  }
 
   if (done) {
     return (
@@ -65,52 +84,70 @@ function Confirm() {
         <Card className="max-w-md w-full">
           <CardContent className="p-8 text-center space-y-3">
             <CheckCircle2 className="h-16 w-16 text-success mx-auto" />
-            <h1 className="text-xl font-bold">확인이 완료되었습니다</h1>
-            <p className="text-sm text-muted-foreground">참여 기록이 정상적으로 저장되었습니다.</p>
+            <h1 className="text-2xl font-bold">확인이 완료되었습니다</h1>
+            <p className="text-base text-muted-foreground">참여 기록이 저장되었습니다. 이 창은 닫으셔도 됩니다.</p>
           </CardContent>
         </Card>
       </div>
     );
   }
 
+  const method = a ? METHOD_GLOSS[a.method as keyof typeof METHOD_GLOSS] : null;
+  const selected = parts.find((p) => p.id === pid);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-accent/30 p-4 py-8">
       <div className="max-w-md mx-auto space-y-4">
         <div className="text-center">
           <Shield className="h-10 w-10 text-primary mx-auto" />
-          <h1 className="text-xl font-bold mt-2">위험성평가 참여 확인</h1>
+          <h1 className="text-2xl font-bold mt-2">위험성평가 참여 확인</h1>
+          <p className="text-base text-muted-foreground mt-1">내용을 확인한 뒤 본인 이름을 고르고 서명해 주세요.</p>
         </div>
 
-        {a && (
-          <Card><CardContent className="p-4 text-sm space-y-1">
-            <div><span className="text-muted-foreground">작업명: </span><span className="font-medium">{a.work_name}</span></div>
-            <div><span className="text-muted-foreground">평가일: </span>{a.assessment_date}</div>
-            <div><span className="text-muted-foreground">방법: </span>{a.method}</div>
+        {/* 무엇을 확인하는지 */}
+        {a && counts && (
+          <Card><CardContent className="p-4 text-base space-y-2">
+            <div className="font-semibold text-lg">{a.work_name}</div>
+            <div className="text-muted-foreground">{a.complex_name} · 평가일 {a.assessment_date}{method ? ` · ${method.title}` : ""}</div>
+            <ul className="text-base space-y-1 pt-1">
+              <li>위험요인 <b>{counts.hazards}건</b>{counts.unrated ? ` (미평가 ${counts.unrated}건)` : ""}, 감소대책 <b>{counts.measures}건</b>{counts.measuresNotDone ? ` (실행 전·중 ${counts.measuresNotDone}건)` : ""}</li>
+              <li>참여자 {counts.participants}명 중 {counts.confirmed}명 확인</li>
+              <li className="text-sm text-muted-foreground">문서 버전: 최종 수정 {a.updated_at ? new Date(a.updated_at).toLocaleString("ko-KR") : "-"}</li>
+            </ul>
+            <a href={`/view/${id}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary underline text-base">
+              <ExternalLink className="h-4 w-4" />위험요인·대책 전체 내용 보기
+            </a>
+            <p className="text-sm text-muted-foreground pt-1">
+              서명의 뜻: 이 평가의 위험요인 파악과 결정, 감소대책에 근로자로서 참여했고 위 내용을 확인했다는 기록입니다.
+            </p>
           </CardContent></Card>
         )}
 
         <Card><CardContent className="p-4 space-y-4">
           {parts.length > 0 && (
             <div>
-              <Label>본인 선택</Label>
-              <select value={pid} onChange={e=>setPid(e.target.value)}
-                className="w-full h-10 px-3 rounded-md border bg-background text-sm mt-1">
-                <option value="">— 명단에 없으면 비워두고 아래에 이름 입력 —</option>
-                {parts.map(p => <option key={p.id} value={p.id}>{p.name} ({p.role ?? "근로자"})</option>)}
+              <Label htmlFor="who">본인 이름을 고르세요</Label>
+              <select id="who" value={pid} onChange={e=>setPid(e.target.value)}
+                className="w-full h-11 px-3 rounded-md border bg-background text-base mt-1">
+                <option value="">— 선택 —</option>
+                {parts.map(p => <option key={p.id} value={p.id} disabled={!!p.confirmed}>{p.name}{p.role ? ` (${p.role})` : ""}{p.confirmed ? " — 확인됨" : ""}</option>)}
               </select>
+              <p className="text-sm text-muted-foreground mt-1">명단에 없으면 비워 두고 아래에 이름을 적으세요.</p>
             </div>
           )}
           {!pid && (
             <div>
-              <Label>이름 (명단에 없을 때)</Label>
-              <Input value={name} onChange={e=>setName(e.target.value)} placeholder="홍길동" />
+              <Label htmlFor="nm">{parts.length > 0 ? "이름 (명단에 없을 때)" : "이름"}</Label>
+              <Input id="nm" value={name} onChange={e=>setName(e.target.value)} placeholder="홍길동" autoComplete="name" />
             </div>
           )}
+          {selected?.confirmed && <p className="text-base text-warning">이미 확인한 분입니다. 다시 서명할 필요가 없습니다.</p>}
           <div>
             <Label>서명</Label>
+            <p className="text-sm text-muted-foreground mb-1">손가락이나 마우스로 아래 칸에 서명하세요.</p>
             <SignaturePad onChange={setSig} />
           </div>
-          <Button onClick={submit} disabled={saving || !sig} className="w-full h-11">
+          <Button type="button" size="lg" onClick={submit} disabled={saving || !sig || !!selected?.confirmed} className="w-full">
             {saving ? "저장 중..." : "확인 및 제출"}
           </Button>
           <p className="text-sm text-muted-foreground text-center">

@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { SignaturePad } from "@/components/signature-pad";
-import { QrCode, MessageSquare, Link2, CheckCircle2, Printer, Trash2, UserPlus } from "lucide-react";
+import { QrCode, MessageSquare, Link2, CheckCircle2, Printer, Trash2, UserPlus, Eye, Megaphone, FileText } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { writeErrorMessage } from "@/lib/write-error";
 import { StepHeader } from "@/components/step-header";
@@ -34,6 +35,8 @@ function Share() {
   const qrRef = useRef<HTMLImageElement | null>(null);
 
   const confirmUrl = typeof window !== "undefined" ? `${window.location.origin}/confirm/${id}` : "";
+  const viewUrl = typeof window !== "undefined" ? `${window.location.origin}/view/${id}` : "";
+  const [acks, setAcks] = useState<any[]>([]); // 외부인 열람 확인 기록
 
   async function load() {
     const { data: ass } = await supabase.from("assessments").select("*").eq("id", id).maybeSingle();
@@ -42,6 +45,8 @@ function Share() {
     setParts(p ?? []);
     const { data: s } = await supabase.from("signatures").select("*").eq("assessment_id", id);
     setSigs(s ?? []);
+    const { data: ak } = await supabase.from("assessment_acks").select("name, role, acked_at").eq("assessment_id", id).order("acked_at", { ascending: false });
+    setAcks(ak ?? []);
     if (ass?.organization_id) {
       const { data: us } = await supabase.from("users").select("id, name, job_title, org_role")
         .eq("organization_id", ass.organization_id).order("name");
@@ -108,6 +113,21 @@ function Share() {
     navigator.clipboard.writeText(confirmUrl);
     toast.success("참여자 확인 링크가 복사되었습니다");
   }
+  function copyViewLink() {
+    navigator.clipboard.writeText(viewUrl);
+    toast.success("진행 현황 열람 링크가 복사되었습니다 (입대의·본사용)");
+  }
+
+  /** 공유 링크 켜기/끄기 — 링크가 유출됐거나 평가를 닫을 때 끈다. 꺼지면 /confirm, /view 모두 열리지 않는다. */
+  async function setShare(enabled: boolean) {
+    const { data, error } = await supabase.from("assessments").update({ share_enabled: enabled } as any).eq("id", id).select("id");
+    if (error || !data?.length) {
+      const msg = /share_enabled/.test(error?.message ?? "") ? "서버 업데이트(SQL)가 아직 적용되지 않았습니다." : writeErrorMessage(error, "권한이 없어 바꿀 수 없습니다.");
+      toast.error(msg); return;
+    }
+    toast.success(enabled ? "공유 링크를 켰습니다" : "공유 링크를 껐습니다. QR·링크로 더 이상 열리지 않습니다.");
+    load();
+  }
 
   function printQR() {
     const w = window.open("", "_blank", "width=600,height=800");
@@ -162,7 +182,7 @@ function Share() {
 
       <Card><CardContent className="p-5 space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="font-semibold">참여자 확인 ({confirmedIds.size}/{parts.length})</h2>
+          <h2 className="font-semibold text-lg">참여자 확인 ({confirmedIds.size}/{parts.length})</h2>
           <Badge variant="outline">{rate}%</Badge>
         </div>
         <div className="h-2 bg-muted rounded overflow-hidden">
@@ -173,12 +193,12 @@ function Share() {
           {parts.map(p => {
             const sig = sigs.find(s => s.participant_id === p.id);
             return (
-              <div key={p.id} className="py-3 flex items-center justify-between gap-3 text-sm">
+              <div key={p.id} className="py-3 flex items-center justify-between gap-3 text-base">
                 <div className="min-w-0">
-                  <div className="font-medium">{p.name} <span className="text-muted-foreground text-xs ml-1">{p.role}</span></div>
-                  <div className="text-xs text-muted-foreground">{p.participation_role}</div>
+                  <div className="font-medium">{p.name} <span className="text-muted-foreground text-sm ml-1">{p.role}</span></div>
+                  <div className="text-sm text-muted-foreground">{p.participation_role}</div>
                   {sig && (
-                    <div className="text-xs text-muted-foreground mt-0.5">
+                    <div className="text-sm text-muted-foreground mt-0.5">
                       서명: {new Date(sig.signed_at).toLocaleString("ko-KR")}
                     </div>
                   )}
@@ -188,7 +208,7 @@ function Share() {
                     {sig.signature_image?.startsWith("data:image") && (
                       <img src={sig.signature_image} alt="서명" className="h-10 w-20 object-contain border rounded bg-white" />
                     )}
-                    <span className="flex items-center gap-1 text-success text-xs"><CheckCircle2 className="h-4 w-4" />확인됨</span>
+                    <span className="flex items-center gap-1 text-success text-sm"><CheckCircle2 className="h-5 w-5" />확인됨</span>
                   </div>
                 ) : (
                   <div className="flex items-center gap-1">
@@ -201,7 +221,7 @@ function Share() {
               </div>
             );
           })}
-          {parts.length === 0 && <div className="py-6 text-center text-sm text-muted-foreground">참여자가 없습니다.</div>}
+          {parts.length === 0 && <div className="py-6 text-center text-base text-muted-foreground">참여자가 없습니다.</div>}
         </div>
 
         <div className="space-y-3 pt-3 border-t">
@@ -230,13 +250,38 @@ function Share() {
       </CardContent></Card>
 
       <Card><CardContent className="p-5 space-y-3">
-        <h2 className="font-semibold">공유 방식</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-          <Button variant="outline" className="gap-2" onClick={() => setQrOpen(true)}><QrCode className="h-4 w-4" />QR 출력</Button>
-          <Button variant="outline" className="gap-2" onClick={() => toast.info("카카오 알림톡 발송 기능 준비 중")}><MessageSquare className="h-4 w-4" />알림톡 발송</Button>
-          <Button variant="outline" className="gap-2" onClick={copyLink}><Link2 className="h-4 w-4" />링크 복사</Button>
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <h2 className="font-semibold text-lg">직원에게 확인 서명 받기</h2>
+          <label className="flex items-center gap-2 text-base cursor-pointer">
+            <Switch checked={(a as any).share_enabled !== false} onCheckedChange={setShare} aria-label="공유 링크 켜기/끄기" />
+            <span>{(a as any).share_enabled === false ? "공유 링크 꺼짐" : "공유 링크 켜짐"}</span>
+          </label>
         </div>
-        <p className="text-sm text-muted-foreground">참여자는 QR/링크로 접속해 본인 서명만 입력하면 됩니다.</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+          <Button variant="outline" className="gap-2" onClick={() => setQrOpen(true)}><QrCode className="h-5 w-5" />QR 출력</Button>
+          <Button variant="outline" className="gap-2" onClick={copyLink}><Link2 className="h-5 w-5" />서명 링크 복사</Button>
+          <Button variant="outline" className="gap-2" onClick={() => toast.info("카카오 알림톡 발송 기능 준비 중")}><MessageSquare className="h-5 w-5" />알림톡 발송 <span className="text-xs text-muted-foreground">(준비 중)</span></Button>
+        </div>
+        <p className="text-sm text-muted-foreground">참여자는 QR/링크로 접속해 내용을 보고 본인 서명만 하면 됩니다. 링크를 끄면 QR·링크·열람 화면이 모두 닫힙니다.</p>
+      </CardContent></Card>
+
+      <Card><CardContent className="p-5 space-y-3">
+        <h2 className="font-semibold text-lg">알리기 — 실시 전·후 공지, 입대의·본사 열람</h2>
+        <p className="text-sm text-muted-foreground">법 제36조 제4항: 위험성평가 관련 사항을 게시·서면·전자적 방법 등으로 근로자에게 알려야 합니다. 서명만 받고 끝내지 않도록 두 가지 공지를 준비했습니다.</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+          <Link to="/assessment/$id/notice" params={{ id }} search={{ kind: "before" }}><Button variant="outline" className="w-full gap-2"><Megaphone className="h-5 w-5" />실시 전 안내문 (게시용)</Button></Link>
+          <Link to="/assessment/$id/notice" params={{ id }} search={{ kind: "after" }}><Button variant="outline" className="w-full gap-2"><FileText className="h-5 w-5" />실시 후 결과 공지 (게시용)</Button></Link>
+          <Button variant="outline" className="gap-2" onClick={copyViewLink}><Eye className="h-5 w-5" />진행 현황 열람 링크 복사</Button>
+        </div>
+        <p className="text-sm text-muted-foreground">열람 링크는 로그인 없이 진행 상황과 위험요인·대책 전체를 볼 수 있는 읽기 전용 화면입니다. 입주자대표 회장·본사 담당에게 보내면 "확인했습니다" 기록을 남길 수 있습니다.</p>
+        {acks.length > 0 && (
+          <div className="rounded-md bg-muted/40 p-3 text-sm">
+            <div className="font-medium mb-1">열람 확인 기록</div>
+            <ul className="space-y-0.5 text-muted-foreground">
+              {acks.map((k, i) => <li key={i}>{k.name}{k.role ? ` (${k.role})` : ""} · {new Date(k.acked_at).toLocaleString("ko-KR")}</li>)}
+            </ul>
+          </div>
+        )}
       </CardContent></Card>
 
       <div className="flex justify-between">
